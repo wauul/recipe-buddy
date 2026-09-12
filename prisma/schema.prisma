@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String      @id @default(cuid())
+  email          String      @unique
+  hashedPassword String
+  roastEnabled   Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  recipes        Recipe[]
+  cookedLogs     CookedLog[]
+}
+
+model Recipe {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  altTitle    String      @default("")
+  servings    Int
+  vibe        String      @default("cozy")
+  roastLine   String      @default("")
+  ingredients Json
+  steps       Json
+  createdAt   DateTime    @default(now())
+  cookedLogs  CookedLog[]
+
+  @@index([userId, createdAt])
+}
+
+model CookedLog {
+  id       String   @id @default(cuid())
+  userId   String
+  recipeId String
+  date     DateTime @db.Date
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recipeId, date])
+  @@index([userId, date])
+}
+
+// Shared database-backed rate limits work across Vercel function instances.
+model RateLimit {
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+}
