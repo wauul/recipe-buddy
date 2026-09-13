@@ -4,6 +4,7 @@ import { load } from 'cheerio';
 export function recipePage(html: string, pageUrl: string) {
   const $ = load(html);
   const candidates: string[] = [];
+  let structuredText = '';
   function images(value: unknown): void {
     if (typeof value === 'string') candidates.push(value);
     else if (Array.isArray(value)) value.forEach(images);
@@ -13,7 +14,13 @@ export function recipePage(html: string, pageUrl: string) {
     if (Array.isArray(value)) { value.forEach(visit); return; }
     if (!value || typeof value !== 'object') return;
     const item = value as Record<string, unknown>;
-    if ([item['@type']].flat().includes('Recipe')) images(item.image);
+    if ([item['@type']].flat().includes('Recipe')) {
+      images(item.image);
+      // Structured recipe content avoids menus, ads and unrelated recommendations.
+      if (!structuredText && Array.isArray(item.recipeIngredient) && item.recipeInstructions) {
+        structuredText = JSON.stringify({ title: item.name, servings: item.recipeYield, ingredients: item.recipeIngredient, steps: item.recipeInstructions });
+      }
+    }
     Object.values(item).filter(v => typeof v === 'object').forEach(visit);
   }
   $('script[type="application/ld+json"]').each((_i, element) => {
@@ -29,5 +36,5 @@ export function recipePage(html: string, pageUrl: string) {
     } catch { /* Try the next image, or keep the illustrated fallback. */ }
   }
   $('script,style,nav,header,footer,noscript,iframe').remove();
-  return { imageUrl, text: ($('article').text() || $('main').text() || $('body').text()).replace(/\s+/g, ' ').trim().slice(0, 16000) };
+  return { imageUrl, text: (structuredText || $('article').text() || $('main').text() || $('body').text()).replace(/\s+/g, ' ').trim().slice(0, 16000) };
 }
