@@ -11,8 +11,8 @@ export async function POST(request: Request) {
     const { text } = z.object({ text: z.string().trim().min(10).max(16000) }).parse(await body(request));
     if (!(await rateLimit(`parse:${id}`, 5))) throw new HttpError(429, 'Chef needs a breather. Try again in a minute.');
     try {
-      const source = /^https?:\/\//i.test(text) ? await recipeUrlText(text) : text;
-      const recipe = await parseRecipe(source);
+      const source = /^https?:\/\//i.test(text) ? await recipeUrlText(text) : { text, imageUrl: '' };
+      const recipe = { ...await parseRecipe(source.text), imageUrl: source.imageUrl };
       const user = await db.user.findUniqueOrThrow({ where: { id } });
       return { ...recipe, roastLine: await roastRecipe(recipe, user.roastEnabled) };
     } catch (error) {

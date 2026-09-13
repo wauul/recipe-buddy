@@ -1,4 +1,9 @@
 import { z } from 'zod';
+export const imageSchema = z.string().max(300000).refine(value => {
+  if (!value) return true;
+  if (/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) return true;
+  try { const url = new URL(value); return value.length <= 2048 && url.protocol === 'https:' && !url.username && !url.password; } catch { return false; }
+}, 'Choose a photo or enter a valid HTTPS image URL.');
 export const ingredientSchema = z.object({
   name: z.string().trim().min(1).max(120),
   quantity: z.string().trim().max(40),
@@ -6,6 +11,7 @@ export const ingredientSchema = z.object({
 });
 export const recipeSchema = z.object({
   title: z.string().trim().min(1, 'Give this masterpiece a title.').max(160),
+  imageUrl: imageSchema.default(''),
   servings: z.number().int().min(1).max(100),
   ingredients: z.array(ingredientSchema).min(1).max(100),
   steps: z.array(z.string().trim().min(1).max(2000)).min(1).max(80),
