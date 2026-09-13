@@ -253,7 +253,7 @@ For a full live smoke test with your database and key:
 
 - Live app: [Recipe Buddy](https://recipe-buddy-wauul.vercel.app)
 - Private GitHub repository: [wauul/recipe-buddy](https://github.com/wauul/recipe-buddy)
-- Vercel project: `recipe-buddy-wauul` on the Hobby plan, linked to GitHub `main` for automatic deployments.
+- Vercel project: `recipe-buddy` on the Hobby plan, linked to GitHub `main` for automatic deployments.
 - Neon project: `recipe-buddy` (`gentle-bread-94796146`), Free plan, AWS Ohio.
 - Initial SQL migration applied once with user approval, including the matching Prisma migration-history record. Future database migrations remain an explicit release step.
 - All four production environment variables are stored as sensitive values in Vercel, with no secrets committed to GitHub.

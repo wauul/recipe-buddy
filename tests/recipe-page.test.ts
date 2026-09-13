@@ -15,6 +15,11 @@ test('malformed metadata and unsafe image URLs preserve text import', () => {
   assert.equal(page.text, 'Boil soup.');
   assert.equal(recipePage('<p>Cook rice.</p>', 'https://example.com').imageUrl, '');
 });
+test('structured recipe content takes priority over unrelated page text', () => {
+  const page = recipePage('<script type="application/ld+json">{"@type":"Recipe","name":"Soup","recipeYield":2,"recipeIngredient":["1 cup water"],"recipeInstructions":[{"text":"Boil water"}]}</script><article>Unrelated recommendations</article>', 'https://example.com/soup');
+  assert.equal(JSON.parse(page.text).title, 'Soup');
+  assert.ok(!page.text.includes('Unrelated'));
+});
 test('photo validation allows raster uploads and HTTPS, rejects executable schemes and oversized data', () => {
   for (const value of ['', 'https://example.com/food.jpg', 'data:image/webp;base64,AAAA']) assert.equal(imageSchema.safeParse(value).success, true);
   for (const value of ['javascript:alert(1)', 'http://example.com/photo', 'data:image/svg+xml;base64,AAAA', 'https://user:password@example.com/a', 'a'.repeat(300001)]) assert.equal(imageSchema.safeParse(value).success, false);

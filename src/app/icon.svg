@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>Recipe Buddy</title>
+  <rect width="512" height="512" rx="128" fill="#4D674F"/>
+  <path d="M160 302C119 294 96 264 96 228C96 187 128 155 168 155C182 121 216 100 256 100C296 100 330 121 344 155C384 155 416 187 416 228C416 264 393 294 352 302V376C352 396 336 412 316 412H196C176 412 160 396 160 376V302Z" stroke="#FAF8F0" stroke-width="25" stroke-linejoin="round"/>
+  <path d="M165 342H347" stroke="#FAF8F0" stroke-width="25" stroke-linecap="round"/>
+</svg>
