@@ -84,7 +84,7 @@ No variable uses `NEXT_PUBLIC_`: secrets stay on the server. `GROQ_API_KEY` can 
 3. Put it in `GROQ_API_KEY` locally and in Vercel's environment settings.
 4. Stay on the Free plan; do not enable paid billing. Check your account's model access and limits.
 
-The app requests `llama-3.1-8b-instant` exactly as specified. Provider model availability can change; if the account cannot use it, parsing shows an error and the manual editor remains available. See [Groq models](https://console.groq.com/docs/models) and [free-plan rate limits](https://console.groq.com/docs/rate-limits).
+The app first requests `llama-3.1-8b-instant`. This account returned `model_not_found` during deployment, so that specific error triggers a fallback to `openai/gpt-oss-20b`, available on Groq's free plan. Both calls share one timeout. Other provider errors still preserve the manual editor. See [Groq models](https://console.groq.com/docs/models) and [free-plan rate limits](https://console.groq.com/docs/rate-limits).
 
 Recipe source text is sent to Groq when you click **Parse recipe**. When roast mode is on, the dish title is sent again for a one-liner after parsing or saving. Turn roast mode off in Settings to stop that call. Review AI-generated ingredients and instructions before saving or cooking.
 
@@ -249,4 +249,11 @@ For a full live smoke test with your database and key:
 - **AI error:** confirm the key/model is enabled and within free limits; paste plain text if a website refuses fetching.
 - **Changes to secrets:** restart the local server or redeploy Vercel. Changing `NEXTAUTH_SECRET` signs existing sessions out.
 
-GitHub push, database provisioning, and Vercel deployment are user setup steps; no remote repository or paid service is created by this code.
+## Current deployment
+
+- Live app: [Recipe Buddy](https://recipe-buddy-wauul.vercel.app)
+- Private GitHub repository: [wauul/recipe-buddy](https://github.com/wauul/recipe-buddy)
+- Vercel project: `recipe-buddy-wauul` on the Hobby plan, linked to GitHub `main` for automatic deployments.
+- Neon project: `recipe-buddy` (`gentle-bread-94796146`), Free plan, AWS Ohio.
+- Initial SQL migration applied once with user approval, including the matching Prisma migration-history record. Future database migrations remain an explicit release step.
+- All four production environment variables are stored as sensitive values in Vercel, with no secrets committed to GitHub.
