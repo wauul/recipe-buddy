@@ -3,13 +3,22 @@ import { recipeSchema, type RecipeInput } from './validation';
 
 async function completion(system: string, text: string, json = true) {
   if (!process.env.GROQ_API_KEY) throw new Error('AI is not configured. You can still add recipes manually.');
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(12000),
+  const signal = AbortSignal.timeout(12000);
+  const send = (model: string) => fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST', cache: 'no-store', signal,
     headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'llama-3.1-8b-instant', temperature: 0.4, max_tokens: json ? 3500 : 100,
+    body: JSON.stringify({ model, temperature: 0.4, max_tokens: json ? 3500 : 800,
+      ...(model.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}),
       ...(json ? { response_format: { type: 'json_object' } } : {}),
       messages: [{ role: 'system', content: system }, { role: 'user', content: text }] })
   });
+  let response = await send('llama-3.1-8b-instant');
+  // The requested model is unavailable on some Groq accounts. Retry only that
+  // specific provider error, using an available free-tier model and the same deadline.
+  if (response.status === 404) {
+    const failure = await response.clone().json().catch(() => null);
+    if (failure?.error?.code === 'model_not_found') response = await send('openai/gpt-oss-20b');
+  }
   if (!response.ok) throw new Error(response.status === 429 ? 'Chef needs a breather. AI limit reached; try later or add manually.' : 'AI is unavailable. Please add your recipe manually.');
   const payload = await response.json();
   return z.string().min(1).parse(payload.choices?.[0]?.message?.content);
