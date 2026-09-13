@@ -257,3 +257,13 @@ For a full live smoke test with your database and key:
 - Neon project: `recipe-buddy` (`gentle-bread-94796146`), Free plan, AWS Ohio.
 - Initial SQL migration applied once with user approval, including the matching Prisma migration-history record. Future database migrations remain an explicit release step.
 - All four production environment variables are stored as sensitive values in Vercel, with no secrets committed to GitHub.
+
+## Friends, sharing and photos
+
+Visit **Friends** to send a request using another member's exact email. The recipient accepts or declines in their Friends page. Both people can cancel/remove the connection. Nothing is shared automatically: open a recipe and choose a friend under **Pass the recipe, chef**. Shared recipes appear on the friend's Friends page, including photos and the latest edits. Only the owner can edit or delete. Stop sharing or remove a friend to revoke future access (this cannot erase anything they already copied).
+
+Add or edit a recipe to upload a JPG, PNG or WebP (up to 10 MB), or paste an HTTPS image URL. Uploads are resized in the browser to at most 1000 pixels and compressed to a maximum of 300 KB of encoded data, stored in the existing Postgres database. This uses database capacity, with no additional storage service. Website imports prefer Recipe JSON-LD images, then Open Graph/Twitter metadata. Missing or blocked images use the illustrated fallback. External image links are loaded by the viewer's browser without a referrer; only use images you are allowed to share.
+
+New API routes: `GET/POST /api/friends`, `PATCH/DELETE /api/friends/[id]`, `GET/POST/DELETE /api/recipes/[id]/shares`, `GET /api/shared-recipes`, and `GET /api/shared-recipes/[id]`. All require login. Friend request acceptance is restricted to its recipient, and recipe sharing to its owner and accepted friends.
+
+For existing installations, apply the additive `20260914000000_social` and `20260914010000_recipe_photos` migrations **before** deploying this version (`npm run db:migrate`). Existing recipes remain private and keep their illustrations until a photo is added. Migrations are run explicitly, not on every Vercel build.

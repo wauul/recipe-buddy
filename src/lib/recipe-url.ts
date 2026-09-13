@@ -1,13 +1,13 @@
 import { lookup } from 'node:dns/promises';
 import https from 'node:https';
 import ipaddr from 'ipaddr.js';
-import { load } from 'cheerio';
+import { recipePage } from './recipe-page';
 
 export function isPublicAddress(address: string) {
   try { return ipaddr.process(address).range() === 'unicast'; } catch { return false; }
 }
 
-export async function recipeUrlText(raw: string, redirects = 0): Promise<string> {
+export async function recipeUrlText(raw: string, redirects = 0): Promise<{ text: string; imageUrl: string }> {
   const url = new URL(raw);
   if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443')) {
     throw new Error('Use a public HTTPS recipe URL.');
@@ -42,7 +42,5 @@ export async function recipeUrlText(raw: string, redirects = 0): Promise<string>
     req.on('close', () => clearTimeout(timer)); req.on('error', reject);
   });
   if (result.location) return recipeUrlText(result.location, redirects + 1);
-  const $ = load(result.html || '');
-  $('script,style,nav,header,footer,noscript,iframe').remove();
-  return ($('article').text() || $('main').text() || $('body').text()).replace(/\s+/g, ' ').trim().slice(0, 16000);
+  return recipePage(result.html || '', url.href);
 }
