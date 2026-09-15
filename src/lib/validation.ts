@@ -25,4 +25,4 @@ export const credentialsSchema = z.object({
 });
 export type RecipeInput = z.infer<typeof recipeSchema>;
 export type Ingredient = z.infer<typeof ingredientSchema>;
-export type RecipeView = RecipeInput & { id: string; roastLine: string; createdAt: string };
+export type RecipeView = RecipeInput & { id: string; roastLine: string; createdAt: string; updatedAt: string };

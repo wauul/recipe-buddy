@@ -1,0 +1,4 @@
+ALTER TABLE "Recipe" ADD COLUMN "updatedAt" TIMESTAMP(3);
+UPDATE "Recipe" SET "updatedAt" = "createdAt";
+ALTER TABLE "Recipe" ALTER COLUMN "updatedAt" SET NOT NULL;
+ALTER TABLE "Recipe" ALTER COLUMN "updatedAt" SET DEFAULT CURRENT_TIMESTAMP;
