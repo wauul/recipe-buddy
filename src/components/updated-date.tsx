@@ -1,0 +1,1 @@
+export function UpdatedDate({ date }: { date: string }) { return <p className="updated-label">Last updated <time dateTime={date}>{new Date(date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})}</time></p>; }

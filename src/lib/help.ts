@@ -1,0 +1,9 @@
+export const faqs = [
+  { question: 'How do I import a recipe from a website?', answer: 'Open New recipe, paste a public HTTPS recipe URL and choose Parse recipe. We import the ingredients, steps and available photo. Review the result before saving. If a site blocks access, paste the recipe text instead.' },
+  { question: 'Who can see my recipes?', answer: 'Your recipes are private. Add a friend by their exact account email, wait for them to accept, then choose Share recipe on a saved recipe. Friends can read that recipe but cannot edit or delete it.' },
+  { question: 'How do I stop sharing?', answer: 'Open the recipe and choose Stop sharing. Removing a friend revokes access to recipes shared in both directions. Copies someone already saved cannot be removed.' },
+  { question: 'Can I upload a photo?', answer: 'Yes. Add or edit a recipe and choose a JPG, PNG or WebP under 10 MB. We compress the photo before saving. You can also paste an HTTPS image URL.' },
+  { question: 'How does the shopping list combine ingredients?', answer: 'Select recipes on Shopping list. Matching ingredient names and compatible units are combined. Different units and ambiguous quantities stay separate so nothing gets lost.' },
+  { question: 'How do cooking days and chef roast mode work?', answer: 'Mark a recipe as cooked to count that day. The mascot counts distinct UTC days from Monday to Sunday. Turn playful recipe roasts off in Settings whenever you like.' },
+  { question: 'How do I print a recipe?', answer: 'Open a recipe and use your browser’s Print command (Ctrl+P or Cmd+P). The print layout hides navigation and controls, leaving your ingredients and method.' },
+];

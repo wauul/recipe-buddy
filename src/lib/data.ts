@@ -12,5 +12,5 @@ export async function currentUser() {
   return user;
 }
 export function recipeView(recipe: Recipe): RecipeView {
-  return { ...recipeSchema.parse(recipe), id: recipe.id, roastLine: recipe.roastLine, createdAt: recipe.createdAt.toISOString() };
+  return { ...recipeSchema.parse(recipe), id: recipe.id, roastLine: recipe.roastLine, createdAt: recipe.createdAt.toISOString(), updatedAt: recipe.updatedAt.toISOString() };
 }

@@ -267,3 +267,11 @@ Add or edit a recipe to upload a JPG, PNG or WebP (up to 10 MB), or paste an HTT
 New API routes: `GET/POST /api/friends`, `PATCH/DELETE /api/friends/[id]`, `GET/POST/DELETE /api/recipes/[id]/shares`, `GET /api/shared-recipes`, and `GET /api/shared-recipes/[id]`. All require login. Friend request acceptance is restricted to its recipient, and recipe sharing to its owner and accepted friends.
 
 For existing installations, apply the additive `20260914000000_social` and `20260914010000_recipe_photos` migrations **before** deploying this version (`npm run db:migrate`). Existing recipes remain private and keep their illustrations until a photo is added. Migrations are run explicitly, not on every Vercel build.
+
+## Interface and accessibility update
+
+The global sticky header includes recipe/help search, a persistent light/dark toggle and a phone-width navigation menu. Scroll progress, back-to-top, reduced-motion-aware loading states, keyboard focus styles, a skip link and a dismissible essential-cookie notice work across the app. Contact opens `contact@recipebuddy.waelfz.com` in the user's email app; this does not provision a mailbox or send a message automatically.
+
+`/search` searches only the signed-in user's own recipes and currently shared recipes, including ingredient and step text, plus app pages and FAQs. `/help` provides expandable FAQs and a copyable recipe-text example. HTTP(S) outbound anchors get `utm_source=recipe_buddy`, `utm_medium=referral`, and `utm_campaign=app`, preserving existing attribution; internal, email and phone links are untouched. No newsletter is included, as requested.
+
+Recipe deletion, friend removal/request cancellation and sharing revocation use native accessible confirmation dialogs. Recipe pages and cards show persisted UTC edit dates; historical recipes start with their creation date because earlier edit history was not stored. Apply `20260915000000_recipe_updated_at` before this release. Browser printing hides navigation, dialogs and controls and uses a light recipe layout.
