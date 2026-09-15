@@ -19,3 +19,7 @@ html[data-theme=dark]{color-scheme:dark;--paper:#131c18;--surface:#1d2922;--surf
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:720px){.auth-page{display:block}.auth-story{min-height:0;padding:24px 22px}.auth-story h1{font-size:32px;line-height:1.12;margin:18px 0;overflow-wrap:anywhere}.auth-story h1 br{display:block}.auth-story .eyebrow{margin-top:24px}.auth-story .brand{font-size:22px}.auth-form-wrap{padding-bottom:100px}.global-search input{min-width:0}.header-brand{min-width:0}.hero-copy{max-width:100%}.page-heading h1{overflow-wrap:anywhere}}
 .sidebar{overflow-y:auto}.nav-caption{margin-top:34px}.sidebar-note{margin-top:20px}.sidebar-note h3{font-size:19px}.sidebar-note{padding:18px 16px}.account{flex-shrink:0}@media(max-height:760px) and (min-width:721px){.sidebar-note{display:none}.account{margin-top:auto}}
+/* One brand per layout; compact, dismissible search on phones. */
+@media(min-width:721px){body:has(.sidebar) .header-brand{display:none}}
+.mobile-search-toggle{display:none}
+@media(max-width:720px){.mobile-search-toggle{display:inline-flex}.site-header .global-search{display:none}.site-header.search-open .global-search{display:flex}.mobile-navigation{top:80px}html{scroll-padding-top:90px}html:has(.search-open){scroll-padding-top:145px}}
