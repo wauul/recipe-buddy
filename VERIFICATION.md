@@ -33,3 +33,11 @@ The Windows sandbox prevented the original tsx runner from reading operating-sys
 - Friends page and photo editor rendered successfully in the live browser. Temporary test recipes and connections were removed; synthetic test accounts remain.
 - Social and photo migrations were applied once in a transaction and recorded with matching Prisma checksums. No automatic migration build hook was added.
 - SVG chef-hat favicon is available as src/app/icon.svg, with a reusable copy at public/recipe-buddy-icon.svg.
+
+## Interface verification (September 15, 2026)
+
+- Production build, TypeScript and lint passed; all 14 unit tests passed.
+- Live two-account checks passed for ingredient search, FAQ search, private recipe isolation, shared recipe visibility, revocation, edit timestamp advancement and contact page rendering. Temporary recipes and connections were cleaned up.
+- Browser checks passed for phone-width navigation, password visibility, FAQ expansion, clipboard success, cookie notice dismissal, a sticky header at scroll position 849px, scroll progress, and return-to-top restoring focus to main. No browser warnings/errors appeared in the inspected help-page session.
+- Print media rules are present in the delivered stylesheet; physical printer output was not tested. The newsletter was omitted per the user's correction. Contact is a mailto link to the supplied address; no mailbox was provisioned.
+- The live delete dialog focused Cancel, trapped interaction in the modal, and closed with Escape while restoring focus to Delete recipe; no user recipe was deleted. Mobile recipe layout measured 375px content width inside a 390px viewport with no horizontal overflow. The custom 404 recovery page and persistence of the light-mode selection after reload were also verified.
