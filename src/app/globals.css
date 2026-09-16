@@ -30,3 +30,37 @@ html[data-theme=dark]{color-scheme:dark;--paper:#131c18;--surface:#1d2922;--surf
 .take-form{display:grid;gap:18px;margin-bottom:24px}.take-form>.button{justify-self:start}.take-form select{max-width:100%}.take-list{display:grid;gap:18px}.take-card{border:1px solid var(--line);border-radius:16px;padding:24px;background:var(--surface,#fff);min-width:0}.take-card h3{font-family:Georgia,serif;font-size:23px;margin:16px 0 10px;overflow-wrap:anywhere}.contribution-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px}.contribution-meta time{color:var(--muted);font-size:11px}.contribution-meta>.icon-button{margin-left:auto}.take-author{font-weight:700;color:var(--green);overflow-wrap:anywhere}.take-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.take-type,.take-ingredient{display:inline-block;font-size:11px;border-radius:20px;padding:6px 10px;line-height:1.4;background:var(--paper);border:1px solid var(--line);overflow-wrap:anywhere}.take-type{font-weight:700}.contribution-text{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0;color:var(--ink)}.take-reason{border-left:3px solid var(--green);padding:8px 16px;margin:18px 0;background:var(--paper);border-radius:0 8px 8px 0}.take-reason strong{font-size:12px}.take-reason p{margin-bottom:0}.take-replies{margin-top:20px;border-top:1px solid var(--line);padding-top:16px}.take-replies summary{cursor:pointer;font-weight:600;font-size:12px;list-style:revert}.take-replies summary svg{display:inline;vertical-align:middle;margin-right:6px}.take-replies summary:hover{color:var(--green)}.recipe-comment{margin-top:16px;padding:16px 0;border-bottom:1px solid var(--line)}.recipe-comment strong{overflow-wrap:anywhere}.comment-form{display:grid;gap:12px;margin-top:20px}.comment-form>.button{justify-self:start}.recipe-comments{margin-top:32px;padding:26px;border:1px solid var(--line);border-radius:16px;background:var(--surface,#fff)}.twist-empty{border:1px dashed var(--line);border-radius:14px;padding:24px;display:flex;gap:15px;align-items:center}.twist-empty svg{flex-shrink:0;color:var(--green)}.twist-empty p{margin:0}
 @media(max-width:720px){.discussion-heading{flex-direction:column}.discussion-heading>.button{width:100%}.take-card,.recipe-comments{padding:18px}.contribution-meta{gap:8px}.recipe-discussion{margin-top:30px}.take-form .button,.comment-form>.button{width:100%}}
 @media print{.recipe-discussion{display:none!important}}
+
+/* Branded native dropdowns, with an enhanced picker where supported. */
+select:not([multiple]){
+  appearance:none;
+  background-color:var(--surface);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23788b70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+  border:1px solid var(--line);border-radius:12px;min-height:48px;
+  padding:12px 44px 12px 14px;color:var(--ink);font-weight:500;
+  cursor:pointer;transition:border-color .18s,box-shadow .18s,background-color .18s;
+}
+select:not([multiple]):hover:not(:disabled){border-color:var(--green);background-color:var(--surface-soft)}
+select:not([multiple]):focus-visible{border-color:var(--green);outline:2px solid var(--green);outline-offset:3px;box-shadow:0 0 0 5px var(--surface-soft)}
+select:disabled{opacity:.55;cursor:not-allowed}
+select option{background:var(--surface);color:var(--ink);font-weight:400}
+@supports (appearance:base-select){
+  select:not([multiple]),select:not([multiple])::picker(select){appearance:base-select}
+  select:not([multiple]){background-image:none;padding-right:14px;gap:12px;align-items:center}
+  select::picker-icon{color:var(--green);transition:rotate .18s;margin-left:auto}
+  select:open::picker-icon{rotate:180deg}
+  select::picker(select){margin-block:8px;border:1px solid var(--line);border-radius:14px;padding:6px;background:var(--surface);color:var(--ink);box-shadow:0 12px 32px #10241626;max-height:min(320px,60dvh);overflow:auto;font:inherit}
+  select option{padding:11px 12px;border-radius:8px;min-height:44px;white-space:normal;overflow-wrap:anywhere;gap:10px;cursor:pointer;transition:background-color .15s}
+  select option:hover,select option:focus{background:var(--surface-soft);outline:none}
+  select option:checked{background:var(--surface-soft);color:var(--green);font-weight:600}
+  select option::checkmark{color:var(--green);margin-left:auto;order:1}
+}
+@media(max-width:720px){select:not([multiple]){font-size:16px}select::picker(select){max-width:calc(100vw - 32px)}}
+@media(prefers-reduced-motion:reduce){select:not([multiple]),select::picker-icon,select option{transition:none}}
+@media(forced-colors:active){select:not([multiple]){appearance:auto;background-image:none}}
+
+.username-panel{margin-bottom:24px}.username-panel h2{margin-bottom:8px}.username-controls{display:flex;align-items:center;gap:12px;margin-top:8px}.username-controls input{min-width:0;flex:1}.username-hint{font-size:12px;margin:12px 0 0;color:var(--text-soft)}.account strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.friend-person strong,.share-friends strong{overflow-wrap:anywhere}
+@media(max-width:720px){.username-controls{flex-direction:column;align-items:stretch}.username-controls input{font-size:16px}}
+/* Keep the fallback chevron visible in dark mode as well. */
+@supports not (appearance:base-select){html[data-theme=dark] select:not([multiple]){background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2391bd86' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}}

@@ -10,6 +10,7 @@ datasource db {
 model User {
   id             String      @id @default(cuid())
   email          String      @unique
+  username       String      @default("")
   hashedPassword String
   roastEnabled   Boolean     @default(true)
   createdAt      DateTime    @default(now())
