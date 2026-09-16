@@ -275,3 +275,11 @@ The global sticky header includes recipe/help search, a persistent light/dark to
 `/search` searches only the signed-in user's own recipes and currently shared recipes, including ingredient and step text, plus app pages and FAQs. `/help` provides expandable FAQs and a copyable recipe-text example. HTTP(S) outbound anchors get `utm_source=recipe_buddy`, `utm_medium=referral`, and `utm_campaign=app`, preserving existing attribution; internal, email and phone links are untouched. No newsletter is included, as requested.
 
 Recipe deletion, friend removal/request cancellation and sharing revocation use native accessible confirmation dialogs. Recipe pages and cards show persisted UTC edit dates; historical recipes start with their creation date because earlier edit history was not stored. Apply `20260915000000_recipe_updated_at` before this release. Browser printing hides navigation, dialogs and controls and uses a light recipe layout.
+
+## Kitchen twists and recipe conversations
+
+Recipe owners and current recipients can add a take under **Kitchen twists**. Types include new ingredients, ingredient swaps, quantities, cooking time/temperature, techniques, equipment, serving ideas, and other changes. Each take has a title, a free-form description, an optional ingredient association and an optional explanation. The original recipe is unchanged. Comments can target the recipe or one of its takes.
+
+`GET/POST/DELETE /api/recipes/[id]/discussion` checks ownership or an active recipe share on every request. POST uses `kind: "take"` with `type`, `title`, `change`, `ingredient`, `reason`, or `kind: "comment"` with `text` and optional `takeId`. DELETE uses `kind` and `id`: authors can remove their contributions and owners can moderate any contribution. Deleting a take removes its replies. Unsharing removes access, while contributions remain on the owner's recipe. The interface explains this before posting. Attribution uses the account email's local part; email addresses are not exposed to other recipients.
+
+Apply `20260916000000_recipe_discussion` using `npm run db:migrate` before releasing this version. It adds RecipeTake and RecipeComment tables without changing existing recipe data. No new service or API key is required.

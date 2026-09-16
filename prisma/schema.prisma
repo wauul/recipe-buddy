@@ -18,6 +18,8 @@ model User {
   friendshipsA   Friendship[] @relation("FriendA")
   friendshipsB   Friendship[] @relation("FriendB")
   receivedShares RecipeShare[]
+  recipeTakes    RecipeTake[]
+  recipeComments RecipeComment[]
 }
 
 model Recipe {
@@ -36,8 +38,45 @@ model Recipe {
   updatedAt   DateTime    @default(now()) @updatedAt
   cookedLogs  CookedLog[]
   shares      RecipeShare[]
+  takes       RecipeTake[]
+  comments    RecipeComment[]
 
   @@index([userId, createdAt])
+}
+
+// Contributions belong to the original recipe, even if sharing later ends.
+model RecipeTake {
+  id           String @id @default(cuid())
+  recipeId     String
+  authorId     String
+  title        String
+  type         String @default("other")
+  change       String
+  ingredient   String @default("")
+  reason       String @default("")
+  createdAt    DateTime @default(now())
+  recipe       Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author       User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments     RecipeComment[]
+
+  @@index([recipeId, createdAt])
+  @@index([authorId])
+}
+
+model RecipeComment {
+  id        String @id @default(cuid())
+  recipeId  String
+  authorId  String
+  takeId    String?
+  text      String
+  createdAt DateTime @default(now())
+  recipe    Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author    User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  take      RecipeTake? @relation(fields: [takeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, createdAt])
+  @@index([takeId])
+  @@index([authorId])
 }
 
 model CookedLog {
