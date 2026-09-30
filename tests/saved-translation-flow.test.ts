@@ -149,3 +149,42 @@ test('roast replacement requires ownership and roast mode; failure preserves the
   assert.equal(updates[0].where.userId, 'chef-a');
   assert.equal(updates[0].where.updatedAt, recipe.updatedAt);
 });
+
+test('an untranslated roast is retried by itself and accepted fields remain persisted', async () => {
+  const rows: any[] = [],
+    batches: string[][] = [];
+  const source = 'The pasta has more drama than your television.';
+  const db = {
+    contentTranslation: {
+      findMany: async () => [],
+      createMany: async ({ data }: any) => {
+        rows.push(...data);
+      },
+    },
+  };
+  const module = load('src/lib/translate.ts', {
+    './db': { db },
+    './ai': {
+      completion: async (system: string, input: string) => {
+        const texts = JSON.parse(input).texts;
+        batches.push(texts);
+        if (system.includes('mandatory translation retry')) {
+          assert.equal(rows[0].text, 'farine', 'completed ingredient was stored before retry');
+          return JSON.stringify({
+            translations: ['Ces pâtes ont plus de drame que votre télévision.'],
+          });
+        }
+        return JSON.stringify({ translations: ['farine', source] });
+      },
+    },
+    './content-translation': integrity,
+    './recipe-languages': languages,
+  });
+  const result = await module.translateTexts('chef-a', 'fr', ['flour', source]);
+  assert.deepEqual(Array.from(result), [
+    'farine',
+    'Ces pâtes ont plus de drame que votre télévision.',
+  ]);
+  assert.deepEqual(Array.from(batches[1]), [source]);
+  assert.equal(rows.length, 2);
+});
