@@ -20,10 +20,32 @@ function measurements(text: string) {
   );
 }
 
-export function validateTranslations(source: string[], value: unknown): string[] {
+function clearlyNeedsTranslation(text: string, locale: 'en' | 'fr') {
+  const languageWords =
+    locale === 'fr'
+      ? /\b(the|this|with|and|your|that|until|another|while|you|add|stir|bake|cook)\b/gi
+      : /\b(le|la|les|avec|faire|cuire|pendant|ajouter|remuer|vous|une|dans|pour)\b/gi;
+  const measurementWords =
+    locale === 'fr'
+      ? /\b(tablespoons?|teaspoons?|slices?|chopped|pieces?|cups?)\b/i
+      : /\b(cuillères?|tranches?|morceaux?|tasses?|paquets?)\b/i;
+  return (text.match(languageWords)?.length ?? 0) >= 2 || measurementWords.test(text);
+}
+
+export function validateTranslations(
+  source: string[],
+  value: unknown,
+  locale?: 'en' | 'fr',
+): string[] {
   const result = z.object({ translations: z.array(z.string().min(1).max(8000)) }).parse(value);
   if (result.translations.length !== source.length) throw new Error('Incomplete translation.');
   result.translations.forEach((text, index) => {
+    if (
+      locale &&
+      clearlyNeedsTranslation(source[index], locale) &&
+      text.trim() === source[index].trim()
+    )
+      throw new Error('Recipe text was left untranslated.');
     if (JSON.stringify(numbers(text)) !== JSON.stringify(numbers(source[index])))
       throw new Error('Translation changed a cooking quantity.');
     if (JSON.stringify(measurements(text)) !== JSON.stringify(measurements(source[index])))

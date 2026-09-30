@@ -1,10 +1,16 @@
 import { z } from 'zod';
 import { recipeSchema, type RecipeInput } from './validation';
 
-export async function completion(system: string, text: string, json = true, maxTokens = 3500) {
+export async function completion(
+  system: string,
+  text: string,
+  json = true,
+  maxTokens = 3500,
+  options: { model?: string; temperature?: number; timeoutMs?: number } = {},
+) {
   if (!process.env.GROQ_API_KEY)
     throw new Error('AI is not configured. You can still add recipes manually.');
-  const signal = AbortSignal.timeout(12000);
+  const signal = AbortSignal.timeout(options.timeoutMs ?? 12000);
   const send = (model: string) =>
     fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -16,7 +22,7 @@ export async function completion(system: string, text: string, json = true, maxT
       },
       body: JSON.stringify({
         model,
-        temperature: 0.4,
+        temperature: options.temperature ?? 0.4,
         max_tokens: json ? maxTokens : 800,
         ...(model.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}),
         ...(json ? { response_format: { type: 'json_object' } } : {}),
@@ -26,7 +32,7 @@ export async function completion(system: string, text: string, json = true, maxT
         ],
       }),
     });
-  let response = await send('llama-3.1-8b-instant');
+  let response = await send(options.model ?? 'llama-3.1-8b-instant');
   // The requested model is unavailable on some Groq accounts. Retry only that
   // specific provider error, using an available free-tier model and the same deadline.
   if (response.status === 404) {
@@ -34,7 +40,10 @@ export async function completion(system: string, text: string, json = true, maxT
       .clone()
       .json()
       .catch(() => null);
-    if (failure?.error?.code === 'model_not_found') response = await send('openai/gpt-oss-20b');
+    if (failure?.error?.code === 'model_not_found')
+      response = await send(
+        options.model === 'openai/gpt-oss-20b' ? 'llama-3.1-8b-instant' : 'openai/gpt-oss-20b',
+      );
   }
   if (!response.ok)
     throw new Error(

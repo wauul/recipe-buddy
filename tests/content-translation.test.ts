@@ -48,6 +48,35 @@ test('incomplete or malformed translations never replace the originals', () => {
     assert.throws(() => validateTranslations(['flour'], response));
 });
 
+test('roast sentences and measurement words cannot silently remain in the wrong language', () => {
+  const roast = 'Oh great, another soup that cannot decide if it is a snack or a tragedy.';
+  for (const source of [roast, '1 tablespoon', '2 slices', '1/4 cup water'])
+    assert.throws(() => validateTranslations([source], { translations: [source] }, 'fr'));
+  assert.deepEqual(
+    validateTranslations(
+      [roast],
+      { translations: ['Oh génial, encore une soupe qui hésite entre le goûter et la tragédie.'] },
+      'fr',
+    ),
+    ['Oh génial, encore une soupe qui hésite entre le goûter et la tragédie.'],
+  );
+  assert.deepEqual(
+    validateTranslations(
+      ['500 g', 'Les tomates avec le basilic'],
+      { translations: ['500 g', 'Les tomates avec le basilic'] },
+      'fr',
+    ),
+    ['500 g', 'Les tomates avec le basilic'],
+  );
+  assert.throws(() =>
+    validateTranslations(
+      ['Faire cuire dans une casserole'],
+      { translations: ['Faire cuire dans une casserole'] },
+      'en',
+    ),
+  );
+});
+
 test('bounded batches retain every source string in order across large recipes', () => {
   const pending = new Set(Array.from({ length: 90 }, (_, i) => `${i}: ` + 'x'.repeat(1990)));
   const all = [...pending];
