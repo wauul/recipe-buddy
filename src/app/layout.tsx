@@ -3,5 +3,42 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { SiteTools } from '@/components/site-tools';
-export const metadata: Metadata = { title: { default: 'Recipe Buddy — Good food. Good mood.', template: '%s | Recipe Buddy' }, description: 'Your private recipe box, playful sous-chef, and shopping list buddy.' };
-export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="en" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{__html:`try{document.documentElement.dataset.theme=localStorage.getItem('rb-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{}`}} /></head><body><SiteTools />{children}<Analytics /><SpeedInsights /></body></html>; }
+import localFont from 'next/font/local';
+const display = localFont({
+  src: '../../public/fonts/bricolage-grotesque.woff2',
+  variable: '--font-display',
+  weight: '400 700',
+  display: 'swap',
+});
+const body = localFont({
+  src: '../../public/fonts/source-sans-3.woff2',
+  variable: '--font-body',
+  weight: '400 700',
+  display: 'swap',
+});
+export const metadata: Metadata = {
+  title: {
+    default: 'Recipe Buddy | Your recipe box',
+    template: '%s | Recipe Buddy',
+  },
+  description: 'Save your recipes, build a shopping list, and share favorites with friends.',
+};
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('rb-theme');document.documentElement.dataset.theme=t==='light'||t==='dark'?t:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}`,
+          }}
+        />
+      </head>
+      <body>
+        <SiteTools />
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  );
+}

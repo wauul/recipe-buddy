@@ -8,71 +8,130 @@ datasource db {
 }
 
 model User {
-  id             String      @id @default(cuid())
-  email          String      @unique
-  username       String      @default("")
-  hashedPassword String
-  roastEnabled   Boolean     @default(true)
-  createdAt      DateTime    @default(now())
+  id             String          @id @default(cuid())
+  email          String          @unique
+  username       String          @default("")
+  hashedPassword String?
+  name           String?
+  emailVerified  DateTime?
+  image          String?
+  roastEnabled   Boolean         @default(true)
+  createdAt      DateTime        @default(now())
   recipes        Recipe[]
   cookedLogs     CookedLog[]
-  friendshipsA   Friendship[] @relation("FriendA")
-  friendshipsB   Friendship[] @relation("FriendB")
+  friendshipsA   Friendship[]    @relation("FriendA")
+  friendshipsB   Friendship[]    @relation("FriendB")
   receivedShares RecipeShare[]
   recipeTakes    RecipeTake[]
   recipeComments RecipeComment[]
+  accounts       Account[]
+  sessions       Session[]
+  recipeReviews  RecipeReview[]
 }
 
 model Recipe {
-  id          String      @id @default(cuid())
+  id          String          @id @default(cuid())
   userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   title       String
-  altTitle    String      @default("")
-  imageUrl    String      @default("")
+  altTitle    String          @default("")
+  imageUrl    String          @default("")
   servings    Int
-  vibe        String      @default("cozy")
-  roastLine   String      @default("")
+  vibe        String          @default("cozy")
+  roastLine   String          @default("")
   ingredients Json
   steps       Json
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now()) @updatedAt
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
   cookedLogs  CookedLog[]
   shares      RecipeShare[]
   takes       RecipeTake[]
   comments    RecipeComment[]
+  reviews     RecipeReview[]
 
   @@index([userId, createdAt])
 }
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// JWT sessions remain in use; these standard adapter models retain compatibility.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// One editable review per other chef; ratings are constrained to 1–5 in SQL.
+model RecipeReview {
+  id        String   @id @default(cuid())
+  recipeId  String
+  authorId  String
+  rating    Int
+  text      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, authorId])
+  @@index([authorId])
+}
+
 // Contributions belong to the original recipe, even if sharing later ends.
 model RecipeTake {
-  id           String @id @default(cuid())
-  recipeId     String
-  authorId     String
-  title        String
-  type         String @default("other")
-  change       String
-  ingredient   String @default("")
-  reason       String @default("")
-  createdAt    DateTime @default(now())
-  recipe       Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  author       User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments     RecipeComment[]
+  id         String          @id @default(cuid())
+  recipeId   String
+  authorId   String
+  title      String
+  type       String          @default("other")
+  change     String
+  ingredient String          @default("")
+  reason     String          @default("")
+  createdAt  DateTime        @default(now())
+  recipe     Recipe          @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author     User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments   RecipeComment[]
 
   @@index([recipeId, createdAt])
   @@index([authorId])
 }
 
 model RecipeComment {
-  id        String @id @default(cuid())
+  id        String      @id @default(cuid())
   recipeId  String
   authorId  String
   takeId    String?
   text      String
-  createdAt DateTime @default(now())
-  recipe    Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  author    User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+  recipe    Recipe      @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   take      RecipeTake? @relation(fields: [takeId], references: [id], onDelete: Cascade)
 
   @@index([recipeId, createdAt])
@@ -101,14 +160,14 @@ model RateLimit {
 
 // One canonical row per pair prevents duplicate and crossed friend requests.
 model Friendship {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   userAId     String
   userBId     String
   requesterId String
   acceptedAt  DateTime?
-  createdAt   DateTime @default(now())
-  userA       User     @relation("FriendA", fields: [userAId], references: [id], onDelete: Cascade)
-  userB       User     @relation("FriendB", fields: [userBId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  userA       User          @relation("FriendA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB       User          @relation("FriendB", fields: [userBId], references: [id], onDelete: Cascade)
   shares      RecipeShare[]
 
   @@unique([userAId, userBId])

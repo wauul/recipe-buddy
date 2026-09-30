@@ -1,34 +1,271 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowUp, Menu, Moon, Sun, Search, Mail, X } from 'lucide-react';
+import { ArrowUp, Menu, Moon, Sun, Search, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { trackedOutbound } from '@/lib/outbound';
-
+import { applyTheme, themePreference } from '@/lib/theme';
 export function SiteTools() {
   const pathname = usePathname();
-  const [dark, setDark] = useState(false), [menu, setMenu] = useState(false), [cookies, setCookies] = useState(false), [top, setTop] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const searchToggle = useRef<HTMLButtonElement>(null);
-  const searchInput = useRef<HTMLInputElement>(null);
-  const bar = useRef<HTMLDivElement>(null);
+  const publicPage = ['/', '/login', '/signup', '/privacy'].includes(pathname);
+  const [dark, setDark] = useState(false),
+    [menu, setMenu] = useState(false),
+    [cookies, setCookies] = useState(false),
+    [top, setTop] = useState(false),
+    [searchOpen, setSearchOpen] = useState(false);
+  const searchToggle = useRef<HTMLButtonElement>(null),
+    menuToggle = useRef<HTMLButtonElement>(null),
+    searchInput = useRef<HTMLInputElement>(null),
+    bar = useRef<HTMLDivElement>(null),
+    menuPanel = useRef<HTMLElement>(null);
   useEffect(() => {
-    setDark(document.documentElement.dataset.theme === 'dark');
-    try { setCookies(!localStorage.getItem('rb-cookie-notice-v1')); } catch { setCookies(true); }
-    const update = () => { const max = document.documentElement.scrollHeight - innerHeight; if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`; setTop(scrollY > 500); };
-    update(); addEventListener('scroll', update, { passive: true }); addEventListener('resize', update);
-    const observer = new ResizeObserver(update); observer.observe(document.body);
-    return () => { removeEventListener('scroll', update); removeEventListener('resize', update); observer.disconnect(); };
+    const updateTheme = () => setDark(document.documentElement.dataset.theme === 'dark');
+    updateTheme();
+    const media = matchMedia('(prefers-color-scheme: dark)');
+    const systemTheme = () => {
+      if (themePreference() === 'system') applyTheme('system');
+    };
+    const storageTheme = () => applyTheme(themePreference());
+    window.addEventListener('rb-theme-change', updateTheme);
+    window.addEventListener('storage', storageTheme);
+    media.addEventListener('change', systemTheme);
+    try {
+      setCookies(!localStorage.getItem('rb-cookie-notice-v1'));
+    } catch {
+      setCookies(true);
+    }
+    const update = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+      setTop(scrollY > 500);
+    };
+    update();
+    addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', update);
+    const observer = new ResizeObserver(update);
+    observer.observe(document.body);
+    return () => {
+      window.removeEventListener('rb-theme-change', updateTheme);
+      window.removeEventListener('storage', storageTheme);
+      media.removeEventListener('change', systemTheme);
+      removeEventListener('scroll', update);
+      removeEventListener('resize', update);
+      observer.disconnect();
+    };
   }, []);
-  useEffect(() => { setMenu(false); setSearchOpen(false); }, [pathname]);
   useEffect(() => {
-    const update = () => { document.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(a => { const href=a.getAttribute('href')!;const next=trackedOutbound(href,location.origin);if(next!==href)a.setAttribute('href',next); }); };
-    update();const observer=new MutationObserver(update);observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['href']});return()=>observer.disconnect();
+    setMenu(false);
+    setSearchOpen(false);
+  }, [pathname]);
+  useEffect(() => {
+    const update = () =>
+      document.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((a) => {
+        const href = a.getAttribute('href')!;
+        const next = trackedOutbound(href, location.origin);
+        if (next !== href) a.setAttribute('href', next);
+      });
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['href'],
+    });
+    return () => observer.disconnect();
   }, []);
-  useEffect(() => { const close=(event:KeyboardEvent)=>{if(event.key==='Escape'){setMenu(false);setSearchOpen(false);if(document.activeElement===searchInput.current)searchToggle.current?.focus();}};addEventListener('keydown',close);return()=>removeEventListener('keydown',close); }, []);
-  useEffect(() => { if (searchOpen) searchInput.current?.focus(); }, [searchOpen]);
-  function closeSearch() { setSearchOpen(false); searchToggle.current?.focus(); }
-  function theme() { const next = !dark; setDark(next); document.documentElement.dataset.theme = next ? 'dark' : 'light'; try { localStorage.setItem('rb-theme', next ? 'dark' : 'light'); } catch { /* Theme still works without storage. */ } }
-  return <><a href="#main" className="skip-link">Skip to content</a><header className={`site-header ${searchOpen ? 'search-open' : ''}`}><Link href="/recipes" className="header-brand">Recipe Buddy<span>YOUR DAILY DISH OF INSPIRATION</span></Link><button ref={searchToggle} className="icon-button mobile-search-toggle" aria-label={searchOpen ? 'Close search' : 'Open search'} aria-expanded={searchOpen} aria-controls="header-search" onClick={() => { if(searchOpen)closeSearch();else{setSearchOpen(true);setMenu(false);} }}>{searchOpen ? <X size={19}/> : <Search size={19}/>}</button><form id="header-search" action="/search" role="search" className="global-search" onSubmit={() => setSearchOpen(false)}><Search size={17} /><label className="sr-only" htmlFor="site-search">Search recipes and help</label><input ref={searchInput} id="site-search" name="q" maxLength={100} placeholder="Find a recipe, ingredient or answer…" /><button type="submit" aria-label="Search site">Go</button></form><button className="icon-button" onClick={theme} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={dark}>{dark ? <Sun size={19} /> : <Moon size={19} />}</button><button className="icon-button mobile-menu-toggle" aria-expanded={menu} aria-controls="mobile-navigation" onClick={() => { setMenu(!menu); setSearchOpen(false); }} aria-label={menu ? 'Close menu' : 'Open menu'}>{menu ? <X size={20} /> : <Menu size={20} />}</button><div ref={bar} className="scroll-progress" aria-hidden="true" /></header>{menu && <nav id="mobile-navigation" className="mobile-navigation" aria-label="Mobile navigation">{[['/recipes','My recipes'],['/shopping-list','Shopping list'],['/friends','Friends'],['/settings','Settings'],['/help','Help & FAQ']].map(([href,label]) => <Link href={href} key={href} onClick={() => setMenu(false)}>{label}</Link>)}<button onClick={() => signOut({callbackUrl:'/login'})}>Sign out</button></nav>}<div className="floating-tools">{top && <button className="icon-button" aria-label="Back to top" onClick={() => { window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}); document.getElementById('main')?.focus({preventScroll:true}); }}><ArrowUp size={20} /></button>}<Link href="mailto:contact@recipebuddy.waelfz.com?subject=Recipe%20Buddy%20feedback" className="button primary" aria-label="Contact Recipe Buddy"><Mail size={18} /><span>Get in touch</span></Link></div>{cookies && <aside className="cookie-banner" aria-label="Cookie notice"><div><strong>A small cookie, no crumbs.</strong><p>We use essential cookies to keep you signed in, and local storage for preferences. No advertising cookies.</p></div><button className="button primary" onClick={() => { setCookies(false); try { localStorage.setItem('rb-cookie-notice-v1','seen'); } catch { /* Dismiss for this visit. */ } }}>Got it</button></aside>}</>;
+  useEffect(() => {
+    const close = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (menu) {
+          setMenu(false);
+          menuToggle.current?.focus();
+        }
+        if (searchOpen) {
+          setSearchOpen(false);
+          searchToggle.current?.focus();
+        }
+      }
+    };
+    const outside = (e: PointerEvent) => {
+      if (
+        menu &&
+        !menuPanel.current?.contains(e.target as Node) &&
+        !menuToggle.current?.contains(e.target as Node)
+      )
+        setMenu(false);
+    };
+    addEventListener('keydown', close);
+    addEventListener('pointerdown', outside);
+    return () => {
+      removeEventListener('keydown', close);
+      removeEventListener('pointerdown', outside);
+    };
+  }, [menu, searchOpen]);
+  useEffect(() => {
+    if (searchOpen) searchInput.current?.focus();
+  }, [searchOpen]);
+  useEffect(() => {
+    if (menu) menuPanel.current?.querySelector<HTMLElement>('a,button')?.focus();
+  }, [menu]);
+  function closeSearch() {
+    setSearchOpen(false);
+    searchToggle.current?.focus();
+  }
+  return (
+    <>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <header
+        className={`site-header ${publicPage ? 'public-header' : ''} ${searchOpen ? 'search-open' : ''}`}
+      >
+        <Link href={publicPage ? '/' : '/recipes'} className="header-brand">
+          Recipe Buddy
+        </Link>
+        {!publicPage && (
+          <>
+            <button
+              ref={searchToggle}
+              className="icon-button mobile-search-toggle"
+              aria-label={searchOpen ? 'Close search' : 'Open search'}
+              aria-expanded={searchOpen}
+              aria-controls="header-search"
+              onClick={() => {
+                if (searchOpen) closeSearch();
+                else {
+                  setSearchOpen(true);
+                  setMenu(false);
+                }
+              }}
+            >
+              {searchOpen ? (
+                <X aria-hidden="true" size={20} />
+              ) : (
+                <Search aria-hidden="true" size={20} />
+              )}
+            </button>
+            <form id="header-search" action="/search" role="search" className="global-search">
+              <Search aria-hidden="true" size={18} />
+              <label className="sr-only" htmlFor="site-search">
+                Search recipes and help
+              </label>
+              <input
+                ref={searchInput}
+                id="site-search"
+                name="q"
+                maxLength={100}
+                placeholder="Find a recipe, ingredient or answer"
+                required
+              />
+              <button type="submit" aria-label="Search site">
+                Go
+              </button>
+            </form>
+          </>
+        )}
+        {pathname === '/' && (
+          <nav className="landing-nav" aria-label="Site navigation">
+            <a href="#how-it-works">How it works</a>
+            <Link href="/login">Log in</Link>
+            <Link href="/signup" className="button primary">
+              Join the kitchen
+            </Link>
+          </nav>
+        )}
+        {publicPage && pathname !== '/' && (
+          <a
+            className="header-contact"
+            href="mailto:contact@recipebuddy.waelfz.com?subject=Recipe%20Buddy%20feedback"
+          >
+            Contact
+          </a>
+        )}
+        <button
+          className="icon-button"
+          onClick={() => applyTheme(dark ? 'light' : 'dark')}
+          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-pressed={dark}
+        >
+          {dark ? <Sun aria-hidden="true" size={20} /> : <Moon aria-hidden="true" size={20} />}
+        </button>
+        {!publicPage && (
+          <button
+            ref={menuToggle}
+            className="icon-button mobile-menu-toggle"
+            aria-expanded={menu}
+            aria-controls="mobile-navigation"
+            onClick={() => {
+              setMenu(!menu);
+              setSearchOpen(false);
+            }}
+            aria-label={menu ? 'Close menu' : 'Open menu'}
+          >
+            {menu ? <X aria-hidden="true" size={20} /> : <Menu aria-hidden="true" size={20} />}
+          </button>
+        )}
+        <div ref={bar} className="scroll-progress" aria-hidden="true" />
+      </header>
+      {menu && (
+        <nav
+          ref={menuPanel}
+          id="mobile-navigation"
+          className="mobile-navigation"
+          aria-label="Account and help"
+        >
+          <Link href="/recipes/new">Add a recipe</Link>
+          <Link href="/settings">Settings</Link>
+          <Link href="/help">Help & FAQ</Link>
+          <a href="mailto:contact@recipebuddy.waelfz.com?subject=Recipe%20Buddy%20feedback">
+            Contact
+          </a>
+          <button onClick={() => signOut({ callbackUrl: '/login' })}>Sign out</button>
+        </nav>
+      )}
+      {top && (
+        <div className="floating-tools">
+          <button
+            className="icon-button"
+            aria-label="Back to top"
+            onClick={() => {
+              window.scrollTo({
+                top: 0,
+                behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
+                  ? 'instant'
+                  : 'smooth',
+              });
+              document.getElementById('main')?.focus({ preventScroll: true });
+            }}
+          >
+            <ArrowUp aria-hidden="true" size={20} />
+          </button>
+        </div>
+      )}
+      {cookies && (
+        <aside className="cookie-banner" aria-label="Cookie notice">
+          <div>
+            <strong>Cookies and preferences</strong>
+            <p>
+              We use essential cookies to keep you signed in, and local storage for preferences. No
+              advertising cookies.
+            </p>
+          </div>
+          <button
+            className="button secondary"
+            onClick={() => {
+              setCookies(false);
+              try {
+                localStorage.setItem('rb-cookie-notice-v1', 'seen');
+              } catch {
+                /* Dismiss for this visit. */
+              }
+            }}
+          >
+            Got it
+          </button>
+        </aside>
+      )}
+    </>
+  );
 }

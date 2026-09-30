@@ -1,2 +1,22 @@
 import Link from 'next/link';
-export default function NotFound() { return <main id="main" tabIndex={-1} className="not-found-page"><span className="eyebrow">404 · A LITTLE KITCHEN MISHAP</span><div className="lost-plate" aria-hidden="true">🍳</div><h1>Well, this is a little<br/><em>overcooked.</em></h1><p>That page wandered out of the kitchen. It may have moved, been deleted, or belong to another chef.</p><div><Link href="/recipes" className="button primary">Back to my recipes</Link><Link href="/search" className="button secondary">Search the kitchen</Link></div><Link href="/help" className="text-button">Need a hand? Visit help →</Link></main>; }
+import { BookOpen } from 'lucide-react';
+export default function NotFound() {
+  return (
+    <main id="main" tabIndex={-1} className="not-found-page">
+      <BookOpen aria-hidden="true" size={40} />
+      <h1>Recipe or page not found</h1>
+      <p>It may have moved, been deleted, or no longer be shared with you.</p>
+      <div>
+        <Link href="/recipes" className="button primary">
+          My recipes
+        </Link>
+        <Link href="/search" className="button secondary">
+          Search
+        </Link>
+      </div>
+      <Link href="/help" className="text-button">
+        Help & FAQ
+      </Link>
+    </main>
+  );
+}

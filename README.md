@@ -1,17 +1,22 @@
 # Recipe Buddy 🍝
 
-A private recipe box with a playful sous-chef. Built with **Next.js 14 App Router, React 18, Tailwind CSS, Prisma + Postgres, NextAuth Credentials, bcrypt, Zod, and Groq**. No paid API keys are required. Manual recipe creation works without a Groq key.
+A private recipe box with a playful sous-chef. Built with **Next.js 14 App Router, React 18, Tailwind CSS, Prisma + Postgres, NextAuth Credentials + Google OAuth, bcrypt, Zod, and Groq**. No paid API keys are required. Manual recipe creation works without a Groq key.
 
 ## What's inside
 
-- Email/password signup and login; bcrypt hashes and signed, HTTP-only JWT sessions.
+- A public landing page with simple kitchen line art, the recipe/shopping/sharing workflow and all seven chef badges. Login and signup use a clean text-first layout.
+- Email/password and optional Google signup/login; existing password chefs can connect Google from Settings. Bcrypt hashes and signed, HTTP-only JWT sessions remain. See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for activation and live checks.
+- Seven illustrated chef levels combine current saved recipes and apron reviews from other chefs. Each saved recipe earns 10 points; every received apron earns 2. Share a recipe to receive one editable 1–5 apron review from each other chef.
 - Private recipe CRUD with dynamic ingredient and instruction fields.
 - Paste recipe text or a public HTTPS URL to extract a recipe using Groq's `llama-3.1-8b-instant`.
 - Silly alternate titles, cozy/lazy/fancy/chaotic badges, and optional chef roasts.
-- Cooking mascot based on **distinct cooked days this calendar week**, Monday–Sunday **in UTC**. This is weekly activity, not a consecutive-day streak. Multiple recipes on one day count once. Repeated clicks are idempotent.
+- Weekly activity display based on **distinct cooked days this calendar week**, Monday–Sunday **in UTC**. This is weekly activity, not a consecutive-day streak. Multiple recipes on one day count once. Repeated clicks are idempotent.
 - Random recipe shuffle, recipe search, and vibe filters.
 - Shopping lists grouped by ingredient; matching unit quantities add together. Checkboxes persist in this browser, separately for each user. Completing a nonempty list triggers confetti, respecting reduced-motion preferences.
-- Responsive cream-and-sage UI with illustrated recipe cards, useful empty states, loading and error screens.
+- Responsive cream-and-sage UI with original cooking illustrations, animated feedback, self-hosted fonts, useful empty states, and loading/error screens. Light, dark, and device themes persist in this browser; reduced motion disables animations.
+- Desktop sidebar and phone bottom navigation, accessible form error summaries, and native confirmation dialogs.
+
+See [DESIGN.md](DESIGN.md) for the visual direction, [DESIGN_VERIFICATION.md](DESIGN_VERIFICATION.md) for verification and limitations, and [ASSETS.md](ASSETS.md) for asset provenance.
 
 The requested meal-planning flow is recipe selection → combined shopping list; a separate calendar scheduler is not included.
 
@@ -67,6 +72,8 @@ DATABASE_URL="postgresql://USER:PASSWORD@YOUR_NEON_HOST/neondb?sslmode=require"
 NEXTAUTH_SECRET="YOUR_RANDOM_SECRET"
 NEXTAUTH_URL="http://localhost:3000"
 GROQ_API_KEY="YOUR_FREE_GROQ_KEY"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
 ```
 
 Generate a session secret:
@@ -138,19 +145,19 @@ tests/core.test.ts                  Validation, URL safety, aggregation, week bo
 
 All recipe, shopping and settings routes require an authenticated session. Mutations accept `Content-Type: application/json`; browser origins must match `NEXTAUTH_URL`. Errors return `{ "error": "friendly message" }` with an appropriate HTTP status.
 
-| Method | Route | Request / result |
-| --- | --- | --- |
+| Method    | Route                     | Request / result                                |
+| --------- | ------------------------- | ----------------------------------------------- |
 | GET, POST | `/api/auth/[...nextauth]` | NextAuth session, CSRF and credentials handlers |
-| POST | `/api/auth/signup` | `{email,password}` → `{ok:true}` |
-| GET | `/api/recipes` | User's recipes, newest first |
-| POST | `/api/recipes` | Recipe input → saved recipe (201) |
-| GET | `/api/recipes/:id` | Owned recipe or 404 |
-| PUT | `/api/recipes/:id` | Complete recipe input → `{ok:true}` |
-| DELETE | `/api/recipes/:id` | `{}` → `{ok:true}` |
-| POST | `/api/recipes/parse` | `{text}` → recipe fields + roastLine |
-| POST | `/api/recipes/:id/cook` | `{}` → `{ok:true,date}` |
-| POST | `/api/shopping-list` | `{recipeIds:[...]}` → `[{name,amounts:[...]}]` |
-| PUT | `/api/settings` | `{roastEnabled:boolean}` → saved preference |
+| POST      | `/api/auth/signup`        | `{email,password}` → `{ok:true}`                |
+| GET       | `/api/recipes`            | User's recipes, newest first                    |
+| POST      | `/api/recipes`            | Recipe input → saved recipe (201)               |
+| GET       | `/api/recipes/:id`        | Owned recipe or 404                             |
+| PUT       | `/api/recipes/:id`        | Complete recipe input → `{ok:true}`             |
+| DELETE    | `/api/recipes/:id`        | `{}` → `{ok:true}`                              |
+| POST      | `/api/recipes/parse`      | `{text}` → recipe fields + roastLine            |
+| POST      | `/api/recipes/:id/cook`   | `{}` → `{ok:true,date}`                         |
+| POST      | `/api/shopping-list`      | `{recipeIds:[...]}` → `[{name,amounts:[...]}]`  |
+| PUT       | `/api/settings`           | `{roastEnabled:boolean}` → saved preference     |
 
 Recipe input:
 
@@ -175,7 +182,7 @@ Recipe input:
 
 Shopping aggregation normalizes case, whitespace and common unit aliases, sums numbers and fractions, and preserves ambiguous quantities such as `to taste`. Different units remain separate. Ingredient synonyms (such as scallion/green onion) and weight/volume conversions are intentionally not guessed.
 
-Login is limited per normalized email, signup has a small global hourly cap, and AI/save routes are limited per user using Postgres. Rate-limit keys are hashes; the table can periodically be cleaned with `DELETE FROM "RateLimit" WHERE "expiresAt" < NOW();`. Password reset/email verification are not part of this credentials-only implementation.
+Login is limited per normalized email, signup has a small global hourly cap, and AI/save routes are limited per user using Postgres. Rate-limit keys are hashes; the table can periodically be cleaned with `DELETE FROM "RateLimit" WHERE "expiresAt" < NOW();`. Password recovery and email verification for password accounts are not included. Google sign-in requires a verified Google identity.
 
 ## 6. Initialize Git, commit, and push to GitHub
 
@@ -211,7 +218,7 @@ If `origin` already exists, inspect `git remote -v` and use `git remote set-url 
 3. Choose **Node.js 22.x**. Use the default install command and `npm run build` (or `pnpm build` if retaining the pnpm lockfile).
 4. Add `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, and `GROQ_API_KEY` to the **Production** environment. Use a new production session secret.
 5. Set `NEXTAUTH_URL` to your expected canonical HTTPS domain, for example `https://recipe-buddy-yourname.vercel.app`.
-6. Apply the migration against the intended production Neon database **before using the deployment**, using `npm run db:migrate` with that database's direct connection string. Restore local environment values afterward. Builds generate the client but do not mutate the database.
+6. For a fresh installation, apply all migrations against the intended production database before deployment using `npm run db:migrate`. This existing project's production build also includes the exact chef release helper described below; local and preview builds skip it.
 7. Click **Deploy**. If the assigned domain differs, correct `NEXTAUTH_URL` to the actual canonical URL and redeploy. Do not include a trailing path.
 8. Open the deployed app, sign up, save a manual recipe, parse a recipe, mark it cooked, generate a shopping list, and check all items.
 9. Future pushes to `main` deploy automatically. Apply any new committed migrations before releasing code that needs them.
@@ -252,7 +259,7 @@ For a full live smoke test with your database and key:
 ## Current deployment
 
 - Live app: [Recipe Buddy](https://recipe-buddy-wauul.vercel.app)
-- Private GitHub repository: [wauul/recipe-buddy](https://github.com/wauul/recipe-buddy)
+- GitHub repository: [wauul/recipe-buddy](https://github.com/wauul/recipe-buddy)
 - Vercel project: `recipe-buddy` on the Hobby plan, linked to GitHub `main` for automatic deployments.
 - Neon project: `recipe-buddy` (`gentle-bread-94796146`), Free plan, AWS Ohio.
 - Initial SQL migration applied once with user approval, including the matching Prisma migration-history record. Future database migrations remain an explicit release step.
@@ -270,7 +277,7 @@ For existing installations, apply the additive `20260914000000_social` and `2026
 
 ## Interface and accessibility update
 
-The global sticky header includes recipe/help search, a persistent light/dark toggle and a phone-width navigation menu. Scroll progress, back-to-top, reduced-motion-aware loading states, keyboard focus styles, a skip link and a dismissible essential-cookie notice work across the app. Contact opens `contact@recipebuddy.waelfz.com` in the user's email app; this does not provision a mailbox or send a message automatically.
+The global header includes recipe/help search and a persistent light/dark toggle. Signed-in screens use a desktop sidebar and five-destination phone bottom navigation, with an account menu. Scroll progress, back-to-top, reduced-motion-aware loading states, keyboard focus styles, a skip link and a dismissible essential-cookie notice work across the app. Contact opens `contact@recipebuddy.waelfz.com` in the user's email app; this does not provision a mailbox or send a message automatically.
 
 `/search` searches only the signed-in user's own recipes and currently shared recipes, including ingredient and step text, plus app pages and FAQs. `/help` provides expandable FAQs and a copyable recipe-text example. HTTP(S) outbound anchors get `utm_source=recipe_buddy`, `utm_medium=referral`, and `utm_campaign=app`, preserving existing attribution; internal, email and phone links are untouched. No newsletter is included, as requested.
 
@@ -280,6 +287,24 @@ Recipe deletion, friend removal/request cancellation and sharing revocation use 
 
 Recipe owners and current recipients can add a take under **Kitchen twists**. Types include new ingredients, ingredient swaps, quantities, cooking time/temperature, techniques, equipment, serving ideas, and other changes. Each take has a title, a free-form description, an optional ingredient association and an optional explanation. The original recipe is unchanged. Comments can target the recipe or one of its takes.
 
-`GET/POST/DELETE /api/recipes/[id]/discussion` checks ownership or an active recipe share on every request. POST uses `kind: "take"` with `type`, `title`, `change`, `ingredient`, `reason`, or `kind: "comment"` with `text` and optional `takeId`. DELETE uses `kind` and `id`: authors can remove their contributions and owners can moderate any contribution. Deleting a take removes its replies. Unsharing removes access, while contributions remain on the owner's recipe. The interface explains this before posting. Attribution uses the account email's local part; email addresses are not exposed to other recipients.
+`GET/POST/DELETE /api/recipes/[id]/discussion` checks ownership or an active recipe share on every request. POST uses `kind: "take"` with `type`, `title`, `change`, `ingredient`, `reason`, or `kind: "comment"` with `text` and optional `takeId`. DELETE uses `kind` and `id`: authors can remove their contributions and owners can moderate any contribution. Deleting a take removes its replies. Unsharing removes access, while contributions remain on the owner's recipe. The interface explains this before posting. Attribution uses the current chef name; renames update earlier contributions and email addresses are not exposed to other recipients.
 
 Apply `20260916000000_recipe_discussion` using `npm run db:migrate` before releasing this version. It adds RecipeTake and RecipeComment tables without changing existing recipe data. No new service or API key is required.
+
+## Chef journey and apron reviews
+
+Chefs begin as **Toast Rookie**, then progress through **Whisk Whisperer**, **Pan Wrangler**, **Sauce Sorcerer**, **Flavor Alchemist**, **Feast Maestro** and **Apron Legend**. Thresholds are 0, 30, 80, 180, 350, 650 and 1,100 points. The collection and navigation show the current level; Chef settings shows the seven illustrated badges. Original kitchen artwork, gentle badge motion, animated steam and responsive feedback retain the cream/sage and forest palettes. Reduced motion disables animation.
+
+Levels are recalculated from current collection/review totals, rather than a lifetime counter. Review updates, withdrawals and recipe deletion can lower a level. Unsharing preserves earlier reviews and their attribution but removes the former recipient’s read/write access. Recipe deletion removes its reviews.
+
+`GET /api/recipes/:id/reviews` returns reviews only to the recipe’s chef and current recipients. `PUT` accepts `{rating:1..5,text?:string}` and upserts the signed-in chef’s review, subject to an active share, a 20-update/minute limit and the no-self-review rule. `DELETE` removes only the caller’s review and returns `{ok:true}`. A database unique constraint enforces one review per chef/recipe; a SQL check enforces the rating range. Notes are limited to 1,000 characters.
+
+See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for Google configuration. The new dependency is the standard NextAuth v4 Prisma adapter; existing route and recipe payload contracts remain.
+
+## This release through GitHub
+
+The user requested a push to GitHub `main`, which triggers the existing Vercel production deployment. `pnpm build` generates Prisma Client and runs `scripts/migrate-chefs.cjs` before building Next.js. Outside `VERCEL_ENV=production`, the helper exits without accessing a database.
+
+On production, it takes a transaction-scoped advisory lock, checks the existing six completed migrations, and applies only the checksum-pinned `20260930000000_google_chefs_reviews` SQL. The transaction adds OAuth/review tables and makes password hashes nullable; it preserves existing accounts, recipes, friendships and shares. It records the completed migration in Prisma's history, so subsequent builds are a no-op. Unexpected migration history or edited SQL fails the build without applying changes. Four isolated mock tests cover these release branches; live build logs confirm actual application separately.
+
+Fresh installations still use `pnpm db:migrate` to apply the complete migration history. Future schema changes need their own explicit release step; this helper does not apply them automatically.
