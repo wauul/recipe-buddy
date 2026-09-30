@@ -34,6 +34,7 @@ test('saved bilingual recipe covers title, nickname, roast, ingredient names and
       [original.steps[0]]: 'Cuire à 200°C pendant 20 minutes.',
     },
     pending: false,
+    version: 2,
   };
   const seed = recipeLanguageSeed({ ...original, translations });
   assert.equal(
@@ -55,6 +56,7 @@ test('missing or corrupted stored versions leave the original intact and never c
       en: {},
       fr: { [original.steps[0]]: 'Cuire à 999°C pendant 20 minutes.' },
       pending: false,
+      version: 2,
     },
   });
   assert.equal(seed.fr[original.steps[0]], original.steps[0]);
@@ -66,7 +68,7 @@ test('literal ingredient names that resemble object properties remain data', () 
     ...original,
     ingredients: [{ name: '__proto__', quantity: '', unit: '' }],
     translations: JSON.parse(
-      '{"en":{"__proto__":"__proto__"},"fr":{"__proto__":"nom"},"pending":false}',
+      '{"en":{"__proto__":"__proto__"},"fr":{"__proto__":"nom"},"pending":false,"version":2}',
     ),
   };
   const seed = recipeLanguageSeed(recipe);
@@ -90,4 +92,13 @@ test('provider-sized batches progress without losing a large step', () => {
   const sources = ['a'.repeat(3000), 'b'.repeat(3000), 'c'.repeat(4000)];
   assert.deepEqual(translationBatch(sources, 4500), [sources[0]]);
   assert.deepEqual(translationBatch([sources[2]], 1000), [sources[2]]);
+});
+
+test('legacy language versions await explicit regeneration and expose the original meanwhile', () => {
+  const seed = recipeLanguageSeed({
+    ...original,
+    translations: { en: {}, fr: { Bread: 'Ancien pain' }, pending: false },
+  });
+  assert.equal(seed.pending, true);
+  assert.equal(seed.fr.Bread, 'Bread');
 });

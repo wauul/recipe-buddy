@@ -84,6 +84,10 @@ Final checks passed: TypeScript, ESLint with no warnings, all 29 tests, and the 
 
 ## Saved-language update
 
-- 51 unit tests pass, including persistent cache reuse, owner-only bilingual roast replacement, atomic migration/history/checksum safety, complete bilingual recipe fields, cooking-value integrity, already-target prose, and literal object-like ingredient names.
+- 53 unit tests pass, including translation-version replacement and targeted retries for missed roast fragments, persistent cache reuse, owner-only bilingual roast replacement, atomic migration/history/checksum safety, complete bilingual recipe fields, cooking-value integrity, already-target prose, and literal object-like ingredient names.
 - Browser verification confirms zero display-translation requests while opening a prepared recipe, switching FR → EN → FR, and reloading. A failed new-roast request preserves the previous translated joke and leaves retry enabled. Pending language preparation remains explicit, with no automatic reading-time recipe generation.
 - Production migration adds only `Recipe.translations` and account-owned `ContentTranslation` rows. Save-time preparation preserves authored content, and conditional snapshot writes avoid overwriting a concurrent edit. New roasts persist both languages together and change only the joke.
+
+- Live one-time preparation completed for all five existing chef recipes. Production build logs confirm the additive migration applied successfully. Browser fixtures now pass the same server-derived plain language maps used by real recipes, including original toggling, EN/FR switching and reload with zero display AI requests.
+
+- Live content review led to GPT-OSS 120B for bilingual recipe copies and fresh roasts, stronger short-fragment checks, and versioned stored copies. Earlier translations are explicitly regenerated once; prepared recipes still use database reads only.

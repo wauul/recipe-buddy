@@ -8,7 +8,7 @@ A private recipe box with a playful sous-chef. Built with **Next.js 14 App Route
 - Email/password and optional Google signup/login; a matching verified Google email automatically connects to the existing chef account, and Settings also supports connecting Google. Bcrypt hashes and signed, HTTP-only JWT sessions remain. See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for activation and live checks.
 - Seven illustrated chef levels combine current saved recipes and apron reviews from other chefs. Each saved recipe earns 10 points; every received apron earns 2. Share a recipe to receive one editable 1–5 apron review from each other chef.
 - Private recipe CRUD with dynamic ingredient and instruction fields.
-- Paste recipe text or a public HTTPS URL to extract a recipe using Groq's `llama-3.1-8b-instant`.
+- Paste recipe text or a public HTTPS URL to extract a recipe using Groq's `openai/gpt-oss-20b`.
 - Silly alternate titles, cozy/lazy/fancy/chaotic badges, and optional chef roasts.
 - Weekly activity display based on **distinct cooked days this calendar week**, Monday–Sunday **in UTC**. This is weekly activity, not a consecutive-day streak. Multiple recipes on one day count once. Repeated clicks are idempotent.
 - Random recipe shuffle, recipe search, and vibe filters.
@@ -91,7 +91,7 @@ No variable uses `NEXT_PUBLIC_`: secrets stay on the server. `GROQ_API_KEY` can 
 3. Put it in `GROQ_API_KEY` locally and in Vercel's environment settings.
 4. Stay on the Free plan; do not enable paid billing. Check your account's model access and limits.
 
-The app first requests `llama-3.1-8b-instant`. This account returned `model_not_found` during deployment, so that specific error triggers a fallback to `openai/gpt-oss-20b`, available on Groq's free plan. Both calls share one timeout. Other provider errors still preserve the manual editor. See [Groq models](https://console.groq.com/docs/models) and [free-plan rate limits](https://console.groq.com/docs/rate-limits).
+Imports first request `openai/gpt-oss-20b`; bilingual recipe copies and new roasts use `openai/gpt-oss-120b` for better language quality. A model-not-found response retries the other supported model. Both calls share one timeout. Other provider errors still preserve the manual editor. See [Groq models](https://console.groq.com/docs/models) and [free-plan rate limits](https://console.groq.com/docs/rate-limits).
 
 Recipe source text is sent to Groq when you click **Parse recipe**. When roast mode is on, the dish title is sent again for a one-liner after parsing or saving. Turn roast mode off in Settings to stop that call. Review AI-generated ingredients and instructions before saving or cooking.
 

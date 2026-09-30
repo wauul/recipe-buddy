@@ -91,6 +91,7 @@ test('roast replacement requires ownership and roast mode; failure preserves the
       en: { Bread: 'Bread', 'Old joke': 'Old joke' },
       fr: { Bread: 'Pain', 'Old joke': 'Ancienne blague' },
       pending: false,
+      version: 2,
     },
   };
   const db = {

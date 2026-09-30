@@ -52,7 +52,14 @@ test('incomplete or malformed translations never replace the originals', () => {
 
 test('roast sentences and measurement words cannot silently remain in the wrong language', () => {
   const roast = 'Oh great, another soup that cannot decide if it is a snack or a tragedy.';
-  for (const source of [roast, '1 tablespoon', '2 slices', '1/4 cup water'])
+  for (const source of [
+    roast,
+    '1 tablespoon',
+    '2 slices',
+    '1/4 cup water',
+    'Silly Soup Sizzlers',
+    'chicken backs and necks',
+  ])
     assert.throws(() => validateTranslations([source], { translations: [source] }, 'fr'));
   assert.deepEqual(
     validateTranslations(

@@ -223,11 +223,11 @@ export function ContentText({ children }: { children: string }) {
 }
 
 export function useSavedRecipeTranslations(recipes: RecipeView[]) {
-  const { seed, version } = useContext(ContentContext);
+  const { seed } = useContext(ContentContext);
   const key = JSON.stringify(recipes.map(recipeLanguageSeed));
   useEffect(() => {
     for (const languages of JSON.parse(key)) seed(languages);
-  }, [key, seed, version]);
+  }, [key, seed]);
 }
 export function SavedRecipeLanguages({ recipes }: { recipes: RecipeView[] }) {
   useSavedRecipeTranslations(recipes);

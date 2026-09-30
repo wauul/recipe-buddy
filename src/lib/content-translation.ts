@@ -71,7 +71,15 @@ function clearlyNeedsTranslation(text: string, locale: 'en' | 'fr') {
     locale === 'fr'
       ? /\b(tablespoons?|teaspoons?|slices?|chopped|pieces?|cups?)\b/i
       : /\b(cuillères?|tranches?|morceaux?|tasses?|paquets?)\b/i;
-  return (text.match(languageWords)?.length ?? 0) >= 2 || measurementWords.test(text);
+  const culinaryWords =
+    locale === 'fr'
+      ? /\b(soup|sizzlers?|silly|bonanza|delight|balls?|pops?|dough|bread|chicken|mushrooms?|flour|onions?|ginger|cheesy|saucy|pockets?|whisk|water|eggs?|butter|yeast|sugar|oil)\b/i
+      : /\b(poulet|farine|oignons?|gingembre|fromage|beurre|levure|sucre|huile|eau|champignons?|cuillères?|raviolis)\b/i;
+  return (
+    (text.match(languageWords)?.length ?? 0) >= 2 ||
+    measurementWords.test(text) ||
+    culinaryWords.test(text)
+  );
 }
 
 export function translationIsUnnecessary(text: string, locale: 'en' | 'fr') {

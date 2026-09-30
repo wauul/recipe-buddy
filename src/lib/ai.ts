@@ -33,7 +33,7 @@ export async function completion(
         ],
       }),
     });
-  let response = await send(options.model ?? 'llama-3.1-8b-instant');
+  let response = await send(options.model ?? 'openai/gpt-oss-20b');
   // The requested model is unavailable on some Groq accounts. Retry only that
   // specific provider error, using an available free-tier model and the same deadline.
   if (response.status === 404) {
@@ -43,7 +43,7 @@ export async function completion(
       .catch(() => null);
     if (failure?.error?.code === 'model_not_found')
       response = await send(
-        options.model === 'openai/gpt-oss-20b' ? 'llama-3.1-8b-instant' : 'openai/gpt-oss-20b',
+        options.model === 'openai/gpt-oss-120b' ? 'openai/gpt-oss-20b' : 'openai/gpt-oss-120b',
       );
   }
   if (!response.ok) {
@@ -102,7 +102,7 @@ export async function freshRoast(title: string, previous: string) {
     JSON.stringify({ title, previous }),
     true,
     2200,
-    { model: 'openai/gpt-oss-20b', temperature: 0.8, timeoutMs: 20000 },
+    { model: 'openai/gpt-oss-120b', temperature: 0.8, timeoutMs: 20000 },
   );
   const roast = z
     .object({ en: z.string().trim().min(1).max(240), fr: z.string().trim().min(1).max(240) })
