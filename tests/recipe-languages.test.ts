@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { recipeLanguageSeed, recipeTexts } from '../src/lib/recipe-languages';
+import {
+  recipeLanguageSeed,
+  recipeTexts,
+  cookingMeasurement,
+  repairRecipeLanguageMeasurements,
+} from '../src/lib/recipe-languages';
 import { translationIsUnnecessary, translationBatch } from '../src/lib/content-translation';
 const original = {
   title: 'Bread',
@@ -101,4 +106,26 @@ test('legacy language versions await explicit regeneration and expose the origin
   });
   assert.equal(seed.pending, true);
   assert.equal(seed.fr.Bread, 'Bread');
+});
+
+test('saved cooking containers and pan-frying retain their culinary meaning', () => {
+  assert.equal(cookingMeasurement('1 (15‑ounce) can', 'fr'), '1 boîte de 15 onces');
+  assert.equal(cookingMeasurement('1/4 cup', 'fr'), '1/4 tasse');
+  assert.equal(cookingMeasurement('2 cuillères à soupe', 'en'), '2 tablespoons');
+  assert.equal(cookingMeasurement('You can bake it.', 'fr'), undefined);
+  const recipe = {
+    ...original,
+    title: 'Pan‑Fried Tempeh Balls',
+    ingredients: [{ name: 'white beans', quantity: '1 (15‑ounce) can', unit: '' }],
+  };
+  const saved = {
+    en: {},
+    fr: { [recipe.title]: 'Boulettes de tempeh panées', '1 (15‑ounce) can': '1 (15-once) peut' },
+    pending: false,
+    version: 2,
+  };
+  const repaired = repairRecipeLanguageMeasurements(recipe, saved);
+  assert.equal(repaired.fr[recipe.title], 'Boulettes de tempeh poêlées');
+  assert.equal(repaired.fr['1 (15‑ounce) can'], '1 boîte de 15 onces');
+  assert.equal(recipe.ingredients[0].quantity, '1 (15‑ounce) can');
 });

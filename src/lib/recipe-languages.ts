@@ -54,7 +54,7 @@ export function savedLanguages(value: unknown): SavedLanguages {
 export function recipeLanguageSeed(
   recipe: Parameters<typeof recipeTexts>[0] & { translations?: unknown },
 ) {
-  const saved = savedLanguages(recipe.translations);
+  const saved = repairRecipeLanguageMeasurements(recipe, savedLanguages(recipe.translations));
   const texts = recipeTexts(recipe);
   const seed: SavedLanguages = {
     en: {},
@@ -91,4 +91,71 @@ export function recipeLanguageSeed(
     }
   }
   return seed;
+}
+
+const measurePairs = [
+  ['tablespoon', 'cuillère à soupe'],
+  ['tablespoons', 'cuillères à soupe'],
+  ['teaspoon', 'cuillère à café'],
+  ['teaspoons', 'cuillères à café'],
+  ['cup', 'tasse'],
+  ['cups', 'tasses'],
+  ['slice', 'tranche'],
+  ['slices', 'tranches'],
+  ['piece', 'morceau'],
+  ['pieces', 'morceaux'],
+  ['clove', 'gousse'],
+  ['cloves', 'gousses'],
+  ['ounce', 'once'],
+  ['ounces', 'onces'],
+  ['pound', 'livre'],
+  ['pounds', 'livres'],
+  ['lbs', 'livres'],
+  ['can', 'boîte'],
+  ['cans', 'boîtes'],
+];
+export function cookingMeasurement(text: string, locale: 'en' | 'fr'): string | undefined {
+  // A can is a container here, never the verb “can”. Keep values without conversion.
+  const container = text.match(/^([\d/., ¼½¾]+)\s*\(([\d/.,]+)[-‑–]ounces?\)\s+cans?$/i);
+  if (container && locale === 'fr') return `${container[1].trim()} boîte de ${container[2]} onces`;
+  for (const [en, fr] of measurePairs) {
+    for (const source of [en, fr]) {
+      if (text.toLowerCase() === source) return locale === 'fr' ? fr : en;
+      if (text.toLowerCase().endsWith(' ' + source)) {
+        const quantity = text.slice(0, -(source.length + 1));
+        if (/^[\d/., +−¼½¾-]+$/.test(quantity)) return quantity + ' ' + (locale === 'fr' ? fr : en);
+      }
+    }
+  }
+}
+export function repairRecipeLanguageMeasurements(
+  recipe: Parameters<typeof recipeTexts>[0],
+  saved: SavedLanguages,
+): SavedLanguages {
+  const result = { ...saved, en: { ...saved.en }, fr: { ...saved.fr } };
+  for (const locale of ['en', 'fr'] as const) {
+    const dictionary = result[locale];
+    for (const ingredient of recipe.ingredients) {
+      for (const source of [ingredient.quantity, ingredient.unit]) {
+        const translated = cookingMeasurement(source, locale);
+        if (translated !== undefined) dictionary[source] = translated;
+      }
+      const combined = [ingredient.quantity, ingredient.unit].filter(Boolean).join(' ');
+      const parts = [ingredient.quantity, ingredient.unit].filter(Boolean);
+      if (combined && parts.every((source) => Object.hasOwn(dictionary, source))) {
+        const joined = parts.map((source) => dictionary[source]).join(' ');
+        validateTranslations([combined], { translations: [joined] });
+        dictionary[combined] = joined;
+      }
+    }
+    if (
+      locale === 'fr' &&
+      /pan[-‑– ]fried/i.test(recipe.title) &&
+      !/breaded/i.test(recipe.title) &&
+      Object.hasOwn(dictionary, recipe.title)
+    ) {
+      dictionary[recipe.title] = dictionary[recipe.title].replace(/panées/gi, 'poêlées');
+    }
+  }
+  return result;
 }

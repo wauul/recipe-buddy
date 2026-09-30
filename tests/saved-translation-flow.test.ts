@@ -169,7 +169,7 @@ test('an untranslated roast is retried by itself and accepted fields remain pers
       completion: async (system: string, input: string) => {
         const texts = JSON.parse(input).texts;
         batches.push(texts);
-        if (system.includes('mandatory translation retry')) {
+        if (texts.length === 1) {
           assert.equal(rows[0].text, 'farine', 'completed ingredient was stored before retry');
           return JSON.stringify({
             translations: ['Ces pâtes ont plus de drame que votre télévision.'],
@@ -188,4 +188,29 @@ test('an untranslated roast is retried by itself and accepted fields remain pers
   ]);
   assert.deepEqual(Array.from(batches[1]), [source]);
   assert.equal(rows.length, 2);
+});
+
+test('provider JSON truncation retries once with a larger output budget', async () => {
+  const budgets: number[] = [];
+  const module = load('src/lib/translate.ts', {
+    './db': {
+      db: { contentTranslation: { findMany: async () => [], createMany: async () => {} } },
+    },
+    './ai': {
+      completion: async (_system: string, _input: string, _json: boolean, budget: number) => {
+        budgets.push(budget);
+        if (budgets.length === 1)
+          throw Object.assign(new Error('truncated'), {
+            status: 400,
+            code: 'json_validate_failed',
+          });
+        return JSON.stringify({ translations: ['farine'] });
+      },
+    },
+    './content-translation': integrity,
+    './recipe-languages': languages,
+  });
+  const result = await module.translateTexts('chef-a', 'fr', ['flour']);
+  assert.equal(result[0], 'farine');
+  assert.deepEqual(budgets, [2200, 6000]);
 });

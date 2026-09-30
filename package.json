@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && node scripts/migrate-chefs.cjs && node scripts/migrate-languages.cjs && next build",
+    "build": "prisma generate && node scripts/migrate-chefs.cjs && node scripts/migrate-languages.cjs && tsx scripts/repair-saved-language-measurements.ts && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
