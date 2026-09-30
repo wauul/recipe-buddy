@@ -17,7 +17,10 @@ export default async function SettingsPage() {
       where: { userId: user.id, provider: 'google' },
       select: { id: true },
     }),
-    db.recipe.findMany({ where: { userId: user.id }, select: { id: true, translations: true } }),
+    db.recipe.findMany({
+      where: { userId: user.id },
+      select: { id: true, translations: true },
+    }),
   ]);
   return (
     <>
@@ -27,25 +30,31 @@ export default async function SettingsPage() {
           <p>{t('Your chef journey, account and kitchen preferences.')}</p>
         </div>
       </div>
-      <ChefProgressPanel chefName={user.username} progress={progress} roadmap />
-      <SettingsForm roastEnabled={user.roastEnabled} username={user.username} showHeading={false} />
-      <PrepareRecipeLanguages
-        recipeIds={recipes
-          .filter((recipe) => savedLanguages(recipe.translations).pending)
-          .map((recipe) => recipe.id)}
-      />
-      <section className="form-panel google-connection">
-        <h2>{t('Google sign-in')}</h2>
-        <p>
-          {t(
-            google
-              ? 'Google is connected to your chef account.'
-              : 'Connect Google to this chef account so you can sign in either way.',
-          )}
-        </p>
-        {!google && <GoogleSignIn enabled={googleAuthEnabled()} connect />}
-        {google && <p className="social-notice">{t('Google connected')}</p>}
-      </section>
+      <div className="settings-cards">
+        <ChefProgressPanel chefName={user.username} progress={progress} roadmap />
+        <SettingsForm
+          roastEnabled={user.roastEnabled}
+          username={user.username}
+          showHeading={false}
+        />
+        <PrepareRecipeLanguages
+          recipeIds={recipes
+            .filter((recipe) => savedLanguages(recipe.translations).pending)
+            .map((recipe) => recipe.id)}
+        />
+        <section className="form-panel google-connection">
+          <h2>{t('Google sign-in')}</h2>
+          <p>
+            {t(
+              google
+                ? 'Google is connected to your chef account.'
+                : 'Connect Google to this chef account so you can sign in either way.',
+            )}
+          </p>
+          {!google && <GoogleSignIn enabled={googleAuthEnabled()} connect />}
+          {google && <p className="social-notice">{t('Google connected')}</p>}
+        </section>
+      </div>
     </>
   );
 }

@@ -4178,4 +4178,20 @@ body:has(.auth-page) .cookie-banner {
 .recipe-language-pending { padding: 1rem; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 1rem; background: var(--surface); }
 .recipe-language-pending p { margin-top: 0; font-size: .88rem; }
 .recipe-language-settings { margin-block: 1.25rem; }
+.settings-cards {
+  display: grid;
+  gap: 24px;
+}
+.settings-cards > section {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+.roast-settings-card .settings-panel {
+  max-width: none;
+  margin: 0;
+}
+.roast-settings-card > [role] {
+  margin-bottom: 0;
+}
 @media (prefers-reduced-motion: reduce) { .roast-refresh svg { transition: none; } }

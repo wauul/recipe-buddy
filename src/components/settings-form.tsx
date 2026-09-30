@@ -121,36 +121,38 @@ export function SettingsForm({
           )}
         </form>
       </section>
-      <section className="form-panel settings-panel">
-        <ChefHat aria-hidden="true" size={28} />
-        <div>
-          <h2>{t('Chef roast mode')}</h2>
-          <p>{t('Add a playful one-liner when you import or save a recipe.')}</p>
-          <small>
-            {t('Switching this off hides existing roasts and stops generating new ones.')}
-          </small>
+      <section className="form-panel roast-settings-card">
+        <div className="settings-panel">
+          <ChefHat aria-hidden="true" size={28} />
+          <div>
+            <h2>{t('Chef roast mode')}</h2>
+            <p>{t('Add a playful one-liner when you import or save a recipe.')}</p>
+            <small>
+              {t('Switching this off hides existing roasts and stops generating new ones.')}
+            </small>
+          </div>
+          <button
+            className={`toggle ${enabled ? 'on' : ''}`}
+            role="switch"
+            aria-checked={enabled}
+            aria-label={t('Chef roast mode')}
+            disabled={busy}
+            onClick={toggle}
+          >
+            <span />
+          </button>
         </div>
-        <button
-          className={`toggle ${enabled ? 'on' : ''}`}
-          role="switch"
-          aria-checked={enabled}
-          aria-label={t('Chef roast mode')}
-          disabled={busy}
-          onClick={toggle}
-        >
-          <span />
-        </button>
+        {toggleError && (
+          <p className="error" role="alert">
+            {t(toggleError)}
+          </p>
+        )}
+        {message && (
+          <p className="social-notice" role="status">
+            {t(message)}
+          </p>
+        )}
       </section>
-      {toggleError && (
-        <p className="error" role="alert">
-          {t(toggleError)}
-        </p>
-      )}
-      {message && (
-        <p className="social-notice" role="status">
-          {t(message)}
-        </p>
-      )}
       <section className="form-panel">
         <h2>{t('Language')}</h2>
         <p>
