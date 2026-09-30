@@ -67,6 +67,11 @@ export default function PrivacyPage() {
             'If you choose AI recipe import or optional roast generation, the relevant recipe text is sent to Groq to produce that result. Website import fetches the public URL you submit. Manual recipe entry remains available without AI import. The app does not send your Google profile or authentication tokens to Groq.',
           )}
         </p>
+        <p>
+          {t(
+            'When you read recipes in another language, their text, ingredients, methods, roast lines and kitchen contributions are sent to Groq for translation. Translations do not change saved originals. Google identity data and authentication tokens are never included.',
+          )}
+        </p>
       </section>
       <section aria-labelledby="privacy-browser">
         <h2 id="privacy-browser">{t('On your device')}</h2>

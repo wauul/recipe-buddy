@@ -153,7 +153,11 @@ export function SettingsForm({
       )}
       <section className="form-panel">
         <h2>{t('Language')}</h2>
-        <p>{t('Choose the language for this browser. Your recipes stay as you wrote them.')}</p>
+        <p>
+          {t(
+            'Choose your language for the app, recipes and kitchen conversation. Saved originals stay intact.',
+          )}
+        </p>
         <LanguageSelector settings />
       </section>
       <ThemeSettings />

@@ -1,4 +1,5 @@
 'use client';
+import { useContentTranslation } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { useState } from 'react';
@@ -21,13 +22,15 @@ export function RecipeDashboard({
   chef?: { name: string; progress: ChefProgress };
 }) {
   const { t } = useTranslation();
+  const read = useContentTranslation(recipes.map((recipe) => recipe.title));
   const router = useRouter();
   const [query, setQuery] = useState(''),
     [vibe, setVibe] = useState('all'),
     [shuffling, setShuffling] = useState(false);
   const filtered = recipes.filter(
     (r) =>
-      r.title.toLowerCase().includes(query.toLowerCase()) && (vibe === 'all' || r.vibe === vibe),
+      `${r.title} ${read(r.title)}`.toLowerCase().includes(query.toLowerCase()) &&
+      (vibe === 'all' || r.vibe === vibe),
   );
   function surprise() {
     if (!recipes.length || shuffling) return;

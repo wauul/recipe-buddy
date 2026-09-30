@@ -1,4 +1,5 @@
 'use client';
+import { ContentText, useContentTranslation } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { UpdatedDate } from '@/components/updated-date';
@@ -22,6 +23,7 @@ export function RecipeDetail({
   cookedToday: boolean;
 }) {
   const { t } = useTranslation();
+  const read = useContentTranslation([recipe.title]);
   const router = useRouter();
   const [cooked, setCooked] = useState(cookedToday),
     [busy, setBusy] = useState(false),
@@ -52,18 +54,28 @@ export function RecipeDetail({
         {t('Back to recipes')}
       </Link>
       <div className="detail-hero">
-        <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={recipe.title} />
+        <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={read(recipe.title)} />
         <div>
           <Vibe vibe={recipe.vibe} />
-          <h1>{recipe.title}</h1>
-          {recipe.altTitle && <p className="detail-subtitle">{recipe.altTitle}</p>}
+          <h1>
+            <ContentText>{recipe.title}</ContentText>
+          </h1>
+          {recipe.altTitle && (
+            <p className="detail-subtitle">
+              <ContentText>{recipe.altTitle}</ContentText>
+            </p>
+          )}
           <UpdatedDate date={recipe.updatedAt} />
           <p className="servings">
             <Users aria-hidden="true" size={17} />
             {recipe.servings} {t(recipe.servings === 1 ? 'serving' : 'servings')} <span>•</span>{' '}
             {recipe.ingredients.length} {t('ingredients')}
           </p>
-          {roastEnabled && recipe.roastLine && <p className="speech">{recipe.roastLine}</p>}
+          {roastEnabled && recipe.roastLine && (
+            <p className="speech">
+              <ContentText>{recipe.roastLine}</ContentText>
+            </p>
+          )}
           <div className="detail-actions">
             <button
               className={`button primary ${cooked ? 'just-cooked' : ''}`}

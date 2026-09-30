@@ -1,4 +1,5 @@
 'use client';
+import { ContentText, useContentTranslation } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { useState, type FormEvent } from 'react';
@@ -26,6 +27,10 @@ export function RecipeDiscussion({
   discussion: Discussion;
 }) {
   const { t } = useTranslation();
+  const read = useContentTranslation([
+    ...ingredients,
+    ...discussion.takes.map((take) => take.title),
+  ]);
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -99,7 +104,9 @@ export function RecipeDiscussion({
             </button>
           )}
         </div>
-        <p className="contribution-text">{comment.text}</p>
+        <p className="contribution-text">
+          <ContentText>{comment.text}</ContentText>
+        </p>
       </article>
     ));
   }
@@ -171,7 +178,7 @@ export function RecipeDiscussion({
                 <option value="">{t('Whole recipe / another part')}</option>
                 {Array.from(new Set(ingredients)).map((name) => (
                   <option key={name} value={name}>
-                    {name}
+                    {read(name)}
                   </option>
                 ))}
               </select>
@@ -224,7 +231,7 @@ export function RecipeDiscussion({
                 <button
                   className="icon-button"
                   disabled={busy}
-                  aria-label={t('Delete twist: {0}', { 0: take.title })}
+                  aria-label={t('Delete twist: {0}', { 0: read(take.title) })}
                   onClick={() => setRemoving({ kind: 'take', id: take.id })}
                 >
                   <Trash2 aria-hidden="true" size={16} />
@@ -235,16 +242,22 @@ export function RecipeDiscussion({
               <span className="take-type">{t(takeTypes[take.type])}</span>
               {take.ingredient && (
                 <span className="take-ingredient">
-                  {t('Ingredient:')} {take.ingredient}
+                  {t('Ingredient:')} <ContentText>{take.ingredient}</ContentText>
                 </span>
               )}
             </div>
-            <h3>{take.title}</h3>
-            <p className="contribution-text">{take.change}</p>
+            <h3>
+              <ContentText>{take.title}</ContentText>
+            </h3>
+            <p className="contribution-text">
+              <ContentText>{take.change}</ContentText>
+            </p>
             {take.reason && (
               <div className="take-reason">
                 <strong>{t('Why this twist?')}</strong>
-                <p className="contribution-text">{take.reason}</p>
+                <p className="contribution-text">
+                  <ContentText>{take.reason}</ContentText>
+                </p>
               </div>
             )}
             <details className="take-replies">

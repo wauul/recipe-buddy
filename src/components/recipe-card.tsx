@@ -1,4 +1,5 @@
 'use client';
+import { ContentText, useContentTranslation } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
@@ -7,20 +8,27 @@ import { RecipeArt, Vibe } from './recipe-art';
 import { UpdatedDate } from './updated-date';
 export function RecipeCard({ recipe, sharedBy }: { recipe: RecipeView; sharedBy?: string }) {
   const { t } = useTranslation();
+  const read = useContentTranslation([recipe.title]);
   return (
     <Link className="recipe-card" href={`/${sharedBy ? 'shared' : 'recipes'}/${recipe.id}`}>
       <div className="card-image">
-        <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={recipe.title} />
+        <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={read(recipe.title)} />
         <Vibe vibe={recipe.vibe} />
       </div>
       <div className="card-body">
-        <h3>{recipe.title}</h3>
+        <h3>
+          <ContentText>{recipe.title}</ContentText>
+        </h3>
         {sharedBy && (
           <p className="shared-by">
             {t('From Chef')} {sharedBy}
           </p>
         )}
-        {recipe.altTitle && <p className="alt-title">{recipe.altTitle}</p>}
+        {recipe.altTitle && (
+          <p className="alt-title">
+            <ContentText>{recipe.altTitle}</ContentText>
+          </p>
+        )}
         <UpdatedDate date={recipe.updatedAt} />
         <div className="card-bottom">
           <span>

@@ -123,7 +123,7 @@ export function SiteTools() {
         {t('Skip to content')}
       </a>
       <header
-        className={`site-header ${publicPage ? 'public-header' : ''} ${searchOpen ? 'search-open' : ''}`}
+        className={`site-header ${publicPage ? 'public-header' : ''} ${['/login', '/signup'].includes(pathname) ? 'auth-header' : ''} ${searchOpen ? 'search-open' : ''}`}
       >
         <Link href={publicPage ? '/' : '/recipes'} className="header-brand">
           Recipe Buddy

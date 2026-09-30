@@ -57,7 +57,7 @@ export function RecipeSharing({
           onConfirm={() => toggle(confirm)}
         >
           <p>
-            {t(confirm.username)} {t('will no longer be able to view this recipe.')}
+            {confirm.username} {t('will no longer be able to view this recipe.')}
           </p>
         </ConfirmDialog>
       )}

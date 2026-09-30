@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, BookOpen, ArrowRight, ShoppingBasket, ChefHat } from 'lucide-react';
 import { credentialsSchema } from '@/lib/validation';
 import { request } from '@/lib/client';
 import { Brand } from './brand';
@@ -62,29 +62,39 @@ export function AuthForm({
     <main id="main" tabIndex={-1} className="auth-page">
       <section className="auth-story">
         <Brand href="/" />
-        <div>
+        <div className="auth-story-content">
+          <p className="auth-eyebrow">{t('A little less “what’s for dinner?”')}</p>
           <h1>
             {t('Good recipes')}
             <br />
             <span>{t('stay with you')}</span>
           </h1>
           <p>{t('Keep your favorites, plan your shopping, and pass a recipe to a friend.')}</p>
+          <div className="auth-kitchen-flow" aria-hidden="true">
+            <span>
+              <BookOpen size={24} />
+              {t('Save')}
+            </span>
+            <ArrowRight size={20} />
+            <span>
+              <ShoppingBasket size={24} />
+              {t('Plan')}
+            </span>
+            <ArrowRight size={20} />
+            <span>
+              <ChefHat size={24} />
+              {t('Cook')}
+            </span>
+          </div>
         </div>
-        <ol className="auth-index">
-          <li>
-            <span>01</span> {t('Save the meals you love.')}
-          </li>
-          <li>
-            <span>02</span> {t('Make the shopping simple.')}
-          </li>
-          <li>
-            <span>03</span> {t('Share a little kitchen wisdom.')}
-          </li>
-        </ol>
+        <p className="auth-story-footer">
+          {t('Made for real kitchens. And wonderfully imperfect chefs.')}
+        </p>
       </section>
       <div className="auth-form-wrap">
         <form onSubmit={submit} className="auth-form" aria-busy={busy || googleBusy}>
-          <h2>{t(signup ? 'Become a Recipe Buddy chef' : 'Welcome back, chef')}</h2>
+          <p className="auth-eyebrow">Recipe Buddy</p>
+          <h1>{t(signup ? 'Become a Recipe Buddy chef' : 'Welcome back, chef')}</h1>
           <p>
             {t(
               signup
@@ -119,7 +129,7 @@ export function AuthForm({
                 required
                 minLength={8}
                 maxLength={72}
-                placeholder={t('At least 8 characters')}
+                placeholder={t(signup ? 'At least 8 characters' : 'Your password')}
                 disabled={busy || googleBusy}
                 aria-describedby={signup ? 'password-hint' : undefined}
               />

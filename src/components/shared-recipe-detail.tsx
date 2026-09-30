@@ -1,4 +1,5 @@
 'use client';
+import { ContentText, useContentTranslation } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 import Link from 'next/link';
 import { ArrowLeft, Users, LockKeyhole } from 'lucide-react';
@@ -18,6 +19,7 @@ export function SharedRecipeDetail({
   chefLevel?: { level: number; name: string };
 }) {
   const { t } = useTranslation();
+  const read = useContentTranslation([recipe.title]);
   return (
     <>
       <Link className="back-link" href="/friends">
@@ -25,11 +27,17 @@ export function SharedRecipeDetail({
         {t('Back to friends')}
       </Link>
       <div className="detail-hero">
-        <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={recipe.title} />
+        <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={read(recipe.title)} />
         <div>
           <Vibe vibe={recipe.vibe} />
-          <h1>{recipe.title}</h1>
-          {recipe.altTitle && <p className="detail-subtitle">{recipe.altTitle}</p>}
+          <h1>
+            <ContentText>{recipe.title}</ContentText>
+          </h1>
+          {recipe.altTitle && (
+            <p className="detail-subtitle">
+              <ContentText>{recipe.altTitle}</ContentText>
+            </p>
+          )}
           <UpdatedDate date={recipe.updatedAt} />
           <p className="servings">
             <Users aria-hidden="true" size={18} />
@@ -46,7 +54,11 @@ export function SharedRecipeDetail({
               </span>
             )}
           </p>
-          {roastEnabled && recipe.roastLine && <p className="speech">{recipe.roastLine}</p>}
+          {roastEnabled && recipe.roastLine && (
+            <p className="speech">
+              <ContentText>{recipe.roastLine}</ContentText>
+            </p>
+          )}
           <p className="shared-readonly">
             <LockKeyhole aria-hidden="true" size={18} />
             {t('Shared with you · only this recipe’s chef can edit')}

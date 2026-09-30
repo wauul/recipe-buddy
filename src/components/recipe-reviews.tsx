@@ -1,4 +1,5 @@
 'use client';
+import { ContentText } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
@@ -191,7 +192,11 @@ export function RecipeReviewsPanel({
                 {t('/5 aprons')}
               </span>
             </div>
-            {review.text && <p className="contribution-text">{review.text}</p>}
+            {review.text && (
+              <p className="contribution-text">
+                <ContentText>{review.text}</ContentText>
+              </p>
+            )}
           </article>
         ))}
       </div>

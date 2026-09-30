@@ -1,4 +1,5 @@
 'use client';
+import { ContentText } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { useEffect, useRef, useState } from 'react';
@@ -170,6 +171,9 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
           <div className="section-label">
             <h2>{t('Recipe details')}</h2>
           </div>
+          <p className="editor-original-note">
+            {t('Edit the original recipe. Translations follow your saved changes.')}
+          </p>
           <label htmlFor="title">
             {t('Recipe title')}
             <input
@@ -183,7 +187,11 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             />
             {t(fieldError('title'))}
           </label>
-          {roast && <p className="speech">{roast}</p>}
+          {roast && (
+            <p className="speech">
+              <ContentText>{roast}</ContentText>
+            </p>
+          )}
           <div className="form-row">
             <label htmlFor="altTitle">
               {t('Alternate title')} <span className="optional">{t('(optional)')}</span>

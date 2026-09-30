@@ -1,3 +1,4 @@
+import { RecipeSearchResults } from '@/components/recipe-search-results';
 import { getTranslation } from '@/lib/i18n-server';
 import Link from 'next/link';
 import { currentUser } from '@/lib/data';
@@ -48,11 +49,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
       href: `/shared/${s.recipe.id}`,
       source: 'Shared with you',
     })),
-  ].filter((r) =>
-    `${r.title} ${r.altTitle} ${JSON.stringify(r.ingredients)} ${JSON.stringify(r.steps)}`
-      .toLowerCase()
-      .includes(term),
-  );
+  ];
   const answers = q
     ? faqs
         .map((f, i) => ({ ...f, i }))
@@ -80,24 +77,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           <button className="button primary">{t('Search')}</button>
         </div>
       </form>
-      <p role="status">
-        {t(
-          q
-            ? t('{0} results for “{1}”', {
-                0: recipes.length + answers.length + pages.length,
-                1: q,
-              })
-            : 'Search your recipes, recipes shared with you, pages and help.',
-        )}
-      </p>
+      <RecipeSearchResults recipes={recipes} query={q} otherCount={answers.length + pages.length} />
       <div className="search-results">
-        {recipes.map((r) => (
-          <Link key={r.href} href={r.href}>
-            <small>{t(r.source)}</small>
-            <h2>{r.title}</h2>
-            <p>{r.altTitle || t('Open recipe')}</p>
-          </Link>
-        ))}
         {answers.map((f) => (
           <Link key={f.i} href={`/help#faq-${f.i}`}>
             <small>{t('Help')}</small>
@@ -112,12 +93,6 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           </Link>
         ))}
       </div>
-      {q && !recipes.length && !answers.length && !pages.length && (
-        <div className="empty-state">
-          <h2>{t('No results')}</h2>
-          <p>{t('Try a shorter phrase, an ingredient, or a different spelling.')}</p>
-        </div>
-      )}
     </>
   );
 }

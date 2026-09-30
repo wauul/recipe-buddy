@@ -1,4 +1,5 @@
 'use client';
+import { ContentText } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { useEffect, useState } from 'react';
@@ -129,7 +130,9 @@ export function ShoppingList({
                     }
                   />
                   <span>
-                    <strong>{r.title}</strong>
+                    <strong>
+                      <ContentText>{r.title}</ContentText>
+                    </strong>
                     <small>
                       {r.servings} {t('servings')}
                     </small>
@@ -188,8 +191,12 @@ export function ShoppingList({
                           onChange={() => toggle(item.name)}
                         />
                         <span>
-                          <strong>{item.name}</strong>
-                          <small>{item.amounts.join(' + ')}</small>
+                          <strong>
+                            <ContentText>{item.name}</ContentText>
+                          </strong>
+                          <small>
+                            <ContentText>{item.amounts.join(' + ')}</ContentText>
+                          </small>
                         </span>
                         {checked.includes(item.name) && <Check aria-hidden="true" size={17} />}
                       </label>

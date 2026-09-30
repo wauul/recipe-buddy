@@ -665,4 +665,25 @@ export const french: Record<string, string> = {
   'Tomato toast\nServes 1\nIngredients: 1 slice bread, 1 tomato, salt to taste\nSteps: Toast bread. Slice tomato. Put tomato on toast and season.':
     'Tartine à la tomate\nPour 1 personne\nIngrédients : 1 tranche de pain, 1 tomate, sel selon votre goût\nÉtapes : Grillez le pain. Coupez la tomate. Posez-la sur la tartine et assaisonnez.',
   '{0} of {1} ingredients checked': '{0} ingrédients cochés sur {1}',
+  'A little less “what’s for dinner?”': 'Un peu moins de « on mange quoi ? »',
+  'Made for real kitchens. And wonderfully imperfect chefs.':
+    'Pour les vraies cuisines. Et les chefs délicieusement imparfaits.',
+  Save: 'Garder',
+  Plan: 'Prévoir',
+  Cook: 'Cuisiner',
+  'Your password': 'Votre mot de passe',
+  'Recipe language': 'Langue des recettes',
+  'Translating recipes…': 'Traduction des recettes…',
+  'Translation unavailable. Showing originals.':
+    'Traduction indisponible. Textes originaux affichés.',
+  'Original text': 'Textes originaux',
+  'Recipes in your language': 'Recettes dans votre langue',
+  'Show translations': 'Voir les traductions',
+  'Show originals': 'Voir les originaux',
+  'Edit the original recipe. Translations follow your saved changes.':
+    'Modifiez la recette originale. Les traductions suivront vos modifications enregistrées.',
+  'Choose your language for the app, recipes and kitchen conversation. Saved originals stay intact.':
+    'Choisissez la langue de l’application, des recettes et des échanges en cuisine. Les originaux enregistrés sont conservés.',
+  'When you read recipes in another language, their text, ingredients, methods, roast lines and kitchen contributions are sent to Groq for translation. Translations do not change saved originals. Google identity data and authentication tokens are never included.':
+    'Lorsque vous lisez des recettes dans une autre langue, leur texte, leurs ingrédients, leurs étapes, leurs blagues et les contributions en cuisine sont envoyés à Groq pour traduction. Les traductions ne modifient pas les originaux enregistrés. Les données d’identité Google et les jetons d’authentification ne sont jamais inclus.',
 };

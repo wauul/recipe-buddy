@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useId, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { localeCookie, parseLocale, translator, type Locale } from '@/lib/i18n';
+import { ContentTranslationProvider } from './content-translation';
 
 const LanguageContext = createContext<{ locale: Locale; setLocale: (locale: Locale) => void }>({
   locale: 'en',
@@ -20,7 +21,11 @@ export function LanguageProvider({
     document.documentElement.lang = locale;
   }, [locale]);
   const value = useMemo(() => ({ locale, setLocale }), [locale]);
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider value={value}>
+      <ContentTranslationProvider locale={locale}>{children}</ContentTranslationProvider>
+    </LanguageContext.Provider>
+  );
 }
 
 export function useTranslation() {

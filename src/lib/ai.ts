@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { recipeSchema, type RecipeInput } from './validation';
 
-async function completion(system: string, text: string, json = true) {
+export async function completion(system: string, text: string, json = true, maxTokens = 3500) {
   if (!process.env.GROQ_API_KEY)
     throw new Error('AI is not configured. You can still add recipes manually.');
   const signal = AbortSignal.timeout(12000);
@@ -17,7 +17,7 @@ async function completion(system: string, text: string, json = true) {
       body: JSON.stringify({
         model,
         temperature: 0.4,
-        max_tokens: json ? 3500 : 800,
+        max_tokens: json ? maxTokens : 800,
         ...(model.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {}),
         ...(json ? { response_format: { type: 'json_object' } } : {}),
         messages: [

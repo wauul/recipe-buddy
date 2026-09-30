@@ -1,4 +1,5 @@
 'use client';
+import { ContentText } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 import Link from 'next/link';
 import type { RecipeView } from '@/lib/validation';
@@ -17,9 +18,13 @@ export function RecipeBody({
         <ul>
           {recipe.ingredients.map((item, i) => (
             <li key={i}>
-              <span>{item.name}</span>
+              <span>
+                <ContentText>{item.name}</ContentText>
+              </span>
               <strong>
-                {[item.quantity, item.unit].filter(Boolean).join(' ') || t('as needed')}
+                <ContentText>
+                  {[item.quantity, item.unit].filter(Boolean).join(' ') || t('as needed')}
+                </ContentText>
               </strong>
             </li>
           ))}
@@ -40,7 +45,7 @@ export function RecipeBody({
                 <span className="sr-only">
                   {t('Step')} {i + 1}.{' '}
                 </span>
-                {step}
+                <ContentText>{step}</ContentText>
               </p>
             </li>
           ))}
