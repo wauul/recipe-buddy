@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { UpdatedDate } from '@/components/updated-date';
 
 import { useState } from 'react';
@@ -19,6 +21,7 @@ export function RecipeDetail({
   roastEnabled: boolean;
   cookedToday: boolean;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [cooked, setCooked] = useState(cookedToday),
     [busy, setBusy] = useState(false),
@@ -46,7 +49,7 @@ export function RecipeDetail({
     <>
       <Link href="/recipes" className="back-link">
         <ArrowLeft aria-hidden="true" size={16} />
-        Back to recipes
+        {t('Back to recipes')}
       </Link>
       <div className="detail-hero">
         <RecipeArt vibe={recipe.vibe} imageUrl={recipe.imageUrl} title={recipe.title} />
@@ -57,8 +60,8 @@ export function RecipeDetail({
           <UpdatedDate date={recipe.updatedAt} />
           <p className="servings">
             <Users aria-hidden="true" size={17} />
-            {recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'} <span>•</span>{' '}
-            {recipe.ingredients.length} ingredients
+            {recipe.servings} {t(recipe.servings === 1 ? 'serving' : 'servings')} <span>•</span>{' '}
+            {recipe.ingredients.length} {t('ingredients')}
           </p>
           {roastEnabled && recipe.roastLine && <p className="speech">{recipe.roastLine}</p>}
           <div className="detail-actions">
@@ -75,39 +78,41 @@ export function RecipeDetail({
               ) : (
                 <CookingPot aria-hidden="true" size={18} />
               )}
-              {busy ? 'Saving cooking day…' : cooked ? 'Cooked today' : 'Mark as cooked'}
+              {t(busy ? 'Saving cooking day…' : cooked ? 'Cooked today' : 'Mark as cooked')}
             </button>
             <Link className="button secondary" href={`/recipes/${recipe.id}/edit`}>
               <Pencil aria-hidden="true" size={16} />
-              Edit
+              {t('Edit')}
             </Link>
             <button
               className="icon-button"
-              aria-label="Delete recipe"
+              aria-label={t('Delete recipe')}
               onClick={() => setDeleting(true)}
             >
               <Trash2 aria-hidden="true" size={18} />
             </button>
           </div>
-          <small>Cooking days are counted in UTC, Monday–Sunday.</small>
+          <small>{t('Cooking days are counted in UTC, Monday–Sunday.')}</small>
         </div>
       </div>
       {deleting && (
         <ConfirmDialog
-          title="Delete this recipe?"
+          title={t('Delete this recipe?')}
           busy={busy}
-          label="Delete recipe"
+          label={t('Delete recipe')}
           onCancel={() => setDeleting(false)}
           onConfirm={() => action('delete')}
         >
           <p>
-            This permanently deletes the recipe, its shares, cooking history, twists and comments.
+            {t(
+              'This permanently deletes the recipe, its shares, cooking history, twists and comments.',
+            )}
           </p>
         </ConfirmDialog>
       )}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
       <RecipeBody recipe={recipe} shopping />

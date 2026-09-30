@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -13,11 +15,12 @@ export function Nav({
   username: string;
   level?: { level: number; name: string };
 }) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   return (
     <aside className="sidebar">
       <Brand />
-      <nav aria-label="Main navigation">
+      <nav aria-label={t('Main navigation')}>
         {[
           { href: '/recipes', label: 'My recipes', Icon: BookOpen },
           {
@@ -39,19 +42,19 @@ export function Nav({
               aria-current={active ? 'page' : undefined}
             >
               <Icon aria-hidden="true" size={20} />
-              <span>{label}</span>
+              <span>{t(label)}</span>
             </Link>
           );
         })}
       </nav>
       <div className="sidebar-note">
         <p>
-          Keep the recipes
+          {t('Keep the recipes')}
           <br />
-          you come back to
+          {t('you come back to')}
         </p>
         <Link href="/recipes/new" className="text-button">
-          Add a recipe
+          {t('Add a recipe')}
         </Link>
       </div>
       <div className="account">
@@ -59,18 +62,20 @@ export function Nav({
           {Array.from(username)[0]?.toUpperCase()}
         </span>
         <div>
-          <strong title={username}>Chef {username}</strong>
+          <strong title={username}>
+            {t('Chef')} {username}
+          </strong>
           {level && (
             <small className="nav-chef-level">
-              Lv {level.level} · {level.name}
+              {t('Lv')} {level.level} · {t(level.name)}
             </small>
           )}
           <small title={email}>{email}</small>
         </div>
         <button
           className="icon-button"
-          aria-label="Sign out"
-          title="Sign out"
+          aria-label={t('Sign out')}
+          title={t('Sign out')}
           onClick={() => signOut({ callbackUrl: '/login' })}
         >
           <LogOut aria-hidden="true" size={18} />

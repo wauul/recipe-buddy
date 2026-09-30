@@ -1,6 +1,8 @@
+import { getTranslation } from '@/lib/i18n-server';
 export default function Loading() {
+  const { t } = getTranslation();
   return (
-    <div className="loading-layout" role="status" aria-label="Loading your kitchen">
+    <div className="loading-layout" role="status" aria-label={t('Loading your kitchen')}>
       <div className="skeleton skeleton-heading" />
       <div className="skeleton skeleton-hero" />
       <div className="recipe-grid">
@@ -8,7 +10,7 @@ export default function Loading() {
           <div key={i} className="skeleton skeleton-card" />
         ))}
       </div>
-      <span className="sr-only">Loading your recipes…</span>
+      <span className="sr-only">{t('Loading your recipes…')}</span>
     </div>
   );
 }

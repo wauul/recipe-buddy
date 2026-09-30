@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -17,6 +19,7 @@ export function AuthForm({
   googleEnabled?: boolean;
   errorMessage?: string;
 }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const router = useRouter();
@@ -61,38 +64,40 @@ export function AuthForm({
         <Brand href="/" />
         <div>
           <h1>
-            Good recipes
+            {t('Good recipes')}
             <br />
-            <span>stay with you</span>
+            <span>{t('stay with you')}</span>
           </h1>
-          <p>Keep your favorites, plan your shopping, and pass a recipe to a friend.</p>
+          <p>{t('Keep your favorites, plan your shopping, and pass a recipe to a friend.')}</p>
         </div>
         <ol className="auth-index">
           <li>
-            <span>01</span> Save the meals you love.
+            <span>01</span> {t('Save the meals you love.')}
           </li>
           <li>
-            <span>02</span> Make the shopping simple.
+            <span>02</span> {t('Make the shopping simple.')}
           </li>
           <li>
-            <span>03</span> Share a little kitchen wisdom.
+            <span>03</span> {t('Share a little kitchen wisdom.')}
           </li>
         </ol>
       </section>
       <div className="auth-form-wrap">
         <form onSubmit={submit} className="auth-form" aria-busy={busy || googleBusy}>
-          <h2>{signup ? 'Become a Recipe Buddy chef' : 'Welcome back, chef'}</h2>
+          <h2>{t(signup ? 'Become a Recipe Buddy chef' : 'Welcome back, chef')}</h2>
           <p>
-            {signup
-              ? 'Your recipes are private until you choose to share them.'
-              : 'Log in to your recipes and shopping list.'}
+            {t(
+              signup
+                ? 'Your recipes are private until you choose to share them.'
+                : 'Log in to your recipes and shopping list.',
+            )}
           </p>
           <GoogleSignIn enabled={googleEnabled} disabled={busy} onBusyChange={setGoogleBusy} />
           <div className="auth-divider">
-            <span>or use email</span>
+            <span>{t('or use email')}</span>
           </div>
           <label>
-            Email address
+            {t('Email address')}
             <input
               name="email"
               type="email"
@@ -104,7 +109,7 @@ export function AuthForm({
             />
           </label>
           <div className="auth-password">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('Password')}</label>
             <span className="password-field">
               <input
                 id="password"
@@ -114,13 +119,13 @@ export function AuthForm({
                 required
                 minLength={8}
                 maxLength={72}
-                placeholder="At least 8 characters"
+                placeholder={t('At least 8 characters')}
                 disabled={busy || googleBusy}
                 aria-describedby={signup ? 'password-hint' : undefined}
               />
               <button
                 type="button"
-                aria-label={visible ? 'Hide password' : 'Show password'}
+                aria-label={t(visible ? 'Hide password' : 'Show password')}
                 aria-pressed={visible}
                 onClick={() => setVisible(!visible)}
               >
@@ -131,28 +136,34 @@ export function AuthForm({
                 )}
               </button>
             </span>
-            {signup && <small id="password-hint">Use 8 or more characters, up to 72 bytes.</small>}
+            {signup && (
+              <small id="password-hint">{t('Use 8 or more characters, up to 72 bytes.')}</small>
+            )}
           </div>
           {error && (
             <p className="error" role="alert">
-              {error}
+              {t(error)}
             </p>
           )}
           <button disabled={busy || googleBusy} className="button primary">
-            {busy
-              ? signup
-                ? 'Creating account…'
-                : 'Logging in…'
-              : signup
-                ? 'Create account'
-                : 'Log in'}
+            {t(
+              busy
+                ? signup
+                  ? 'Creating account…'
+                  : 'Logging in…'
+                : signup
+                  ? 'Create account'
+                  : 'Log in',
+            )}
           </button>
           <p className="auth-switch">
-            {signup ? 'Already have an account?' : 'New to Recipe Buddy?'}{' '}
-            <Link href={signup ? '/login' : '/signup'}>{signup ? 'Log in' : 'Create account'}</Link>
+            {t(signup ? 'Already have an account?' : 'New to Recipe Buddy?')}{' '}
+            <Link href={signup ? '/login' : '/signup'}>
+              {t(signup ? 'Log in' : 'Create account')}
+            </Link>
           </p>
           <p className="auth-privacy">
-            <Link href="/privacy">How we use your information</Link>
+            <Link href="/privacy">{t('How we use your information')}</Link>
           </p>
         </form>
       </div>

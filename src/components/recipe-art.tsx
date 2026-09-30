@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useEffect, useRef, useState } from 'react';
 import { CookingIllustration } from './cooking-illustration';
 export function RecipeArt({
@@ -12,6 +14,7 @@ export function RecipeArt({
   imageUrl?: string;
   title?: string;
 }) {
+  const { t } = useTranslation();
   const [failed, setFailed] = useState('');
   const photo = useRef<HTMLImageElement>(null);
   useEffect(() => {
@@ -25,7 +28,7 @@ export function RecipeArt({
         <img
           ref={photo}
           src={imageUrl}
-          alt={title}
+          alt={t(title)}
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => setFailed(imageUrl)}
@@ -36,11 +39,12 @@ export function RecipeArt({
     <div className={`recipe-art art-${vibe} ${small ? 'small' : ''}`} aria-hidden="true">
       <div className="recipe-placeholder">
         <CookingIllustration vibe={vibe} />
-        <span>From your kitchen</span>
+        <span>{t('From your kitchen')}</span>
       </div>
     </div>
   );
 }
 export function Vibe({ vibe }: { vibe: string }) {
-  return <span className={`vibe vibe-${vibe}`}>{vibe}</span>;
+  const { t } = useTranslation();
+  return <span className={`vibe vibe-${vibe}`}>{t(vibe)}</span>;
 }

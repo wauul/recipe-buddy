@@ -1,3 +1,5 @@
+'use client';
+import { useTranslation } from '@/components/language-provider';
 import { chefLevels, type ChefProgress } from '@/lib/chef-levels';
 import { CookingIllustration } from './cooking-illustration';
 import { ChefBadge } from './chef-badge';
@@ -11,6 +13,7 @@ export function ChefProgressPanel({
   progress: ChefProgress;
   roadmap?: boolean;
 }) {
+  const { t, locale } = useTranslation();
   return (
     <section
       className={`chef-progress ${roadmap ? 'with-roadmap' : ''}`}
@@ -25,39 +28,43 @@ export function ChefProgressPanel({
             <ChefBadge level={progress.current.level} />
           </div>
           <div>
-            <p className="chef-greeting">Chef {chefName}</p>
-            <h2 id="chef-progress-heading">{progress.current.name}</h2>
+            <p className="chef-greeting">
+              {t('Chef')} {chefName}
+            </p>
+            <h2 id="chef-progress-heading">{t(progress.current.name)}</h2>
             <p>
-              Level {progress.current.level} of 7 · {progress.points.toLocaleString('en')} chef
-              points
+              {t('Level')} {progress.current.level} {t('of 7 ·')}{' '}
+              {progress.points.toLocaleString(locale)} {t('chef points')}
             </p>
           </div>
           <div className="chef-score">
             <strong>{progress.recipeCount}</strong>
-            <span>recipes</span>
+            <span>{t('recipes')}</span>
             <strong>{progress.receivedAprons}</strong>
-            <span>aprons received</span>
+            <span>{t('aprons received')}</span>
           </div>
         </div>
         <div className="chef-next-level">
           <label htmlFor="chef-level-progress">
-            {progress.next
-              ? `${progress.pointsToNext} points to ${progress.next.name}`
-              : 'You’ve reached Apron Legend'}
+            {t(
+              progress.next
+                ? t('{0} points to {1}', { 0: progress.pointsToNext, 1: t(progress.next.name) })
+                : 'You’ve reached Apron Legend',
+            )}
           </label>
           <progress id="chef-level-progress" value={progress.progress} max={100} />
         </div>
         <p className="chef-points-hint">
-          Each saved recipe earns 10 points. Every apron received in a review earns 2.
+          {t('Each saved recipe earns 10 points. Every apron received in a review earns 2.')}
         </p>
         <p className="chef-mobile-totals">
-          {progress.recipeCount} recipes · {progress.receivedAprons} aprons received
+          {progress.recipeCount} {t('recipes ·')} {progress.receivedAprons} {t('aprons received')}
         </p>
       </div>
       {roadmap && (
         <details className="chef-roadmap">
           <summary>
-            Meet all seven chef levels <ChevronDown size={20} aria-hidden="true" />
+            {t('Meet all seven chef levels')} <ChevronDown size={20} aria-hidden="true" />
           </summary>
           <ol className="chef-level-ladder">
             {chefLevels.map((level) => (
@@ -74,11 +81,15 @@ export function ChefProgressPanel({
               >
                 <ChefBadge level={level.level} />
                 <div>
-                  <span className="ladder-number">Level {level.level}</span>
-                  <h3>{level.name}</h3>
-                  <p>{level.description}</p>
+                  <span className="ladder-number">
+                    {t('Level')} {level.level}
+                  </span>
+                  <h3>{t(level.name)}</h3>
+                  <p>{t(level.description)}</p>
                 </div>
-                <span>{level.points.toLocaleString('en')} points</span>
+                <span>
+                  {level.points.toLocaleString(locale)} {t('points')}
+                </span>
               </li>
             ))}
           </ol>

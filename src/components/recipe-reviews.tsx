@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { request } from '@/lib/client';
@@ -14,6 +16,7 @@ export function RecipeReviewsPanel({
   viewerId: string;
   initial: RecipeReviews;
 }) {
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const id = useId();
   const firstApron = useRef<HTMLInputElement>(null);
@@ -80,30 +83,33 @@ export function RecipeReviewsPanel({
       <div className="reviews-heading">
         <div>
           <h2 id={id + '-heading'}>
-            <ApronIcon size={26} /> Apron reviews
+            <ApronIcon size={26} /> {t('Apron reviews')}
           </h2>
-          <p>How did this recipe turn out in another chef’s kitchen?</p>
+          <p>{t('How did this recipe turn out in another chef’s kitchen?')}</p>
         </div>
         <div className="review-average">
           {data.reviews.length ? (
             <>
               <strong>
-                {(total / data.reviews.length).toFixed(1)}
-                <span>/5 aprons</span>
+                {(total / data.reviews.length).toLocaleString(locale, {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+                })}
+                <span>{t('/5 aprons')}</span>
               </strong>
               <small>
-                {data.reviews.length} {data.reviews.length === 1 ? 'review' : 'reviews'}
+                {data.reviews.length} {t(data.reviews.length === 1 ? 'review' : 'reviews')}
               </small>
             </>
           ) : (
-            <span>No reviews yet</span>
+            <span>{t('No reviews yet')}</span>
           )}
         </div>
       </div>
       {canReview ? (
         <form className="review-form form-panel" onSubmit={save} aria-busy={busy} noValidate>
           <fieldset disabled={busy} className="apron-picker">
-            <legend>{own ? 'Your apron rating' : 'Rate this recipe'}</legend>
+            <legend>{t(own ? 'Your apron rating' : 'Rate this recipe')}</legend>
             <div>
               {[1, 2, 3, 4, 5].map((value) => (
                 <label key={value} className={value <= rating ? 'awarded' : ''}>
@@ -115,7 +121,7 @@ export function RecipeReviewsPanel({
                     value={value}
                     checked={rating === value}
                     onChange={() => setRating(value)}
-                    aria-label={`${value} ${value === 1 ? 'apron' : 'aprons'}`}
+                    aria-label={t('{0} {1}', { 0: value, 1: t(value === 1 ? 'apron' : 'aprons') })}
                     required
                   />
                   <ApronIcon size={32} filled={value <= rating} />
@@ -123,10 +129,10 @@ export function RecipeReviewsPanel({
                 </label>
               ))}
             </div>
-            <small>1 = needs work · 5 = worth making again</small>
+            <small>{t('1 = needs work · 5 = worth making again')}</small>
           </fieldset>
           <label htmlFor={id + '-text'}>
-            A note for the chef <span className="optional">(optional)</span>
+            {t('A note for the chef')} <span className="optional">{t('(optional)')}</span>
             <textarea
               id={id + '-text'}
               value={text}
@@ -134,37 +140,40 @@ export function RecipeReviewsPanel({
               rows={3}
               maxLength={1000}
               disabled={busy}
-              placeholder="What worked well, or what would you change?"
+              placeholder={t('What worked well, or what would you change?')}
             />
           </label>
           <div className="review-actions">
             <button className="button primary" disabled={busy}>
-              {busy ? 'Saving review…' : own ? 'Update review' : 'Save review'}
+              {t(busy ? 'Saving review…' : own ? 'Update review' : 'Save review')}
             </button>
             {own && (
               <button type="button" className="text-button" onClick={remove} disabled={busy}>
-                Remove my review
+                {t('Remove my review')}
               </button>
             )}
           </div>
           {error && (
             <p id={id + '-review-error'} role="alert" className="error">
-              {error}
+              {t(error)}
             </p>
           )}
           {notice && (
             <p role="status" className="social-notice">
-              {notice}
+              {t(notice)}
             </p>
           )}
           <small>
-            One review per chef. You can update or remove yours. Each apron adds 2 points to this
-            recipe’s chef.
+            {t(
+              'One review per chef. You can update or remove yours. Each apron adds 2 points to this recipe’s chef.',
+            )}
           </small>
         </form>
       ) : (
         <p className="review-owner-note">
-          Other chefs can review recipes you share with them. You cannot rate your own recipe.
+          {t(
+            'Other chefs can review recipes you share with them. You cannot rate your own recipe.',
+          )}
         </p>
       )}
       <div className="review-list">
@@ -172,13 +181,14 @@ export function RecipeReviewsPanel({
           <article className="apron-review" key={review.id}>
             <div className="contribution-meta">
               <strong>
-                Chef {review.chefName}
-                {review.authorId === viewerId ? ' (you)' : ''}
+                {t('Chef')} {review.chefName}
+                {t(review.authorId === viewerId ? ' (you)' : '')}
               </strong>
               <time dateTime={review.updatedAt}>{review.updatedAt.slice(0, 10)}</time>
               <span className="review-rating">
                 <ApronIcon size={20} filled />
-                {review.rating}/5 aprons
+                {review.rating}
+                {t('/5 aprons')}
               </span>
             </div>
             {review.text && <p className="contribution-text">{review.text}</p>}

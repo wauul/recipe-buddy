@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 export function GoogleSignIn({
@@ -12,6 +14,7 @@ export function GoogleSignIn({
   disabled?: boolean;
   onBusyChange?: (busy: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   return (
@@ -54,14 +57,16 @@ export function GoogleSignIn({
             d="M12 5.97c1.47 0 2.79.51 3.83 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.92 5.5l3.34 2.59C7.2 7.73 9.4 5.97 12 5.97Z"
           />
         </svg>
-        {busy ? 'Opening Google…' : connect ? 'Connect Google' : 'Continue with Google'}
+        {t(busy ? 'Opening Google…' : connect ? 'Connect Google' : 'Continue with Google')}
       </button>
       {!enabled && (
-        <small>Google sign-in is unavailable right now. You can use your email and password.</small>
+        <small>
+          {t('Google sign-in is unavailable right now. You can use your email and password.')}
+        </small>
       )}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>

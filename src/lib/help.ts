@@ -12,7 +12,7 @@ export const faqs = [
   {
     question: 'Can I create a chef account with Google?',
     answer:
-      'Choose Continue with Google on the login or signup page and use a verified Google account. If you already use a password with that email, log in first and connect Google in Chef settings to keep your recipes together. Email and password remain available. Google-only accounts sign in with Google.',
+      'Choose Continue with Google on the login or signup page and use a verified Google account. If that verified email already has a password account, Google connects automatically and opens the same recipe collection. Email and password remain available. Google-only accounts sign in with Google.',
   },
   {
     question: 'How do I add my own take to a shared recipe?',

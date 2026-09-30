@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,6 +18,7 @@ const blank: RecipeInput = {
   steps: [''],
 };
 export function RecipeForm({ initial }: { initial?: RecipeView }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [form, setForm] = useState<RecipeInput>(initial || blank),
     [photoBusy, setPhotoBusy] = useState(false);
@@ -32,7 +35,7 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
   function fieldError(path: string) {
     return issues[path] ? (
       <small className="field-error" id={path + '-error'}>
-        {issues[path]}
+        {t(issues[path])}
       </small>
     ) : null;
   }
@@ -92,15 +95,17 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
     <div className="editor">
       <Link href={initial ? '/recipes/' + initial.id : '/recipes'} className="back-link">
         <ArrowLeft aria-hidden="true" size={18} />
-        Back to {initial ? 'recipe' : 'recipes'}
+        {t('Back to')} {t(initial ? 'recipe' : 'recipes')}
       </Link>
       <div className="page-heading">
         <div>
-          <h1>{initial ? 'Edit recipe' : 'Add a recipe'}</h1>
+          <h1>{t(initial ? 'Edit recipe' : 'Add a recipe')}</h1>
           <p>
-            {initial
-              ? 'Update the recipe everyone sees when you share it.'
-              : 'Keep a favorite by hand, or import it below.'}
+            {t(
+              initial
+                ? 'Update the recipe everyone sees when you share it.'
+                : 'Keep a favorite by hand, or import it below.',
+            )}
           </p>
         </div>
       </div>
@@ -108,13 +113,14 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
         <section className="parse-panel">
           <h2>
             <FileText aria-hidden="true" size={22} />
-            Import a recipe
+            {t('Import a recipe')}
           </h2>
           <p>
-            Paste a public HTTPS recipe URL or the recipe text. Review the ingredients and steps
-            before saving.
+            {t(
+              'Paste a public HTTPS recipe URL or the recipe text. Review the ingredients and steps before saving.',
+            )}
           </p>
-          <label htmlFor="raw">Recipe URL or text</label>
+          <label htmlFor="raw">{t('Recipe URL or text')}</label>
           <textarea
             id="raw"
             rows={4}
@@ -127,7 +133,7 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
           />
           <div className="parse-bottom">
             <small id="import-hint">
-              Import uses AI. You can always enter the recipe manually.
+              {t('Import uses AI. You can always enter the recipe manually.')}
             </small>
             <button
               type="button"
@@ -135,12 +141,12 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
               onClick={parse}
               disabled={!!busy || photoBusy || raw.trim().length < 10}
             >
-              {busy === 'parse' ? 'Importing recipe…' : 'Import recipe'}
+              {t(busy === 'parse' ? 'Importing recipe…' : 'Import recipe')}
             </button>
           </div>
           {parseError && (
             <p className="error" role="alert">
-              {parseError}
+              {t(parseError)}
             </p>
           )}
         </section>
@@ -148,12 +154,12 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
       <form onSubmit={save} noValidate aria-busy={busy === 'save'}>
         {error && (
           <div className="error" role="alert" tabIndex={-1} ref={errorSummary}>
-            <p>{error}</p>
+            <p>{t(error)}</p>
             {Object.keys(issues).length > 0 && (
               <ul>
                 {Object.entries(issues).map(([path, message]) => (
                   <li key={path}>
-                    <a href={'#' + path}>{message}</a>
+                    <a href={'#' + path}>{t(message)}</a>
                   </li>
                 ))}
               </ul>
@@ -162,37 +168,37 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
         )}
         <fieldset disabled={!!busy} className="form-panel">
           <div className="section-label">
-            <h2>Recipe details</h2>
+            <h2>{t('Recipe details')}</h2>
           </div>
           <label htmlFor="title">
-            Recipe title
+            {t('Recipe title')}
             <input
               id="title"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               maxLength={160}
               required
-              placeholder="Sunday tomato pasta"
+              placeholder={t('Sunday tomato pasta')}
               {...invalid('title')}
             />
-            {fieldError('title')}
+            {t(fieldError('title'))}
           </label>
           {roast && <p className="speech">{roast}</p>}
           <div className="form-row">
             <label htmlFor="altTitle">
-              Alternate title <span className="optional">(optional)</span>
+              {t('Alternate title')} <span className="optional">{t('(optional)')}</span>
               <input
                 id="altTitle"
                 value={form.altTitle}
                 onChange={(e) => setForm({ ...form, altTitle: e.target.value })}
                 maxLength={180}
-                placeholder="Another name for this recipe"
+                placeholder={t('Another name for this recipe')}
                 {...invalid('altTitle')}
               />
-              {fieldError('altTitle')}
+              {t(fieldError('altTitle'))}
             </label>
             <label htmlFor="servings">
-              Servings
+              {t('Servings')}
               <input
                 id="servings"
                 type="number"
@@ -203,10 +209,10 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
                 onChange={(e) => setForm({ ...form, servings: Number(e.target.value) })}
                 {...invalid('servings')}
               />
-              {fieldError('servings')}
+              {t(fieldError('servings'))}
             </label>
             <label htmlFor="vibe">
-              Vibe
+              {t('Vibe')}
               <select
                 id="vibe"
                 value={form.vibe}
@@ -219,7 +225,7 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
               >
                 {['cozy', 'lazy', 'fancy', 'chaotic'].map((v) => (
                   <option key={v} value={v}>
-                    {v[0].toUpperCase() + v.slice(1)}
+                    {t(v[0].toUpperCase() + v.slice(1))}
                   </option>
                 ))}
               </select>
@@ -230,21 +236,21 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             onChange={(imageUrl) => setForm((current) => ({ ...current, imageUrl }))}
             onBusy={setPhotoBusy}
           />
-          {fieldError('imageUrl')}
+          {t(fieldError('imageUrl'))}
           <div className="section-label">
-            <h2>Ingredients</h2>
+            <h2>{t('Ingredients')}</h2>
           </div>
           {form.ingredients.map((item, i) => (
             <div className="ingredient-row" key={i}>
               {(['name', 'quantity', 'unit'] as const).map((key) => (
                 <label key={key} htmlFor={'ingredients-' + i + '-' + key}>
-                  {key === 'name' ? 'Ingredient' : key === 'quantity' ? 'Quantity' : 'Unit'}
+                  {t(key === 'name' ? 'Ingredient' : key === 'quantity' ? 'Quantity' : 'Unit')}
                   <span className="sr-only"> {i + 1}</span>
                   <input
                     id={'ingredients-' + i + '-' + key}
-                    placeholder={
-                      key === 'name' ? 'Cherry tomatoes' : key === 'quantity' ? '500' : 'g'
-                    }
+                    placeholder={t(
+                      key === 'name' ? 'Cherry tomatoes' : key === 'quantity' ? '500' : 'g',
+                    )}
                     required={key === 'name'}
                     maxLength={key === 'name' ? 120 : 40}
                     value={item[key]}
@@ -264,7 +270,7 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
               <button
                 type="button"
                 className="icon-button"
-                aria-label={'Remove ingredient ' + (i + 1)}
+                aria-label={t('Remove ingredient {0}', { 0: i + 1 })}
                 disabled={form.ingredients.length === 1}
                 onClick={() =>
                   setForm({
@@ -289,22 +295,22 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             }
           >
             <Plus aria-hidden="true" size={18} />
-            Add ingredient
+            {t('Add ingredient')}
           </button>
           <div className="section-label">
-            <h2>Method</h2>
+            <h2>{t('Method')}</h2>
           </div>
           {form.steps.map((step, i) => (
             <div className="step-row" key={i}>
               <span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <label htmlFor={'steps-' + i}>
-                Step {i + 1}
+                {t('Step')} {i + 1}
                 <textarea
                   id={'steps-' + i}
                   required
                   maxLength={2000}
                   rows={3}
-                  placeholder="Describe what to do"
+                  placeholder={t('Describe what to do')}
                   value={step}
                   onChange={(e) =>
                     setForm({
@@ -314,12 +320,12 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
                   }
                   {...invalid('steps-' + i)}
                 />
-                {fieldError('steps-' + i)}
+                {t(fieldError('steps-' + i))}
               </label>
               <button
                 type="button"
                 className="icon-button"
-                aria-label={'Remove step ' + (i + 1)}
+                aria-label={t('Remove step {0}', { 0: i + 1 })}
                 disabled={form.steps.length === 1}
                 onClick={() =>
                   setForm({
@@ -339,12 +345,12 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             onClick={() => setForm({ ...form, steps: [...form.steps, ''] })}
           >
             <Plus aria-hidden="true" size={18} />
-            Add step
+            {t('Add step')}
           </button>
         </fieldset>
         <div className="form-actions">
           <Link href={initial ? '/recipes/' + initial.id : '/recipes'} className="button secondary">
-            Cancel
+            {t('Cancel')}
           </Link>
           <button className="button primary" disabled={!!busy || photoBusy}>
             {busy === 'save' ? (
@@ -352,7 +358,7 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             ) : (
               <Save aria-hidden="true" size={18} />
             )}{' '}
-            {busy === 'save' ? 'Saving recipe…' : 'Save recipe'}
+            {t(busy === 'save' ? 'Saving recipe…' : 'Save recipe')}
           </button>
         </div>
       </form>

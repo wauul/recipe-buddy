@@ -84,7 +84,7 @@ The onboarding snapshot above describes the original repository. Subsequent loca
 
 ## Chef accounts and progression follow-up
 
-A later user request adds Google OAuth and chef levels/reviews. The new `@next-auth/prisma-adapter` dependency maps Google provider identities to the same `User` IDs used by password login and recipe ownership; JWT sessions remain. Verified Google profiles are required. Existing password accounts are connected only from an authenticated session, rather than merged by matching email. Google-only users have a null password hash.
+A later user request adds Google OAuth and chef levels/reviews. The new `@next-auth/prisma-adapter` dependency maps Google provider identities to the same `User` IDs used by password login and recipe ownership; JWT sessions remain. Verified Google profiles are required. A verified Google email automatically connects to the matching existing password account and retains its chef ID, recipes and password hash. Signed-in chefs can also connect from Settings. Google-only users have a null password hash.
 
 Four additive models (`Account`, `Session`, `VerificationToken`, `RecipeReview`) bring the schema to twelve models. `Session` and `VerificationToken` are standard adapter models; runtime sessions still use JWTs. The migration was initially prepared locally; its release mechanism is described below.
 
@@ -97,3 +97,7 @@ Four additive models (`Account`, `Session`, `VerificationToken`, `RecipeReview`)
 The user requested a public landing page, simpler artwork, more animation and a push to GitHub `main`. The generated image assets were removed. `KitchenPlate` and the existing SVG kitchen/badge family now provide the visuals, and authentication is text-first. Landing scroll reveals and remounting kitchen page entrances complement the existing control, steam and progress animations, with a complete reduced-motion fallback.
 
 Vercel project `recipe-buddy` is linked to this repository's `main`; its verified Node runtime is 24.x. The build invokes `scripts/migrate-chefs.cjs` only for Vercel production. This transactional helper applies only the checksum-pinned additive chef migration after verifying the six original migrations, records completion, and skips repeat execution. Local/preview builds do not access a database. Four isolated helper tests extend the unit suite to 29. This release mechanism supports the user's requested Git-only deployment without obtaining production database credentials locally.
+
+## English and French interface
+
+`LanguageProvider` shares the selected locale with client screens; `getTranslation` reads the same preference cookie for server pages. `LanguageSelector` in the shared header and Settings persists the choice and refreshes server content. Unknown locales default to English, and the root HTML language follows the choice. The French catalog covers controls, errors, chef ranks, FAQs and privacy. Recipe titles, ingredients, steps, chef names and contributions are not translated. Language-specific dates/numbers use Intl. No database migration or language service is needed.

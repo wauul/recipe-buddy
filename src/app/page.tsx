@@ -1,3 +1,4 @@
+import { getTranslation } from '@/lib/i18n-server';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { BookOpen, ShoppingBasket, Users, Check, Plus } from 'lucide-react';
@@ -15,38 +16,40 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
+  const { t } = getTranslation();
   return (
     <main id="main" tabIndex={-1} className="landing-page">
       <section className="landing-hero">
         <div className="landing-hero-copy">
           <h1>
-            A little home for
+            {t('A little home for')}
             <br />
-            <span>your best recipes.</span>
+            <span>{t('your best recipes.')}</span>
           </h1>
           <p>
-            The pasta you make on repeat. That cake everyone asks for. Keep them close, cook them
-            again, and pass the good ones on.
+            {t(
+              'The pasta you make on repeat. That cake everyone asks for. Keep them close, cook them again, and pass the good ones on.',
+            )}
           </p>
           <div className="landing-actions">
             <Link href="/signup" className="button primary">
               <Plus size={18} aria-hidden="true" />
-              Start your recipe box
+              {t('Start your recipe box')}
             </Link>
             <a href="#how-it-works" className="text-button">
-              Take a look around
+              {t('Take a look around')}
             </a>
           </div>
           <p className="landing-privacy">
             <Check size={16} aria-hidden="true" />
-            Your recipes stay private until you share them.
+            {t('Your recipes stay private until you share them.')}
           </p>
         </div>
         <div className="landing-hero-art">
-          <span className="plate-caption">Good food. Kept close.</span>
+          <span className="plate-caption">{t('Good food. Kept close.')}</span>
           <KitchenPlate />
           <span className="plate-footnote">
-            A recipe worth saving is a recipe worth making again.
+            {t('A recipe worth saving is a recipe worth making again.')}
           </span>
         </div>
       </section>
@@ -59,38 +62,41 @@ export default function Home() {
       >
         <div className="landing-section-heading">
           <h2 id="workflow-heading">
-            Less hunting.
+            {t('Less hunting.')}
             <br />
-            More cooking.
+            {t('More cooking.')}
           </h2>
-          <p>From “where did I save that?” to dinner on the table.</p>
+          <p>{t('From “where did I save that?” to dinner on the table.')}</p>
         </div>
         <ol className="workflow-list">
           <li>
             <div className="workflow-number">01</div>
             <BookOpen aria-hidden="true" size={28} />
-            <h3>Keep the good ones</h3>
+            <h3>{t('Keep the good ones')}</h3>
             <p>
-              Write your own recipe or import one from a website. Ingredients, steps and your own
-              photos, all in one place.
+              {t(
+                'Write your own recipe or import one from a website. Ingredients, steps and your own photos, all in one place.',
+              )}
             </p>
           </li>
           <li>
             <div className="workflow-number">02</div>
             <ShoppingBasket aria-hidden="true" size={28} />
-            <h3>Shop with a plan</h3>
+            <h3>{t('Shop with a plan')}</h3>
             <p>
-              Choose what you want to cook. Recipe Buddy combines the ingredients into a shopping
-              list you can check as you go.
+              {t(
+                'Choose what you want to cook. Recipe Buddy combines the ingredients into a shopping list you can check as you go.',
+              )}
             </p>
           </li>
           <li>
             <div className="workflow-number">03</div>
             <Users aria-hidden="true" size={28} />
-            <h3>Pass a recipe along</h3>
+            <h3>{t('Pass a recipe along')}</h3>
             <p>
-              Invite a friend, share a favorite, and swap kitchen twists. A little less scrolling. A
-              little more “you have to try this.”
+              {t(
+                'Invite a friend, share a favorite, and swap kitchen twists. A little less scrolling. A little more “you have to try this.”',
+              )}
             </p>
           </li>
         </ol>
@@ -99,16 +105,17 @@ export default function Home() {
       <section className="landing-chefs" aria-labelledby="chefs-heading" data-reveal>
         <div className="landing-section-heading">
           <h2 id="chefs-heading">
-            Every kitchen
+            {t('Every kitchen')}
             <br />
-            starts somewhere.
+            {t('starts somewhere.')}
           </h2>
           <div>
             <p>
-              Here, everyone’s a chef. Grow your recipe box and earn apron reviews from the chefs
-              you share with.
+              {t(
+                'Here, everyone’s a chef. Grow your recipe box and earn apron reviews from the chefs you share with.',
+              )}
             </p>
-            <p>Seven levels. A badge for every chapter of your kitchen story.</p>
+            <p>{t('Seven levels. A badge for every chapter of your kitchen story.')}</p>
           </div>
         </div>
         <ol className="landing-levels">
@@ -117,14 +124,17 @@ export default function Home() {
               <div className="landing-level-art">
                 <ChefBadge level={level.level} />
               </div>
-              <span>Level {level.level}</span>
-              <h3>{level.name}</h3>
+              <span>
+                {t('Level')} {level.level}
+              </span>
+              <h3>{t(level.name)}</h3>
             </li>
           ))}
         </ol>
         <p className="landing-points">
-          10 points per saved recipe. 2 points per apron received. One chef level that brings them
-          together.
+          {t(
+            '10 points per saved recipe. 2 points per apron received. One chef level that brings them together.',
+          )}
         </p>
       </section>
 
@@ -134,22 +144,22 @@ export default function Home() {
         </div>
         <div>
           <h2 id="join-heading">
-            Your next favorite
+            {t('Your next favorite')}
             <br />
-            deserves a place.
+            {t('deserves a place.')}
           </h2>
-          <p>Start with one recipe. Make yourself at home.</p>
+          <p>{t('Start with one recipe. Make yourself at home.')}</p>
         </div>
         <Link href="/signup" className="button primary">
-          Join the kitchen
+          {t('Join the kitchen')}
         </Link>
       </section>
       <footer className="landing-footer">
         <Brand href="/" />
-        <p>Made for the meals worth making again.</p>
-        <a href="mailto:contact@recipebuddy.waelfz.com">Say hello</a>
-        <Link href="/privacy">Privacy</Link>
-        <Link href="/login">Chef login</Link>
+        <p>{t('Made for the meals worth making again.')}</p>
+        <a href="mailto:contact@recipebuddy.waelfz.com">{t('Say hello')}</a>
+        <Link href="/privacy">{t('Privacy')}</Link>
+        <Link href="/login">{t('Chef login')}</Link>
       </footer>
       <ScrollReveals />
     </main>

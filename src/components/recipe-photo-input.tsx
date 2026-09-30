@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useState } from 'react';
 import { RecipeArt } from './recipe-art';
 
@@ -11,6 +13,7 @@ export function RecipePhotoInput({
   onChange: (value: string) => void;
   onBusy: (busy: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   async function upload(file?: File) {
@@ -53,9 +56,9 @@ export function RecipePhotoInput({
     <section className="photo-editor">
       <div>
         <label htmlFor="recipe-photo">
-          Recipe photo <span className="optional">(optional)</span>
+          {t('Recipe photo')} <span className="optional">{t('(optional)')}</span>
         </label>
-        <p>Choose a JPG, PNG or WebP under 10 MB, or paste an HTTPS image link.</p>
+        <p>{t('Choose a JPG, PNG or WebP under 10 MB, or paste an HTTPS image link.')}</p>
         <input
           id="recipe-photo"
           type="file"
@@ -67,7 +70,7 @@ export function RecipePhotoInput({
           }}
         />
         <label>
-          Image URL
+          {t('Image URL')}
           <input
             id="imageUrl"
             type="url"
@@ -85,17 +88,17 @@ export function RecipePhotoInput({
             disabled={loading}
             onClick={() => onChange('')}
           >
-            Remove photo
+            {t('Remove photo')}
           </button>
         )}
-        {loading && <p role="status">Getting your photo ready…</p>}
+        {loading && <p role="status">{t('Getting your photo ready…')}</p>}
         {error && (
           <p className="error" role="alert">
-            {error}
+            {t(error)}
           </p>
         )}
       </div>
-      <RecipeArt vibe="cozy" imageUrl={value} title="Recipe photo preview" />
+      <RecipeArt vibe="cozy" imageUrl={value} title={t('Recipe photo preview')} />
     </section>
   );
 }

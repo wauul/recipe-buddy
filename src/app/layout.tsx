@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
+import { LanguageProvider } from '@/components/language-provider';
+import { getTranslation } from '@/lib/i18n-server';
 import { SiteTools } from '@/components/site-tools';
 import localFont from 'next/font/local';
 const display = localFont({
@@ -24,8 +26,9 @@ export const metadata: Metadata = {
   description: 'Save your recipes, build a shopping list, and share favorites with friends.',
 };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale } = getTranslation();
   return (
-    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
+    <html lang={locale} className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -34,10 +37,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <SiteTools />
-        {children}
-        <Analytics />
-        <SpeedInsights />
+        <LanguageProvider initialLocale={locale}>
+          <SiteTools />
+          {children}
+          <Analytics />
+          <SpeedInsights />
+        </LanguageProvider>
       </body>
     </html>
   );

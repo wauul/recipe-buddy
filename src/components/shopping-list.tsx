@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ShoppingBasket, Check, RotateCcw } from 'lucide-react';
@@ -11,6 +13,7 @@ export function ShoppingList({
   recipes: { id: string; title: string; servings: number }[];
   userId: string;
 }) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<string[]>([]),
     [items, setItems] = useState<ShoppingItem[]>([]),
     [checked, setChecked] = useState<string[]>([]);
@@ -93,24 +96,24 @@ export function ShoppingList({
     <>
       <div className="page-heading">
         <div>
-          <h1>Shopping list</h1>
-          <p>Choose recipes and combine their ingredients.</p>
+          <h1>{t('Shopping list')}</h1>
+          <p>{t('Choose recipes and combine their ingredients.')}</p>
         </div>
       </div>
       {!recipes.length ? (
         <div className="empty-state">
           <ShoppingBasket aria-hidden="true" size={54} />
-          <h2>Add a recipe first</h2>
-          <p>Your saved recipes become the ingredients on your list.</p>
+          <h2>{t('Add a recipe first')}</h2>
+          <p>{t('Your saved recipes become the ingredients on your list.')}</p>
           <Link href="/recipes/new" className="button primary">
-            Add a recipe{' '}
+            {t('Add a recipe')}{' '}
           </Link>
         </div>
       ) : (
         <div className="shopping-layout">
           <section className="form-panel">
-            <h2>Choose recipes</h2>
-            <p>Select recipes to combine their ingredients.</p>
+            <h2>{t('Choose recipes')}</h2>
+            <p>{t('Select recipes to combine their ingredients.')}</p>
             <div className="recipe-checks">
               {recipes.map((r) => (
                 <label key={r.id}>
@@ -127,7 +130,9 @@ export function ShoppingList({
                   />
                   <span>
                     <strong>{r.title}</strong>
-                    <small>{r.servings} servings</small>
+                    <small>
+                      {r.servings} {t('servings')}
+                    </small>
                   </span>
                 </label>
               ))}
@@ -137,23 +142,23 @@ export function ShoppingList({
               disabled={!selected.length || busy}
               onClick={generate}
             >
-              {busy ? 'Combining ingredients…' : `Build list (${selected.length})`}
+              {t(busy ? 'Combining ingredients…' : t('Build list ({0})', { 0: selected.length }))}
             </button>
             {error && (
               <p className="error" role="alert">
-                {error}
+                {t(error)}
               </p>
             )}
           </section>
           <section className="form-panel shopping-results">
             <div className="shopping-title">
               <div>
-                <h2>Ingredients to buy</h2>
+                <h2>{t('Ingredients to buy')}</h2>
               </div>
               {items.length > 0 && (
                 <button
                   className="icon-button"
-                  aria-label="Uncheck all items"
+                  aria-label={t('Uncheck all items')}
                   onClick={() => setChecked([])}
                 >
                   <RotateCcw aria-hidden="true" size={17} />
@@ -164,13 +169,15 @@ export function ShoppingList({
               <>
                 <div className="progress-label">
                   <span>
-                    {done === items.length
-                      ? 'Everything checked'
-                      : `${done} of ${items.length} ingredients checked`}
+                    {t(
+                      done === items.length
+                        ? 'Everything checked'
+                        : t('{0} of {1} ingredients checked', { 0: done, 1: items.length }),
+                    )}
                   </span>
                   <strong>{Math.round((done / items.length) * 100)}%</strong>
                 </div>
-                <progress max={items.length} value={done} aria-label="Shopping completion" />
+                <progress max={items.length} value={done} aria-label={t('Shopping completion')} />
                 <ul className="shopping-items">
                   {items.map((item) => (
                     <li key={item.name}>
@@ -190,14 +197,15 @@ export function ShoppingList({
                   ))}
                 </ul>
                 <p className="muted">
-                  Saved on this browser. Regenerate after changing your menu. Different units stay
-                  separate.
+                  {t(
+                    'Saved on this browser. Regenerate after changing your menu. Different units stay separate.',
+                  )}
                 </p>
               </>
             ) : (
               <div className="shopping-placeholder">
                 <ShoppingBasket aria-hidden="true" size={40} />
-                <p>Choose your recipes, then build the list</p>
+                <p>{t('Choose your recipes, then build the list')}</p>
               </div>
             )}
           </section>

@@ -1,4 +1,5 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ export function FriendsDashboard({
   friends: FriendView[];
   recipes: SharedRecipeView[];
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState('');
@@ -68,39 +70,41 @@ export function FriendsDashboard({
     <>
       {selected && (
         <ConfirmDialog
-          title={selected.status === 'accepted' ? 'Remove this friend?' : 'Remove this request?'}
+          title={t(selected.status === 'accepted' ? 'Remove this friend?' : 'Remove this request?')}
           busy={!!busy}
-          label="Remove"
+          label={t('Remove')}
           onCancel={() => setRemoving('')}
           onConfirm={() => change(selected, 'DELETE')}
         >
           <p>
-            {selected.status === 'accepted'
-              ? 'Shared recipe access ends for both of you. You can send a new friend request later.'
-              : 'This cancels or declines the pending request.'}
+            {t(
+              selected.status === 'accepted'
+                ? 'Shared recipe access ends for both of you. You can send a new friend request later.'
+                : 'This cancels or declines the pending request.',
+            )}
           </p>
         </ConfirmDialog>
       )}
 
       <div className="page-heading">
         <div>
-          <h1>Friends</h1>
-          <p>Share recipes with chefs you know.</p>
+          <h1>{t('Friends')}</h1>
+          <p>{t('Share recipes with chefs you know.')}</p>
         </div>
         <span className="social-count">
           <Users aria-hidden="true" size={17} />
-          {accepted.length} {accepted.length === 1 ? 'friend' : 'friends'}
+          {accepted.length} {t(accepted.length === 1 ? 'friend' : 'friends')}
         </span>
       </div>
       <section className="social-invite form-panel">
         <div>
           <h2>
-            <UserPlus aria-hidden="true" size={21} /> Invite a chef
+            <UserPlus aria-hidden="true" size={21} /> {t('Invite a chef')}
           </h2>
-          <p>Find a friend using the exact email they use for Recipe Buddy.</p>
+          <p>{t('Find a friend using the exact email they use for Recipe Buddy.')}</p>
         </div>
         <form onSubmit={invite}>
-          <label htmlFor="friend-email">Friend’s email address</label>
+          <label htmlFor="friend-email">{t('Friend’s email address')}</label>
           <input
             id="friend-email"
             type="email"
@@ -112,28 +116,29 @@ export function FriendsDashboard({
           />
           <button className="button primary" aria-busy={!!busy} disabled={!!busy}>
             <UserPlus aria-hidden="true" size={16} />
-            {busy === 'invite' ? 'Sending…' : 'Add friend'}
+            {t(busy === 'invite' ? 'Sending…' : 'Add friend')}
           </button>
         </form>
         <small>
-          They’ll see your chef name and email and can accept in their Friends page. Adding a friend
-          never shares recipes automatically.
+          {t(
+            'They’ll see your chef name and email and can accept in their Friends page. Adding a friend never shares recipes automatically.',
+          )}
         </small>
       </section>
       {error && (
         <p role="alert" className="error">
-          {error}
+          {t(error)}
         </p>
       )}
       {notice && (
         <p role="status" className="social-notice">
-          {notice}
+          {t(notice)}
         </p>
       )}
       <div className="social-people">
         <section className="form-panel">
           <div className="social-section-title">
-            <h2>Your friends</h2>
+            <h2>{t('Your friends')}</h2>
             <span>{accepted.length}</span>
           </div>
           {accepted.length ? (
@@ -145,8 +150,10 @@ export function FriendsDashboard({
                       {Array.from(friend.friend.username)[0]?.toUpperCase()}
                     </span>
                     <div>
-                      <strong>Chef {friend.friend.username}</strong>
-                      <small>Connected</small>
+                      <strong>
+                        {t('Chef')} {friend.friend.username}
+                      </strong>
+                      <small>{t('Connected')}</small>
                     </div>
                   </div>
                   <button
@@ -155,20 +162,20 @@ export function FriendsDashboard({
                     disabled={!!busy}
                     onClick={() => setRemoving(friend.id)}
                   >
-                    Remove friend
+                    {t('Remove friend')}
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
             <div className="social-empty">
-              <p>No friends yet. Send a request using their account email.</p>
+              <p>{t('No friends yet. Send a request using their account email.')}</p>
             </div>
           )}
         </section>
         <section className="form-panel">
           <div className="social-section-title">
-            <h2>Friend requests</h2>
+            <h2>{t('Friend requests')}</h2>
             <span>{pending.length}</span>
           </div>
           {pending.length ? (
@@ -180,11 +187,15 @@ export function FriendsDashboard({
                       {Array.from(friend.friend.username)[0]?.toUpperCase()}
                     </span>
                     <div>
-                      <strong>Chef {friend.friend.username}</strong>
+                      <strong>
+                        {t('Chef')} {friend.friend.username}
+                      </strong>
                       <small>
-                        {friend.status === 'incoming'
-                          ? 'Sent you a friend request'
-                          : 'Request sent · waiting for a yes'}
+                        {t(
+                          friend.status === 'incoming'
+                            ? 'Sent you a friend request'
+                            : 'Request sent · waiting for a yes',
+                        )}
                       </small>
                     </div>
                   </div>
@@ -197,7 +208,7 @@ export function FriendsDashboard({
                         onClick={() => change(friend, 'PATCH')}
                       >
                         <Check aria-hidden="true" size={15} />
-                        Accept
+                        {t('Accept')}
                       </button>
                     )}
                     <button
@@ -207,7 +218,7 @@ export function FriendsDashboard({
                       onClick={() => setRemoving(friend.id)}
                     >
                       <X aria-hidden="true" size={15} />
-                      {friend.status === 'incoming' ? 'Decline' : 'Cancel request'}
+                      {t(friend.status === 'incoming' ? 'Decline' : 'Cancel request')}
                     </button>
                   </div>
                 </li>
@@ -215,7 +226,7 @@ export function FriendsDashboard({
             </ul>
           ) : (
             <div className="social-empty">
-              <p>No pending requests.</p>
+              <p>{t('No pending requests.')}</p>
             </div>
           )}
         </section>
@@ -223,9 +234,9 @@ export function FriendsDashboard({
       <section className="collection social-shared">
         <div className="collection-heading">
           <h2>
-            Shared with you <span>{recipes.length}</span>
+            {t('Shared with you')} <span>{recipes.length}</span>
           </h2>
-          <span className="filter-note">Recipes your friends shared with you.</span>
+          <span className="filter-note">{t('Recipes your friends shared with you.')}</span>
         </div>
         {recipes.length ? (
           <div className="recipe-grid">
@@ -236,13 +247,14 @@ export function FriendsDashboard({
         ) : (
           <div className="empty-state">
             <BookOpen aria-hidden="true" size={37} />
-            <h2>No shared recipes yet</h2>
+            <h2>{t('No shared recipes yet')}</h2>
             <p>
-              Recipes your friends share with you will appear here. To share yours, open a saved
-              recipe.
+              {t(
+                'Recipes your friends share with you will appear here. To share yours, open a saved recipe.',
+              )}
             </p>
             <Link href="/recipes" className="button secondary">
-              My recipes
+              {t('My recipes')}
             </Link>
           </div>
         )}

@@ -5,7 +5,7 @@ A private recipe box with a playful sous-chef. Built with **Next.js 14 App Route
 ## What's inside
 
 - A public landing page with simple kitchen line art, the recipe/shopping/sharing workflow and all seven chef badges. Login and signup use a clean text-first layout.
-- Email/password and optional Google signup/login; existing password chefs can connect Google from Settings. Bcrypt hashes and signed, HTTP-only JWT sessions remain. See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for activation and live checks.
+- Email/password and optional Google signup/login; a matching verified Google email automatically connects to the existing chef account, and Settings also supports connecting Google. Bcrypt hashes and signed, HTTP-only JWT sessions remain. See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for activation and live checks.
 - Seven illustrated chef levels combine current saved recipes and apron reviews from other chefs. Each saved recipe earns 10 points; every received apron earns 2. Share a recipe to receive one editable 1–5 apron review from each other chef.
 - Private recipe CRUD with dynamic ingredient and instruction fields.
 - Paste recipe text or a public HTTPS URL to extract a recipe using Groq's `llama-3.1-8b-instant`.
@@ -277,7 +277,7 @@ For existing installations, apply the additive `20260914000000_social` and `2026
 
 ## Interface and accessibility update
 
-The global header includes recipe/help search and a persistent light/dark toggle. Signed-in screens use a desktop sidebar and five-destination phone bottom navigation, with an account menu. Scroll progress, back-to-top, reduced-motion-aware loading states, keyboard focus styles, a skip link and a dismissible essential-cookie notice work across the app. Contact opens `contact@recipebuddy.waelfz.com` in the user's email app; this does not provision a mailbox or send a message automatically.
+The global header includes an English/French language selector, recipe/help search and a persistent light/dark toggle. Language is remembered for one year in the `rb-language` preference cookie, used for matching server and client rendering. Settings provides the same language control. Interface text, labels, statuses, chef ranks, help and privacy are localized; recipe and contribution content remains as authored. Help search matches both languages. Signed-in screens use a desktop sidebar and five-destination phone bottom navigation, with an account menu. Scroll progress, back-to-top, reduced-motion-aware loading states, keyboard focus styles, a skip link and a dismissible essential-cookie notice work across the app. Contact opens `contact@recipebuddy.waelfz.com` in the user's email app; this does not provision a mailbox or send a message automatically.
 
 `/search` searches only the signed-in user's own recipes and currently shared recipes, including ingredient and step text, plus app pages and FAQs. `/help` provides expandable FAQs and a copyable recipe-text example. HTTP(S) outbound anchors get `utm_source=recipe_buddy`, `utm_medium=referral`, and `utm_campaign=app`, preserving existing attribution; internal, email and phone links are untouched. No newsletter is included, as requested.
 

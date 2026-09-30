@@ -1,4 +1,5 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,6 +18,7 @@ export function RecipeSharing({
   friends: Friend[];
   recipientIds: string[];
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [confirm, setConfirm] = useState<Friend | null>(null);
   const [busy, setBusy] = useState('');
@@ -32,7 +34,9 @@ export function RecipeSharing({
         recipientId: friend.id,
       });
       setNotice(
-        shared ? `Sharing stopped for ${friend.username}.` : `Shared with ${friend.username}.`,
+        shared
+          ? t('Sharing stopped for {0}.', { 0: friend.username })
+          : t('Shared with {0}.', { 0: friend.username }),
       );
       setConfirm(null);
       router.refresh();
@@ -46,20 +50,22 @@ export function RecipeSharing({
     <section className="form-panel recipe-sharing">
       {confirm && (
         <ConfirmDialog
-          title="Stop sharing this recipe?"
+          title={t('Stop sharing this recipe?')}
           busy={!!busy}
-          label="Stop sharing"
+          label={t('Stop sharing')}
           onCancel={() => setConfirm(null)}
           onConfirm={() => toggle(confirm)}
         >
-          <p>{confirm.username} will no longer be able to view this recipe.</p>
+          <p>
+            {t(confirm.username)} {t('will no longer be able to view this recipe.')}
+          </p>
         </ConfirmDialog>
       )}
       <div className="sharing-heading">
         <Share2 aria-hidden="true" size={23} />
         <div>
-          <h2>Share this recipe</h2>
-          <p>Choose which friends can view your recipe. Only you can edit it.</p>
+          <h2>{t('Share this recipe')}</h2>
+          <p>{t('Choose which friends can view your recipe. Only you can edit it.')}</p>
         </div>
       </div>
       {friends.length ? (
@@ -69,8 +75,10 @@ export function RecipeSharing({
             return (
               <li key={friend.id}>
                 <span>
-                  <strong>Chef {friend.username}</strong>
-                  <small>{shared ? 'Can view this recipe' : 'Not shared'}</small>
+                  <strong>
+                    {t('Chef')} {friend.username}
+                  </strong>
+                  <small>{t(shared ? 'Can view this recipe' : 'Not shared')}</small>
                 </span>
                 <button
                   className={`button ${shared ? 'secondary' : 'primary'}`}
@@ -83,7 +91,7 @@ export function RecipeSharing({
                   ) : (
                     <Share2 aria-hidden="true" size={15} />
                   )}
-                  {busy === friend.id ? 'Updating…' : shared ? 'Stop sharing' : 'Share recipe'}
+                  {t(busy === friend.id ? 'Updating…' : shared ? 'Stop sharing' : 'Share recipe')}
                 </button>
               </li>
             );
@@ -91,24 +99,26 @@ export function RecipeSharing({
         </ul>
       ) : (
         <p>
-          Add an accepted friend to share this recipe.{' '}
+          {t('Add an accepted friend to share this recipe.')}{' '}
           <Link className="text-button" href="/friends">
-            Add a friend
+            {t('Add a friend')}
           </Link>
         </p>
       )}
       {error && (
         <p role="alert" className="error">
-          {error}
+          {t(error)}
         </p>
       )}
       {notice && (
         <p role="status" className="social-notice">
-          {notice}
+          {t(notice)}
         </p>
       )}
       <small>
-        Sharing is revocable. Removing a friend also ends access to recipes shared between you.
+        {t(
+          'Sharing is revocable. Removing a friend also ends access to recipes shared between you.',
+        )}
       </small>
     </section>
   );

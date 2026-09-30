@@ -1,8 +1,11 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { request } from '@/lib/client';
 import { usernameSchema } from '@/lib/username';
+import { LanguageSelector } from './language-provider';
 import { ThemeSettings } from './theme-settings';
 import { ChefHat } from 'lucide-react';
 
@@ -15,6 +18,7 @@ export function SettingsForm({
   username: string;
   showHeading?: boolean;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [enabled, setEnabled] = useState(roastEnabled),
     [busy, setBusy] = useState(false),
@@ -69,16 +73,16 @@ export function SettingsForm({
       {showHeading && (
         <div className="page-heading">
           <div>
-            <h1>Settings</h1>
-            <p>Your chef name, recipe roasts and appearance.</p>
+            <h1>{t('Settings')}</h1>
+            <p>{t('Your chef name, recipe roasts and appearance.')}</p>
           </div>
         </div>
       )}
       <section className="form-panel username-panel">
-        <h2>Your chef name</h2>
-        <p>Your chef name appears on shared recipes, twists, and comments.</p>
+        <h2>{t('Your chef name')}</h2>
+        <p>{t('Your chef name appears on shared recipes, twists, and comments.')}</p>
         <form onSubmit={saveName} aria-busy={nameBusy}>
-          <label htmlFor="username">Chef name</label>
+          <label htmlFor="username">{t('Chef name')}</label>
           <div className="username-controls">
             <input
               id="username"
@@ -97,21 +101,22 @@ export function SettingsForm({
               aria-invalid={!!nameError}
             />
             <button className="button primary" disabled={nameBusy || name.trim() === savedName}>
-              {nameBusy ? 'Saving…' : 'Save chef name'}
+              {t(nameBusy ? 'Saving…' : 'Save chef name')}
             </button>
           </div>
           <p id="username-hint" className="username-hint">
-            Change your name whenever you like. Keep using your account email to log in and add
-            friends.
+            {t(
+              'Change your name whenever you like. Keep using your account email to log in and add friends.',
+            )}
           </p>
           {nameError && (
             <p id="username-error" role="alert" className="error">
-              {nameError}
+              {t(nameError)}
             </p>
           )}
           {nameNotice && (
             <p role="status" className="social-notice">
-              {nameNotice}
+              {t(nameNotice)}
             </p>
           )}
         </form>
@@ -119,15 +124,17 @@ export function SettingsForm({
       <section className="form-panel settings-panel">
         <ChefHat aria-hidden="true" size={28} />
         <div>
-          <h2>Chef roast mode</h2>
-          <p>Add a playful one-liner when you import or save a recipe.</p>
-          <small>Switching this off hides existing roasts and stops generating new ones.</small>
+          <h2>{t('Chef roast mode')}</h2>
+          <p>{t('Add a playful one-liner when you import or save a recipe.')}</p>
+          <small>
+            {t('Switching this off hides existing roasts and stops generating new ones.')}
+          </small>
         </div>
         <button
           className={`toggle ${enabled ? 'on' : ''}`}
           role="switch"
           aria-checked={enabled}
-          aria-label="Chef roast mode"
+          aria-label={t('Chef roast mode')}
           disabled={busy}
           onClick={toggle}
         >
@@ -136,14 +143,19 @@ export function SettingsForm({
       </section>
       {toggleError && (
         <p className="error" role="alert">
-          {toggleError}
+          {t(toggleError)}
         </p>
       )}
       {message && (
         <p className="social-notice" role="status">
-          {message}
+          {t(message)}
         </p>
       )}
+      <section className="form-panel">
+        <h2>{t('Language')}</h2>
+        <p>{t('Choose the language for this browser. Your recipes stay as you wrote them.')}</p>
+        <LanguageSelector settings />
+      </section>
       <ThemeSettings />
     </>
   );

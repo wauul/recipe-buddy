@@ -1,4 +1,5 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
 
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,6 +25,7 @@ export function RecipeDiscussion({
   ingredients: string[];
   discussion: Discussion;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -82,15 +84,15 @@ export function RecipeDiscussion({
       <article className="recipe-comment" key={comment.id}>
         <div className="contribution-meta">
           <strong>
-            Chef {comment.authorName}
-            {comment.authorId === viewerId ? ' (you)' : ''}
+            {t('Chef')} {comment.authorName}
+            {t(comment.authorId === viewerId ? ' (you)' : '')}
           </strong>
           <time dateTime={comment.createdAt}>{comment.createdAt.slice(0, 10)}</time>
           {canRemove(comment.authorId) && (
             <button
               className="icon-button"
               disabled={busy}
-              aria-label={`Delete comment by ${comment.authorName}`}
+              aria-label={t('Delete comment by {0}', { 0: comment.authorName })}
               onClick={() => setRemoving({ kind: 'comment', id: comment.id })}
             >
               <Trash2 aria-hidden="true" size={15} />
@@ -107,9 +109,9 @@ export function RecipeDiscussion({
       <div className="discussion-heading">
         <div>
           <h2 id="discussion-title">
-            <CookingPot aria-hidden="true" size={24} /> Kitchen twists
+            <CookingPot aria-hidden="true" size={24} /> {t('Kitchen twists')}
           </h2>
-          <p>Share a change you tried, without editing the original recipe.</p>
+          <p>{t('Share a change you tried, without editing the original recipe.')}</p>
         </div>
         <button
           className="button primary"
@@ -119,51 +121,54 @@ export function RecipeDiscussion({
           disabled={busy}
         >
           {adding ? <X aria-hidden="true" size={17} /> : <Plus aria-hidden="true" size={17} />}
-          {adding ? 'Cancel' : 'Add a twist'}
+          {t(adding ? 'Cancel' : 'Add a twist')}
         </button>
       </div>
       <p className="discussion-privacy">
-        Visible to the recipe’s chef and everyone this recipe is currently shared with.
-        Contributions stay on the recipe if sharing ends.
+        {t(
+          'Visible to the recipe’s chef and everyone this recipe is currently shared with. Contributions stay on the recipe if sharing ends.',
+        )}
       </p>
       {adding && (
         <form id="take-form" className="take-form form-panel" onSubmit={addTake} aria-busy={busy}>
           <label>
-            Type of twist
+            {t('Type of twist')}
             <select name="type" defaultValue="other" disabled={busy}>
               {Object.entries(takeTypes).map(([value, label]) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(label)}
                 </option>
               ))}
             </select>
           </label>
           <label>
-            A name for your twist
+            {t('A name for your twist')}
             <input
               name="title"
               required
               maxLength={120}
-              placeholder="Jane’s lighter, crispier version"
+              placeholder={t('Jane’s lighter, crispier version')}
               disabled={busy}
             />
           </label>
           <label>
-            What did you change?
+            {t('What did you change?')}
             <textarea
               name="change"
               required
               maxLength={2000}
               rows={3}
-              placeholder="I halved the oil and baked it at 200°C for 20 minutes instead of frying."
+              placeholder={t(
+                'I halved the oil and baked it at 200°C for 20 minutes instead of frying.',
+              )}
               disabled={busy}
             />
           </label>
           <div className="take-form-row">
             <label>
-              Link to an ingredient (optional)
+              {t('Link to an ingredient (optional)')}
               <select name="ingredient" disabled={busy}>
-                <option value="">Whole recipe / another part</option>
+                <option value="">{t('Whole recipe / another part')}</option>
                 {Array.from(new Set(ingredients)).map((name) => (
                   <option key={name} value={name}>
                     {name}
@@ -173,34 +178,36 @@ export function RecipeDiscussion({
             </label>
           </div>
           <label>
-            Why did it work for you? (optional)
+            {t('Why did it work for you? (optional)')}
             <textarea
               name="reason"
               maxLength={2000}
               rows={2}
-              placeholder="I wanted a lighter dinner, and the oven still made the edges crispy."
+              placeholder={t(
+                'I wanted a lighter dinner, and the oven still made the edges crispy.',
+              )}
               disabled={busy}
             />
           </label>
           <button className="button primary" disabled={busy} type="submit">
-            {busy ? 'Saving twist…' : 'Add twist'}
+            {t(busy ? 'Saving twist…' : 'Add twist')}
           </button>
         </form>
       )}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
       {notice && (
         <p className="social-notice" role="status">
-          {notice}
+          {t(notice)}
         </p>
       )}
       {!discussion.takes.length && (
         <div className="twist-empty">
           <CookingPot aria-hidden="true" size={24} />
-          <p>No twists yet. Add a variation, ingredient swap, or cooking tip.</p>
+          <p>{t('No twists yet. Add a variation, ingredient swap, or cooking tip.')}</p>
         </div>
       )}
       <div className="take-list">
@@ -208,15 +215,16 @@ export function RecipeDiscussion({
           <article className="take-card" key={take.id} id={`take-${take.id}`}>
             <div className="contribution-meta">
               <span className="take-author">
-                Chef {take.authorName}’s twist
-                {take.authorId === viewerId ? ' (you)' : ''}
+                {t('Chef')} {take.authorName}
+                {t('’s twist')}
+                {t(take.authorId === viewerId ? ' (you)' : '')}
               </span>
               <time dateTime={take.createdAt}>{take.createdAt.slice(0, 10)}</time>
               {canRemove(take.authorId) && (
                 <button
                   className="icon-button"
                   disabled={busy}
-                  aria-label={`Delete twist: ${take.title}`}
+                  aria-label={t('Delete twist: {0}', { 0: take.title })}
                   onClick={() => setRemoving({ kind: 'take', id: take.id })}
                 >
                   <Trash2 aria-hidden="true" size={16} />
@@ -224,29 +232,31 @@ export function RecipeDiscussion({
               )}
             </div>
             <div className="take-tags">
-              <span className="take-type">{takeTypes[take.type]}</span>
+              <span className="take-type">{t(takeTypes[take.type])}</span>
               {take.ingredient && (
-                <span className="take-ingredient">Ingredient: {take.ingredient}</span>
+                <span className="take-ingredient">
+                  {t('Ingredient:')} {take.ingredient}
+                </span>
               )}
             </div>
             <h3>{take.title}</h3>
             <p className="contribution-text">{take.change}</p>
             {take.reason && (
               <div className="take-reason">
-                <strong>Why this twist?</strong>
+                <strong>{t('Why this twist?')}</strong>
                 <p className="contribution-text">{take.reason}</p>
               </div>
             )}
             <details className="take-replies">
               <summary>
-                <MessageCircle aria-hidden="true" size={16} /> Comments on this twist (
+                <MessageCircle aria-hidden="true" size={16} /> {t('Comments on this twist (')}
                 {discussion.comments.filter((comment) => comment.takeId === take.id).length})
               </summary>
               {comments(discussion.comments.filter((comment) => comment.takeId === take.id))}
               <CommentForm
                 recipeId={recipeId}
                 takeId={take.id}
-                label={`Comment on Chef ${take.authorName}’s twist`}
+                label={t('Comment on Chef {0}’s twist', { 0: take.authorName })}
                 onSaved={() => router.refresh()}
               />
             </details>
@@ -255,29 +265,31 @@ export function RecipeDiscussion({
       </div>
       <section className="recipe-comments" aria-labelledby="recipe-comments-title">
         <h2 id="recipe-comments-title">
-          <MessageCircle aria-hidden="true" size={23} /> Recipe conversation
+          <MessageCircle aria-hidden="true" size={23} /> {t('Recipe conversation')}
         </h2>
-        <p>Ask a question or share how the recipe turned out.</p>
+        <p>{t('Ask a question or share how the recipe turned out.')}</p>
         {comments(discussion.comments.filter((comment) => !comment.takeId))}
         <CommentForm
           recipeId={recipeId}
           takeId={null}
-          label="Add a comment on the recipe"
+          label={t('Add a comment on the recipe')}
           onSaved={() => router.refresh()}
         />
       </section>
       {removing && (
         <ConfirmDialog
-          title={removing.kind === 'take' ? 'Remove this twist?' : 'Remove this comment?'}
-          label="Remove"
+          title={t(removing.kind === 'take' ? 'Remove this twist?' : 'Remove this comment?')}
+          label={t('Remove')}
           busy={busy}
           onCancel={() => setRemoving(null)}
           onConfirm={remove}
         >
           <p>
-            {removing.kind === 'take'
-              ? 'This permanently removes the twist and all comments on it.'
-              : 'This permanently removes the comment.'}
+            {t(
+              removing.kind === 'take'
+                ? 'This permanently removes the twist and all comments on it.'
+                : 'This permanently removes the comment.',
+            )}
           </p>
         </ConfirmDialog>
       )}
@@ -296,6 +308,7 @@ function CommentForm({
   label: string;
   onSaved: () => void;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState(''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
@@ -327,7 +340,7 @@ function CommentForm({
   return (
     <form className="comment-form" onSubmit={submit} aria-busy={busy}>
       <label>
-        {label}
+        {t(label)}
         <textarea
           required
           maxLength={2000}
@@ -338,20 +351,20 @@ function CommentForm({
             setText(event.target.value);
             setSaved(false);
           }}
-          placeholder="Write a comment"
+          placeholder={t('Write a comment')}
         />
       </label>
       <button className="button secondary" disabled={busy || !text.trim()}>
-        {busy ? 'Posting…' : 'Post comment'}
+        {t(busy ? 'Posting…' : 'Post comment')}
       </button>
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
       {saved && (
         <p className="social-notice" role="status">
-          Comment posted.
+          {t('Comment posted.')}
         </p>
       )}
     </form>

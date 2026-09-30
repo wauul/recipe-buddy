@@ -1,4 +1,6 @@
 'use client';
+import { useTranslation } from '@/components/language-provider';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -18,6 +20,7 @@ export function RecipeDashboard({
   progress: Progress;
   chef?: { name: string; progress: ChefProgress };
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [query, setQuery] = useState(''),
     [vibe, setVibe] = useState('all'),
@@ -35,21 +38,21 @@ export function RecipeDashboard({
     <>
       <div className="page-heading">
         <div>
-          <h1>My recipes</h1>
-          <p>A place for the meals worth making again</p>
+          <h1>{t('My recipes')}</h1>
+          <p>{t('A place for the meals worth making again')}</p>
         </div>
         <Link href="/recipes/new" className="button primary">
           <Plus aria-hidden="true" size={18} />
-          Add a recipe
+          {t('Add a recipe')}
         </Link>
       </div>
       {chef && <ChefProgressPanel chefName={chef.name} progress={chef.progress} />}
-      <section className="dashboard-top" aria-label="Cooking this week">
+      <section className="dashboard-top" aria-label={t('Cooking this week')}>
         <div className="dinner-prompt">
           <CookingIllustration compact />
           <div>
-            <h2>What’s for dinner?</h2>
-            <p>Let your recipe box choose.</p>
+            <h2>{t('What’s for dinner?')}</h2>
+            <p>{t('Let your recipe box choose.')}</p>
           </div>
           <button
             className="button secondary"
@@ -57,13 +60,15 @@ export function RecipeDashboard({
             disabled={!recipes.length || shuffling}
           >
             <Shuffle aria-hidden="true" size={18} />
-            {shuffling ? 'Opening recipe…' : 'Choose for me'}
+            {t(shuffling ? 'Opening recipe…' : 'Choose for me')}
           </button>
         </div>
         <div className="streak-panel">
           <div className="streak-top">
-            <h2>This week</h2>
-            <p>{progress.count} of 7 cooking days</p>
+            <h2>{t('This week')}</h2>
+            <p>
+              {progress.count} {t('of 7 cooking days')}
+            </p>
           </div>
           <div className="week-days">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
@@ -71,7 +76,20 @@ export function RecipeDashboard({
                 <span
                   role="img"
                   className={progress.days[i] ? 'cooked-day' : ''}
-                  aria-label={`${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][i]}: ${progress.days[i] ? 'cooked' : 'not cooked'}`}
+                  aria-label={t('{0}: {1}', {
+                    0: t(
+                      [
+                        'Monday',
+                        'Tuesday',
+                        'Wednesday',
+                        'Thursday',
+                        'Friday',
+                        'Saturday',
+                        'Sunday',
+                      ][i],
+                    ),
+                    1: t(progress.days[i] ? 'cooked' : 'not cooked'),
+                  })}
                 >
                   {progress.days[i] ? (
                     <Check aria-hidden="true" size={16} />
@@ -79,29 +97,29 @@ export function RecipeDashboard({
                     <span aria-hidden="true" className="day-dot" />
                   )}
                 </span>
-                <small>{day}</small>
+                <small>{t(day)}</small>
               </div>
             ))}
           </div>
-          <small>Monday–Sunday, UTC</small>
+          <small>{t('Monday–Sunday, UTC')}</small>
         </div>
       </section>
       <section className="collection" aria-labelledby="collection-title">
         <div className="collection-heading">
           <h2 id="collection-title">
-            Recipe box <span>{recipes.length}</span>
+            {t('Recipe box')} <span>{recipes.length}</span>
           </h2>
           <label className="search">
             <Search aria-hidden="true" size={18} />
-            <span className="sr-only">Search recipes</span>
+            <span className="sr-only">{t('Search recipes')}</span>
             <input
-              placeholder="Search by recipe name"
+              placeholder={t('Search by recipe name')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </label>
         </div>
-        <div className="filter-row" aria-label="Filter by vibe">
+        <div className="filter-row" aria-label={t('Filter by vibe')}>
           {['all', 'cozy', 'lazy', 'fancy', 'chaotic'].map((v) => (
             <button
               key={v}
@@ -109,7 +127,7 @@ export function RecipeDashboard({
               onClick={() => setVibe(v)}
               aria-pressed={vibe === v}
             >
-              {v === 'all' ? 'All recipes' : v[0].toUpperCase() + v.slice(1)}
+              {t(v === 'all' ? 'All recipes' : v[0].toUpperCase() + v.slice(1))}
             </button>
           ))}
         </div>
@@ -122,11 +140,13 @@ export function RecipeDashboard({
         ) : (
           <div className="empty-state">
             <CookingIllustration vibe="cozy" />
-            <h2>{recipes.length ? 'No matching recipes' : 'Start your recipe box'}</h2>
+            <h2>{t(recipes.length ? 'No matching recipes' : 'Start your recipe box')}</h2>
             <p>
-              {recipes.length
-                ? 'Try another name or choose a different vibe.'
-                : 'Add a recipe by hand, or import one from a website or text.'}
+              {t(
+                recipes.length
+                  ? 'Try another name or choose a different vibe.'
+                  : 'Add a recipe by hand, or import one from a website or text.',
+              )}
             </p>
             {recipes.length ? (
               <button
@@ -136,20 +156,20 @@ export function RecipeDashboard({
                   setVibe('all');
                 }}
               >
-                Clear filters
+                {t('Clear filters')}
               </button>
             ) : (
               <Link href="/recipes/new" className="button primary">
                 <Plus aria-hidden="true" size={18} />
-                Add a recipe
+                {t('Add a recipe')}
               </Link>
             )}
           </div>
         )}
       </section>
       <footer className="page-footer">
-        <span>Your recipes stay private until you share them.</span>
-        <Link href="/help">Help & FAQ</Link>
+        <span>{t('Your recipes stay private until you share them.')}</span>
+        <Link href="/help">{t('Help & FAQ')}</Link>
       </footer>
     </>
   );

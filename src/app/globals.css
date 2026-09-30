@@ -379,6 +379,39 @@ html[data-theme='dark'] .danger {
   font-size: 1.125rem;
   white-space: nowrap;
 }
+.language-selector {
+  flex-shrink: 0;
+  margin: 0;
+}
+.language-selector select {
+  width: auto;
+  min-width: 64px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 24px 8px 10px;
+  font-size: 0.875rem;
+  background-color: var(--surface);
+}
+.language-settings {
+  display: block;
+  max-width: 320px;
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .site-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .header-contact {
+    display: none;
+  }
+  .landing-nav {
+    gap: 8px;
+  }
+  .language-selector select {
+    min-width: 58px;
+  }
+}
 .header-brand span {
   display: none;
 }
@@ -3852,4 +3885,29 @@ select {
 .auth-privacy a {
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .site-header,
+  body:has(.sidebar) .site-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .public-header .header-contact {
+    display: none;
+  }
+  .public-header .landing-nav {
+    gap: 8px;
+  }
+  .form-actions {
+    flex-wrap: wrap;
+  }
+  .form-actions > .button {
+    flex: 1 1 180px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
 }
