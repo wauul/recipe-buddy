@@ -36,6 +36,12 @@ test('saved bilingual recipe covers title, nickname, roast, ingredient names and
     pending: false,
   };
   const seed = recipeLanguageSeed({ ...original, translations });
+  assert.equal(
+    Object.getPrototypeOf(seed.en),
+    Object.prototype,
+    'server payload is a serializable plain object',
+  );
+  assert.equal(Object.getPrototypeOf(seed.fr), Object.prototype);
   assert.equal(seed.fr.flour, 'farine');
   assert.equal(seed.fr[original.roastLine], translations.fr[original.roastLine]);
   assert.equal(seed.fr[original.steps[0]], 'Cuire à 200°C pendant 20 minutes.');

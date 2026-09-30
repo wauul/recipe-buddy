@@ -44,20 +44,31 @@ export function recipeLanguageSeed(
   const saved = savedLanguages(recipe.translations);
   const texts = recipeTexts(recipe);
   const seed: SavedLanguages = {
-    en: Object.create(null),
-    fr: Object.create(null),
+    en: {},
+    fr: {},
     pending: saved.pending,
   };
   for (const locale of ['en', 'fr'] as const) {
     for (const text of texts) {
       const translated = Object.hasOwn(saved[locale], text) ? saved[locale][text] : undefined;
       try {
-        seed[locale][text] = translated
+        const display = translated
           ? validateTranslations([text], { translations: [translated] })[0]
           : text;
+        Object.defineProperty(seed[locale], text, {
+          value: display,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        });
         if (!translated) seed.pending = true;
       } catch {
-        seed[locale][text] = text;
+        Object.defineProperty(seed[locale], text, {
+          value: text,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        });
         seed.pending = true;
       }
     }
