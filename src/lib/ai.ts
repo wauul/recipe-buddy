@@ -46,10 +46,13 @@ export async function completion(
       );
   }
   if (!response.ok)
-    throw new Error(
-      response.status === 429
-        ? 'AI limit reached. Try later or add the recipe manually.'
-        : 'AI is unavailable. Please add your recipe manually.',
+    throw Object.assign(
+      new Error(
+        response.status === 429
+          ? 'AI limit reached. Try later or add the recipe manually.'
+          : 'AI is unavailable. Please add your recipe manually.',
+      ),
+      { status: response.status },
     );
   const payload = await response.json();
   return z.string().min(1).parse(payload.choices?.[0]?.message?.content);

@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  protectCookingValues,
+  restoreCookingValues,
   translationRequestSchema,
   translationBatch,
   validateTranslations,
@@ -102,4 +104,45 @@ test('bounded batches retain every source string in order across large recipes',
       .success,
     false,
   );
+});
+
+test('cooking values are protected before the model sees them and restored without changes', () => {
+  const source = [
+    'Bake at 400°F (200°C) for 25 minutes.',
+    '1/4 cup milk and 25 g flour',
+    'Store at -18°C',
+    '¼ cup oil',
+  ];
+  const protectedInput = protectCookingValues(source);
+  assert.deepEqual(protectedInput.texts, [
+    'Bake at ⟦V0⟧ (⟦V1⟧) for ⟦V2⟧ minutes.',
+    '⟦V0⟧ cup milk and ⟦V1⟧ flour',
+    'Store at ⟦V0⟧',
+    '⟦V0⟧ cup oil',
+  ]);
+  const restored = restoreCookingValues(protectedInput, {
+    translations: [
+      'Cuire à ⟦V0⟧ (⟦V1⟧) pendant ⟦V2⟧ minutes.',
+      '⟦V0⟧ tasse de lait et ⟦V1⟧ de farine',
+      'Conserver à ⟦V0⟧',
+      '⟦V0⟧ tasse d’huile',
+    ],
+  });
+  assert.deepEqual(restored, [
+    'Cuire à 400°F (200°C) pendant 25 minutes.',
+    '1/4 tasse de lait et 25 g de farine',
+    'Conserver à -18°C',
+    '¼ tasse d’huile',
+  ]);
+  assert.deepEqual(validateTranslations(source, { translations: restored }, 'fr'), restored);
+});
+
+test('missing, duplicated or reordered value tokens cannot corrupt the cooking instructions', () => {
+  const source = protectCookingValues(['Bake at 200°C for 25 minutes.']);
+  for (const output of [
+    'Cuire à 200°C pendant ⟦V1⟧ minutes.',
+    'Cuire à ⟦V0⟧ pendant ⟦V0⟧ minutes.',
+    'Cuire à ⟦V1⟧ pendant ⟦V0⟧ minutes.',
+  ])
+    assert.throws(() => restoreCookingValues(source, { translations: [output] }));
 });

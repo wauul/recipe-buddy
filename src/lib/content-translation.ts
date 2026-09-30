@@ -1,5 +1,47 @@
 import { z } from 'zod';
 
+export class TranslationIntegrityError extends Error {
+  constructor(public code: string) {
+    super(code);
+    this.name = 'TranslationIntegrityError';
+  }
+}
+
+export function protectCookingValues(texts: string[]) {
+  const values: string[][] = [];
+  const protectedTexts = texts.map((text, index) => {
+    values[index] = [];
+    return text.replace(
+      /(?<!\d)[+−-]?\s*\d+(?:[.,]\d+)?(?:\s*\/\s*\d+(?:[.,]\d+)?)?(?:\s*(?:°\s*[CF]|kg\b|mg\b|g\b|ml\b|cl\b|l\b))?|[¼½¾\u2150-\u215e]/gi,
+      (value) => {
+        const token = `⟦V${values[index].length}⟧`;
+        values[index].push(value.trimStart());
+        return value.startsWith(' ') ? ` ${token}` : token;
+      },
+    );
+  });
+  return { texts: protectedTexts, values };
+}
+
+export function restoreCookingValues(
+  protectedInput: ReturnType<typeof protectCookingValues>,
+  value: unknown,
+) {
+  const result = z.object({ translations: z.array(z.string().min(1).max(8000)) }).parse(value);
+  if (result.translations.length !== protectedInput.texts.length)
+    throw new TranslationIntegrityError('incomplete');
+  return result.translations.map((text, index) => {
+    const actual = text.match(/⟦V\d+⟧/g) ?? [];
+    const expected = protectedInput.values[index].map((_, position) => `⟦V${position}⟧`);
+    if (JSON.stringify(actual) !== JSON.stringify(expected))
+      throw new TranslationIntegrityError('value_tokens');
+    return text.replace(
+      /⟦V(\d+)⟧/g,
+      (_, position) => protectedInput.values[index][Number(position)],
+    );
+  });
+}
+
 export const translationRequestSchema = z
   .object({
     locale: z.enum(['en', 'fr']),
@@ -38,18 +80,19 @@ export function validateTranslations(
   locale?: 'en' | 'fr',
 ): string[] {
   const result = z.object({ translations: z.array(z.string().min(1).max(8000)) }).parse(value);
-  if (result.translations.length !== source.length) throw new Error('Incomplete translation.');
+  if (result.translations.length !== source.length)
+    throw new TranslationIntegrityError('incomplete');
   result.translations.forEach((text, index) => {
     if (
       locale &&
       clearlyNeedsTranslation(source[index], locale) &&
       text.trim() === source[index].trim()
     )
-      throw new Error('Recipe text was left untranslated.');
+      throw new TranslationIntegrityError('untranslated');
     if (JSON.stringify(numbers(text)) !== JSON.stringify(numbers(source[index])))
-      throw new Error('Translation changed a cooking quantity.');
+      throw new TranslationIntegrityError('numbers');
     if (JSON.stringify(measurements(text)) !== JSON.stringify(measurements(source[index])))
-      throw new Error('Translation changed a measurement or temperature.');
+      throw new TranslationIntegrityError('measurements');
   });
   return result.translations;
 }
