@@ -3,18 +3,22 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Languages, LoaderCircle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { translator, type Locale } from '@/lib/i18n';
+import { recipeLanguageSeed, type SavedLanguages } from '@/lib/recipe-languages';
+import type { RecipeView } from '@/lib/validation';
 import { translationBatch, validateTranslations } from '@/lib/content-translation';
 
 type Context = {
   read: (text: string) => string;
   register: (texts: string[]) => void;
   version: number;
+  seed: (languages: SavedLanguages) => void;
   notice?: React.ReactNode;
 };
 const ContentContext = createContext<Context>({
   read: (text) => text,
   register: () => {},
   version: 0,
+  seed: () => {},
 });
 
 export function ContentTranslationProvider({
@@ -38,6 +42,7 @@ export function ContentTranslationProvider({
     failed: false,
     active: false,
   });
+  const saved = useRef({ en: new Map<string, string>(), fr: new Map<string, string>() });
   const timer = useRef<ReturnType<typeof setTimeout>>();
   const controller = useRef<AbortController>();
   const t = translator(locale);
@@ -47,6 +52,7 @@ export function ContentTranslationProvider({
     current.active = true;
     setBusy(true);
     controller.current = new AbortController();
+    let retries = 0;
     try {
       while (current.pending.size && state.current === current) {
         const texts = translationBatch(current.pending);
@@ -56,6 +62,29 @@ export function ContentTranslationProvider({
           body: JSON.stringify({ locale: current.locale, texts }),
           signal: controller.current.signal,
         });
+        if (response.status === 429 && retries < 3) {
+          const retry = Number(response.headers.get('Retry-After')) || 15;
+          if (retry <= 60) {
+            retries++;
+            const signal = controller.current.signal;
+            await new Promise<void>((resolve, reject) => {
+              const abort = () => {
+                clearTimeout(timeout);
+                reject(new DOMException('Aborted', 'AbortError'));
+              };
+              const timeout = setTimeout(
+                () => {
+                  signal.removeEventListener('abort', abort);
+                  resolve();
+                },
+                (retry + 1) * 1000,
+              );
+              if (signal.aborted) abort();
+              else signal.addEventListener('abort', abort, { once: true });
+            });
+            continue;
+          }
+        }
         if (!response.ok) throw new Error('Translation unavailable');
         const translated = validateTranslations(texts, await response.json());
         if (state.current !== current) return;
@@ -64,6 +93,7 @@ export function ContentTranslationProvider({
           current.pending.delete(text);
         });
         setVersion((value) => value + 1);
+        retries = 0;
       }
     } catch {
       if (state.current === current) {
@@ -79,7 +109,13 @@ export function ContentTranslationProvider({
   useEffect(() => {
     controller.current?.abort();
     clearTimeout(timer.current);
-    state.current = { locale, cache: new Map(), pending: new Set(), failed: false, active: false };
+    state.current = {
+      locale,
+      cache: new Map(saved.current[locale]),
+      pending: new Set(),
+      failed: false,
+      active: false,
+    };
     setFailed(false);
     setBusy(false);
     setOriginals(false);
@@ -90,11 +126,28 @@ export function ContentTranslationProvider({
       clearTimeout(timer.current);
     };
   }, [locale, publicPage]);
+  const seed = useCallback((languages: SavedLanguages) => {
+    for (const language of ['en', 'fr'] as const) {
+      for (const [source, translated] of Object.entries(languages[language]))
+        saved.current[language].set(source, translated);
+    }
+    let changed = false;
+    for (const [source, translated] of Object.entries(languages[state.current.locale])) {
+      if (state.current.cache.get(source) !== translated) changed = true;
+      state.current.cache.set(source, translated);
+      state.current.pending.delete(source);
+    }
+    if (changed) setVersion((value) => value + 1);
+  }, []);
   const register = useCallback(
     (texts: string[]) => {
       const current = state.current;
       for (const text of texts) {
-        if (text.trim() && !current.cache.has(text)) current.pending.add(text);
+        const stored = saved.current[current.locale].get(text);
+        if (stored !== undefined) {
+          current.cache.set(text, stored);
+          current.pending.delete(text);
+        } else if (text.trim() && !current.cache.has(text)) current.pending.add(text);
       }
       if (texts.some((text) => text.trim())) setHasContent(true);
       clearTimeout(timer.current);
@@ -147,7 +200,7 @@ export function ContentTranslationProvider({
         )}
       </aside>
     ) : null;
-  const value = { read, register, version, notice };
+  const value = { read, register, version, notice, seed };
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>;
 }
 
@@ -167,4 +220,16 @@ export function useContentTranslation(texts: string[]) {
 export function ContentText({ children }: { children: string }) {
   const read = useContentTranslation([children]);
   return <>{read(children)}</>;
+}
+
+export function useSavedRecipeTranslations(recipes: RecipeView[]) {
+  const { seed, version } = useContext(ContentContext);
+  const key = JSON.stringify(recipes.map(recipeLanguageSeed));
+  useEffect(() => {
+    for (const languages of JSON.parse(key)) seed(languages);
+  }, [key, seed, version]);
+}
+export function SavedRecipeLanguages({ recipes }: { recipes: RecipeView[] }) {
+  useSavedRecipeTranslations(recipes);
+  return null;
 }

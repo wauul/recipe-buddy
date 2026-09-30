@@ -684,6 +684,31 @@ export const french: Record<string, string> = {
     'Modifiez la recette originale. Les traductions suivront vos modifications enregistrées.',
   'Choose your language for the app, recipes and kitchen conversation. Saved originals stay intact.':
     'Choisissez la langue de l’application, des recettes et des échanges en cuisine. Les originaux enregistrés sont conservés.',
-  'When you read recipes in another language, their text, ingredients, methods, roast lines and kitchen contributions are sent to Groq for translation. Translations do not change saved originals. Google identity data and authentication tokens are never included.':
-    'Lorsque vous lisez des recettes dans une autre langue, leur texte, leurs ingrédients, leurs étapes, leurs blagues et les contributions en cuisine sont envoyés à Groq pour traduction. Les traductions ne modifient pas les originaux enregistrés. Les données d’identité Google et les jetons d’authentification ne sont jamais inclus.',
+
+  'When you save or prepare a recipe, its title, ingredients, methods and roast are sent to Groq to save English and French versions in the database. Kitchen contributions are translated once per language and reused. Saved originals stay intact. Google identity data and authentication tokens are never included.':
+    'Lorsque vous enregistrez ou préparez une recette, son titre, ses ingrédients, ses étapes et sa blague sont envoyés à Groq afin d’enregistrer les versions anglaise et française dans la base de données. Les contributions en cuisine sont traduites une fois par langue, puis réutilisées. Les originaux sont conservés. Les données d’identité Google et les jetons d’authentification ne sont jamais inclus.',
+  'New roast': 'Nouvelle blague',
+  'Cooking up a joke…': 'Une blague mijote…',
+  'Saving English & French versions…': 'Enregistrement des versions anglaise et française…',
+  'Your recipe is saved. Its English & French versions need preparing.':
+    'Votre recette est enregistrée. Ses versions anglaise et française restent à préparer.',
+  'Prepare languages': 'Préparer les langues',
+  'Preparing languages…': 'Préparation des langues…',
+  'Saved recipe languages': 'Langues des recettes enregistrées',
+  'English and French versions are saved with each recipe. Switching languages does not regenerate them.':
+    'Les versions anglaise et française sont enregistrées avec chaque recette. Changer de langue ne les régénère pas.',
+  'Preparing recipe {0} of {1}…': 'Préparation de la recette {0} sur {1}…',
+  '{0} recipes need their saved language versions.':
+    '{0} recettes ont besoin de leurs versions traduites.',
+  'Prepare existing recipes': 'Préparer les recettes existantes',
+  'Your saved recipes are ready in English and French.':
+    'Vos recettes enregistrées sont prêtes en anglais et en français.',
+  'Saving recipe and languages…': 'Enregistrement de la recette et des langues…',
+  'Translations are still pending. Your original recipe is saved. Try again shortly.':
+    'Les traductions sont encore en attente. Votre recette originale est enregistrée. Réessayez dans un instant.',
+  'The recipe changed. Try again.': 'La recette a changé. Réessayez.',
+  'Turn on roast mode in Settings first.': 'Activez d’abord le mode roast dans les paramètres.',
+  'Too many roasts. Try again in a minute.': 'Trop de blagues. Réessayez dans une minute.',
+  'Could not generate a new roast. Your previous joke is still here.':
+    'Impossible de générer une nouvelle blague. La précédente est conservée.',
 };

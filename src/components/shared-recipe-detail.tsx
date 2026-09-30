@@ -1,5 +1,9 @@
 'use client';
-import { ContentText, useContentTranslation } from './content-translation';
+import {
+  ContentText,
+  useContentTranslation,
+  useSavedRecipeTranslations,
+} from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 import Link from 'next/link';
 import { ArrowLeft, Users, LockKeyhole } from 'lucide-react';
@@ -18,6 +22,7 @@ export function SharedRecipeDetail({
   roastEnabled: boolean;
   chefLevel?: { level: number; name: string };
 }) {
+  useSavedRecipeTranslations([recipe]);
   const { t } = useTranslation();
   const read = useContentTranslation([recipe.title]);
   return (

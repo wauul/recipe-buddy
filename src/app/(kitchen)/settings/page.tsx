@@ -1,3 +1,5 @@
+import { PrepareRecipeLanguages } from '@/components/prepare-recipe-languages';
+import { savedLanguages } from '@/lib/recipe-languages';
 import { getTranslation } from '@/lib/i18n-server';
 import { currentUser } from '@/lib/data';
 import { SettingsForm } from '@/components/settings-form';
@@ -9,12 +11,13 @@ import { db } from '@/lib/db';
 export default async function SettingsPage() {
   const { t } = getTranslation();
   const user = await currentUser();
-  const [progress, google] = await Promise.all([
+  const [progress, google, recipes] = await Promise.all([
     currentChefProgress(user.id),
     db.account.findFirst({
       where: { userId: user.id, provider: 'google' },
       select: { id: true },
     }),
+    db.recipe.findMany({ where: { userId: user.id }, select: { id: true, translations: true } }),
   ]);
   return (
     <>
@@ -26,6 +29,11 @@ export default async function SettingsPage() {
       </div>
       <ChefProgressPanel chefName={user.username} progress={progress} roadmap />
       <SettingsForm roastEnabled={user.roastEnabled} username={user.username} showHeading={false} />
+      <PrepareRecipeLanguages
+        recipeIds={recipes
+          .filter((recipe) => savedLanguages(recipe.translations).pending)
+          .map((recipe) => recipe.id)}
+      />
       <section className="form-panel google-connection">
         <h2>{t('Google sign-in')}</h2>
         <p>

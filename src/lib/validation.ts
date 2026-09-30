@@ -44,6 +44,7 @@ export type Ingredient = z.infer<typeof ingredientSchema>;
 export type RecipeView = RecipeInput & {
   id: string;
   roastLine: string;
+  translations?: import('./recipe-languages').SavedLanguages;
   createdAt: string;
   updatedAt: string;
 };

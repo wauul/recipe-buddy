@@ -1,5 +1,5 @@
 'use client';
-import { useContentTranslation } from './content-translation';
+import { useContentTranslation, useSavedRecipeTranslations } from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 
 import { useState } from 'react';
@@ -21,6 +21,7 @@ export function RecipeDashboard({
   progress: Progress;
   chef?: { name: string; progress: ChefProgress };
 }) {
+  useSavedRecipeTranslations(recipes);
   const { t } = useTranslation();
   const read = useContentTranslation(recipes.map((recipe) => recipe.title));
   const router = useRouter();

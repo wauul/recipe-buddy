@@ -74,6 +74,25 @@ function clearlyNeedsTranslation(text: string, locale: 'en' | 'fr') {
   return (text.match(languageWords)?.length ?? 0) >= 2 || measurementWords.test(text);
 }
 
+export function translationIsUnnecessary(text: string, locale: 'en' | 'fr') {
+  // Plain numbers and internationally used metric abbreviations need no provider call.
+  if (
+    /^[\d\s.,/+−°¼½¾\u2150-\u215e-]+$/.test(text) ||
+    /^[\d\s.,/+−¼½¾\u2150-\u215e-]*(?:(?:kg|mg|g|ml|cl|l|°C|°F)\s*)+$/i.test(text)
+  )
+    return true;
+  const english =
+    text.match(
+      /\b(the|this|with|and|your|that|until|another|while|you|add|stir|bake|cook|preheat)\b/gi,
+    ) ?? [];
+  const french =
+    text.match(/\b(le|la|les|avec|faire|cuire|pendant|ajouter|remuer|vous|une|dans|pour|et)\b/gi) ??
+    [];
+  return locale === 'en'
+    ? english.length >= 2 && !french.length
+    : french.length >= 2 && !english.length;
+}
+
 export function validateTranslations(
   source: string[],
   value: unknown,
@@ -97,11 +116,11 @@ export function validateTranslations(
   return result.translations;
 }
 
-export function translationBatch(texts: Iterable<string>) {
+export function translationBatch(texts: Iterable<string>, maxCharacters = 10000) {
   const batch: string[] = [];
   let length = 0;
   for (const text of texts) {
-    if (batch.length === 32 || length + text.length > 10000) break;
+    if (batch.length === 32 || (batch.length > 0 && length + text.length > maxCharacters)) break;
     batch.push(text);
     length += text.length;
   }

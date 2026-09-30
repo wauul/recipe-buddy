@@ -69,7 +69,7 @@ export default function PrivacyPage() {
         </p>
         <p>
           {t(
-            'When you read recipes in another language, their text, ingredients, methods, roast lines and kitchen contributions are sent to Groq for translation. Translations do not change saved originals. Google identity data and authentication tokens are never included.',
+            'When you save or prepare a recipe, its title, ingredients, methods and roast are sent to Groq to save English and French versions in the database. Kitchen contributions are translated once per language and reused. Saved originals stay intact. Google identity data and authentication tokens are never included.',
           )}
         </p>
       </section>

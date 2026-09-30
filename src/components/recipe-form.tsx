@@ -366,7 +366,7 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             ) : (
               <Save aria-hidden="true" size={18} />
             )}{' '}
-            {t(busy === 'save' ? 'Saving recipe…' : 'Save recipe')}
+            {t(busy === 'save' ? 'Saving recipe and languages…' : 'Save recipe')}
           </button>
         </div>
       </form>

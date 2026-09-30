@@ -4,14 +4,29 @@ import { authOptions } from './auth';
 import { db } from './db';
 import { recipeSchema, type RecipeView } from './validation';
 import type { Recipe } from '@prisma/client';
+import { recipeLanguageSeed } from './recipe-languages';
 import { displayUsername } from './username';
 export async function currentUser() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect('/login');
-  const user = await db.user.findUnique({ where: { id: session.user.id }, select: { id: true, email: true, username: true, roastEnabled: true } });
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true, email: true, username: true, roastEnabled: true },
+  });
   if (!user) redirect('/login');
   return { ...user, username: displayUsername(user) };
 }
 export function recipeView(recipe: Recipe): RecipeView {
-  return { ...recipeSchema.parse(recipe), id: recipe.id, roastLine: recipe.roastLine, createdAt: recipe.createdAt.toISOString(), updatedAt: recipe.updatedAt.toISOString() };
+  return {
+    ...recipeSchema.parse(recipe),
+    id: recipe.id,
+    roastLine: recipe.roastLine,
+    translations: recipeLanguageSeed({
+      ...recipeSchema.parse(recipe),
+      roastLine: recipe.roastLine,
+      translations: recipe.translations,
+    }),
+    createdAt: recipe.createdAt.toISOString(),
+    updatedAt: recipe.updatedAt.toISOString(),
+  };
 }

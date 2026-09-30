@@ -6,6 +6,7 @@ export class HttpError extends Error {
   constructor(
     public status: number,
     message: string,
+    public retryAfter?: number,
   ) {
     super(message);
   }
@@ -57,7 +58,16 @@ export async function api(action: () => Promise<unknown>, status = 200) {
         { status: 400 },
       );
     if (error instanceof HttpError)
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, ...(error.retryAfter ? { retryAfter: error.retryAfter } : {}) },
+        {
+          status: error.status,
+          headers: {
+            'Cache-Control': 'no-store',
+            ...(error.retryAfter ? { 'Retry-After': String(error.retryAfter) } : {}),
+          },
+        },
+      );
     console.error(
       'Recipe Buddy request failed:',
       error instanceof Error ? error.name : 'UnknownError',

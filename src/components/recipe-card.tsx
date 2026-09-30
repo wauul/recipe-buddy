@@ -1,5 +1,9 @@
 'use client';
-import { ContentText, useContentTranslation } from './content-translation';
+import {
+  ContentText,
+  useContentTranslation,
+  useSavedRecipeTranslations,
+} from './content-translation';
 import { useTranslation } from '@/components/language-provider';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
@@ -7,6 +11,7 @@ import type { RecipeView } from '@/lib/validation';
 import { RecipeArt, Vibe } from './recipe-art';
 import { UpdatedDate } from './updated-date';
 export function RecipeCard({ recipe, sharedBy }: { recipe: RecipeView; sharedBy?: string }) {
+  useSavedRecipeTranslations([recipe]);
   const { t } = useTranslation();
   const read = useContentTranslation([recipe.title]);
   return (

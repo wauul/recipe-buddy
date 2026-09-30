@@ -1,7 +1,8 @@
 import { RecipeSearchResults } from '@/components/recipe-search-results';
 import { getTranslation } from '@/lib/i18n-server';
 import Link from 'next/link';
-import { currentUser } from '@/lib/data';
+import { SavedRecipeLanguages } from '@/components/content-translation';
+import { currentUser, recipeView } from '@/lib/data';
 import { db } from '@/lib/db';
 import { faqs } from '@/lib/help';
 import { sharedRecipeWhere } from '@/lib/social-policy';
@@ -14,27 +15,10 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
     ? await Promise.all([
         db.recipe.findMany({
           where: { userId: user.id },
-          select: {
-            id: true,
-            title: true,
-            altTitle: true,
-            ingredients: true,
-            steps: true,
-          },
         }),
         db.recipeShare.findMany({
           where: sharedRecipeWhere(user.id),
-          select: {
-            recipe: {
-              select: {
-                id: true,
-                title: true,
-                altTitle: true,
-                ingredients: true,
-                steps: true,
-              },
-            },
-          },
+          include: { recipe: true },
         }),
       ])
     : [[], []];
@@ -66,6 +50,9 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   ].filter(([, label]) => q && `${t(label)} ${label}`.toLowerCase().includes(term));
   return (
     <>
+      <SavedRecipeLanguages
+        recipes={[...owned.map(recipeView), ...shared.map((s) => recipeView(s.recipe))]}
+      />
       <Link href="/recipes" className="back-link">
         {t('← Back to recipes')}
       </Link>

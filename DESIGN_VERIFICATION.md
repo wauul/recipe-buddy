@@ -81,3 +81,9 @@ Final checks passed: TypeScript, ESLint with no warnings, all 29 tests, and the 
 - Live verification identified untranslated roast sentences and measurement words despite otherwise translated methods. Translation now uses GPT-OSS 20B with explicit culinary guidance and rejects clearly untranslated prose or measurement words; a regression test covers both translation directions.
 
 - Cooking numbers, fractions and fixed metric/temperature values are now hidden behind immutable tokens before translation and restored afterward. Missing, duplicated or reordered tokens are rejected, preventing decimal localization or unit rewriting from changing cooking values. Operational failures log only a category/code/status, without recipe text or credentials.
+
+## Saved-language update
+
+- 51 unit tests pass, including persistent cache reuse, owner-only bilingual roast replacement, atomic migration/history/checksum safety, complete bilingual recipe fields, cooking-value integrity, already-target prose, and literal object-like ingredient names.
+- Browser verification confirms zero display-translation requests while opening a prepared recipe, switching FR → EN → FR, and reloading. A failed new-roast request preserves the previous translated joke and leaves retry enabled. Pending language preparation remains explicit, with no automatic reading-time recipe generation.
+- Production migration adds only `Recipe.translations` and account-owned `ContentTranslation` rows. Save-time preparation preserves authored content, and conditional snapshot writes avoid overwriting a concurrent edit. New roasts persist both languages together and change only the joke.
