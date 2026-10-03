@@ -1,6 +1,6 @@
 # Android publication preparation — 2026-10-03
 
-**Current product status:** Recipe Buddy already exists in Play Console on its internal testing track. Monthly and yearly Pro base plans are active at €9.99 and €99.99 respectively in euro-priced regions. The restricted billing service account has Recipe Buddy app permissions to read app/financial data and manage orders/subscriptions; it has no publishing permissions or Cloud project roles. Its private key and token encryption key are sensitive production Vercel variables. See [PRODUCT_FIXES.md](PRODUCT_FIXES.md) for the newer offline and voice behavior. This session installed a debug update on Samsung; it did not upload a new Play release or complete a real paid purchase.
+**Current product status:** Signed Android **0.1.1 (2)** was published to the existing internal testing track on 3 October 2026 at 22:00 Europe/Paris. Play Console confirms **Accessible aux testeurs internes**. See [RELEASE_0_1_1.md](RELEASE_0_1_1.md) for the bundle checksum, GitHub delivery and test results. Monthly and yearly Pro base plans are active at €9.99 and €99.99 respectively in euro-priced regions. The restricted billing service account has Recipe Buddy app permissions to read app/financial data and manage orders/subscriptions; it has no publishing permissions or Cloud project roles. Its private key and token encryption key are sensitive production Vercel variables. See [PRODUCT_FIXES.md](PRODUCT_FIXES.md) for offline and voice behavior. A real paid purchase has not been completed.
 
 Owner: **Wae Fezari, France**. Support, privacy, moderation and child-safety contact: **waelfezari@gmail.com**. Android is the active platform; iOS has not been built or submitted.
 
@@ -34,7 +34,7 @@ From `mobile/android`, use `:app:bundleRelease -PbackendUrl=https://VERIFIED_HOS
 - `RECIPEBUDDY_UPLOAD_KEY_ALIAS`
 - `RECIPEBUDDY_UPLOAD_KEY_PASSWORD`
 
-Without these values the release bundle is unsigned and cannot be uploaded. Back up the upload key securely and enable Play App Signing. Package: `com.recipebuddy.android`; current versionCode 1/versionName 0.1.0. Increase versionCode for subsequent uploads. Play Console already contains the internal-testing app; this session did not submit a new bundle.
+Without these values the release bundle is unsigned and cannot be uploaded. The existing protected upload key and Play App Signing were reused for this release. Package: `com.recipebuddy.android`; current versionCode **2** / versionName **0.1.1**. Increase versionCode for subsequent uploads. This bundle is available on the existing internal testing track; no production rollout was performed.
 
 Complete Play app access/test credentials, privacy URL, external deletion URL, Data safety, content rating/target audience, permission declarations where applicable, store listing/icon/screenshots and the account's required testing track. The current terms specify age 16+. A declaration is not evidence of a passed Play review. Follow the requirements shown for this developer account rather than assuming eligibility.
 
@@ -57,6 +57,6 @@ Configure a monitored moderation queue for `ContentReport(status='open')`, restr
 
 Local backend unit/integration checks include deletion, stale/other sessions, terms, blocked access, invite races and reporting authorization. Physical Samsung checks cover native Friends/QR, legal/deletion confirmation UI, voice explanation controls and launcher step changes. Styled QR decode checks pass at 1024 and 240 pixels.
 
-Before live publishing: run a Play-installed signed build against deployed HTTPS; complete personal Google token exchange, real camera/optional recognition, spoken microphone commands in EN/FR, notification delivery, accessibility/large text and actual moderator/deletion support response checks. Debug fixture tests do not establish those results. See `IMPLEMENTATION.md` and `UI_REVIEW.md` for exact completed checks.
+Before a production rollout: run a Play-installed signed build against deployed HTTPS; complete personal Google token exchange, real camera/optional recognition, spoken microphone commands in EN/FR, notification delivery, accessibility/large text and actual moderator/deletion support response checks. Debug fixture tests do not establish those results. See `IMPLEMENTATION.md` and `UI_REVIEW.md` for exact completed checks.
 
 Policy references: [CNIL mobile recommendations](https://www.cnil.fr/fr/recommandations-applications-mobiles), [Android release preparation](https://developer.android.com/studio/publish/preparing), [Android on-device speech recognition](https://developer.android.com/reference/android/speech/SpeechRecognizer).

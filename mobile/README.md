@@ -1,6 +1,6 @@
 # Recipe Buddy Android
 
-The latest offline, input, Voice Chef, invitation and Pro changes are recorded in [PRODUCT_FIXES.md](PRODUCT_FIXES.md). Pro has active Google Play plans at €9.99/month and €99.99/year, with backend purchase verification. `dist/recipe-buddy-product-fixes-debug.apk` is the new Samsung test build.
+The latest offline, input, Voice Chef, invitation and Pro changes are recorded in [PRODUCT_FIXES.md](PRODUCT_FIXES.md). Signed **0.1.1 (2)** is available to internal testers on Google Play; see [RELEASE_0_1_1.md](RELEASE_0_1_1.md). Pro has active Google Play plans at €9.99/month and €99.99/year, with backend purchase verification. `dist/recipe-buddy-product-fixes-debug.apk` is the Samsung test build. Local screenshots and packaged binaries are intentionally excluded from Git; source, build tooling, tests and documentation are versioned.
 
 The 3 October native redesign is documented in [DESIGN_REVIEW.md](DESIGN_REVIEW.md), with a screenshot gallery in [DESIGN_GALLERY.html](DESIGN_GALLERY.html). It preserves the original brand while simplifying every destination, pinning key actions, and restoring unfinished new recipes. The downloadable debug build is `dist/recipe-buddy-redesign-debug.apk`; it uses the existing HTTPS backend. Review verification used a separate `.design` emulator install and disposable local fixture accounts.
 
