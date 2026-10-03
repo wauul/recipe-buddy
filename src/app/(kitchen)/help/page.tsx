@@ -3,7 +3,7 @@ import { currentUser } from '@/lib/data';
 import { faqs } from '@/lib/help';
 import { CodeSnippet } from '@/components/code-snippet';
 export default async function HelpPage() {
-  const { t } = getTranslation();
+  const { t } = await getTranslation();
   await currentUser();
   return (
     <>

@@ -8,7 +8,8 @@ import { recipeDiscussion } from '@/lib/discussion';
 import { RecipeDiscussion } from '@/components/recipe-discussion';
 import { RecipeReviewsPanel } from '@/components/recipe-reviews';
 import { recipeReviews } from '@/lib/reviews';
-export default async function RecipePage({ params }: { params: { id: string } }) {
+export default async function RecipePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await currentUser();
   const recipe = await db.recipe.findFirst({
     where: { id: params.id, userId: user.id },

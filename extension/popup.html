@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Recipe Buddy</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+  <header><img src="icons/48.png" width="32" height="32" alt=""><strong>Recipe Buddy</strong></header>
+  <main>
+    <p id="status" role="status">Looking for a recipe…</p>
+    <section id="preview" hidden>
+      <img id="photo" alt="" hidden>
+      <label id="choice-label" for="choice" hidden>Choose a recipe</label><select id="choice" hidden></select>
+      <h1 id="title"></h1><p id="details"></p>
+      <p>Review the recipe in the app, then save it to your collection.</p>
+    </section>
+    <button id="add" class="primary" disabled>Add to Recipe Buddy</button>
+    <p id="error" role="alert"></p>
+    <label class="toggle"><input id="automatic" type="checkbox">Suggest recipes as I browse</label>
+    <p class="privacy">Detection stays in your browser. A recipe is sent to the app only when you click Add.</p>
+    <details><summary>App connection</summary>
+      <form id="connection"><label for="app-url">Recipe Buddy app address</label><input id="app-url" type="url" required placeholder="https://recipe-buddy-wauul.vercel.app"><button type="submit">Save connection</button><p id="connection-status" role="status"></p></form>
+    </details>
+  </main>
+  <script src="recipe-reader.js"></script><script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Recipe Buddy — Save recipes",
+  "version": "0.1.0",
+  "description": "Find recipes while browsing and add them to your Recipe Buddy collection.",
+  "minimum_chrome_version": "102",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Add to Recipe Buddy" },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "content_scripts": [{
+    "matches": ["https://*/*"],
+    "exclude_matches": ["https://recipe-buddy-wauul.vercel.app/*"],
+    "js": ["recipe-reader.js", "content.js"],
+    "run_at": "document_idle",
+    "all_frames": false
+  }]
+}

@@ -3,9 +3,8 @@ import type { AdapterUser } from 'next-auth/adapters';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { compare } from 'bcryptjs';
 import { db } from './db';
-import { credentialsSchema } from './validation';
+import { passwordUser } from './password-auth';
 import { rateLimit } from './rate-limit';
 import { defaultChefName, googleAuthEnabled, isVerifiedGoogleProfile } from './google-auth';
 export const authOptions: NextAuthOptions = {
@@ -34,18 +33,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        const parsed = credentialsSchema.safeParse(credentials);
-        if (!parsed.success) return null;
-        if (!(await rateLimit(`login:${parsed.data.email}`, 10, 900))) return null;
-        const user = await db.user.findUnique({
-          where: { email: parsed.data.email },
-        });
-        // A dummy hash keeps missing-user requests on the password-comparison path.
-        const valid = await compare(
-          parsed.data.password,
-          user?.hashedPassword ?? '$2b$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW',
-        );
-        return user?.hashedPassword && valid ? { id: user.id, email: user.email } : null;
+        return passwordUser(credentials);
       },
     }),
     ...(googleAuthEnabled()
@@ -73,11 +61,16 @@ export const authOptions: NextAuthOptions = {
       return account?.provider !== 'google' || isVerifiedGoogleProfile(profile);
     },
     async jwt({ token, user }) {
-      if (user) token.sub = user.id;
+      if (user) { token.sub = user.id; token.authenticatedAt = Date.now(); }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.sub) session.user.id = token.sub;
+      if (session.user && token.sub) {
+        // A deleted account must not remain authorized by an old web JWT.
+        const exists = await db.user.findUnique({ where: { id: token.sub }, select: { id: true } });
+        session.user.id = exists?.id ?? '';
+        session.user.authenticatedAt = typeof token.authenticatedAt === 'number' ? token.authenticatedAt : undefined;
+      }
       return session;
     },
   },

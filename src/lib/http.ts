@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { authOptions } from './auth';
+import { nativeContext } from './native-context';
 export class HttpError extends Error {
   constructor(
     public status: number,
@@ -12,6 +13,8 @@ export class HttpError extends Error {
   }
 }
 export async function userId() {
+  const native = nativeContext.getStore();
+  if (native) return native.userId;
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new HttpError(401, 'Please log in first.');
   return session.user.id;
@@ -19,7 +22,9 @@ export async function userId() {
 export function sameOrigin(request: Request) {
   const origin = request.headers.get('origin');
   const allowed = new URL(process.env.NEXTAUTH_URL || request.url).origin;
-  if (origin && origin !== allowed) throw new HttpError(403, 'Request origin is not allowed.');
+  if (request.headers.get('sec-fetch-site') === 'cross-site' && nativeContext.getStore()?.request !== request) throw new HttpError(403, 'Request origin is not allowed.');
+  if (!origin && request.headers.has('cookie') && nativeContext.getStore()?.request !== request) throw new HttpError(403, 'Request origin is required.');
+  if (nativeContext.getStore()?.request !== request && origin && origin !== allowed) throw new HttpError(403, 'Request origin is not allowed.');
   if (!request.headers.get('content-type')?.includes('application/json'))
     throw new HttpError(415, 'This request must contain JSON.');
 }

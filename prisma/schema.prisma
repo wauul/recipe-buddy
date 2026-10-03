@@ -16,6 +16,8 @@ model User {
   emailVerified  DateTime?
   image          String?
   roastEnabled   Boolean         @default(true)
+  termsVersion   String          @default("")
+  termsAcceptedAt DateTime?
   createdAt      DateTime        @default(now())
   recipes        Recipe[]
   cookedLogs     CookedLog[]
@@ -28,6 +30,36 @@ model User {
   sessions       Session[]
   recipeReviews  RecipeReview[]
   contentTranslations ContentTranslation[]
+  nativeSessions NativeSession[]
+  friendInvites FriendInvite[]
+  nativeScans NativeScan[]
+  blockedUsers UserBlock[] @relation("Blocker")
+  blockedBy UserBlock[] @relation("Blocked")
+  reports ContentReport[]
+  nativeSubscription NativeSubscription?
+  chefRoasts ChefRoast[]
+  syncReceipts NativeSyncReceipt[]
+  kitchenState NativeKitchenState[]
+}
+
+model NativeSyncReceipt {
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operationId String
+  digest String
+  response Json
+  createdAt DateTime @default(now())
+  @@id([userId, operationId])
+}
+
+model NativeKitchenState {
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  id String
+  payload String
+  updatedAt DateTime @default(now()) @updatedAt
+  @@id([userId, kind, id])
 }
 
 model Recipe {
@@ -50,8 +82,31 @@ model Recipe {
   takes       RecipeTake[]
   comments    RecipeComment[]
   reviews     RecipeReview[]
+  chefRoasts ChefRoast[]
 
   @@index([userId, createdAt])
+}
+
+model NativeSubscription {
+  userId String @id
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String @unique
+  tokenCipher String
+  state String
+  expiresAt DateTime
+  verifiedAt DateTime @default(now())
+}
+
+model ChefRoast {
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipeId String
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  text String @default("")
+  language String
+  step Int
+  createdAt DateTime @default(now())
+  @@id([userId, recipeId])
 }
 
 model Account {
@@ -201,4 +256,79 @@ model ContentTranslation {
   text String @db.Text
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])
+}
+
+model NativeSession {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  authenticatedAt DateTime @default(now())
+  tokens NativeRefreshToken[]
+  @@index([userId])
+}
+
+model NativeRefreshToken {
+  hash String @id
+  sessionId String
+  session NativeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  usedAt DateTime?
+  @@index([sessionId])
+}
+
+model NativeAuthAttempt {
+  id String @id @default(cuid())
+  state String
+  challenge String
+  redirect String
+  expiresAt DateTime
+  codeHash String? @unique
+  userId String?
+  consumedAt DateTime?
+}
+
+model FriendInvite {
+  hash String @id
+  inviterId String
+  inviter User @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  redeemedBy String?
+  redeemedAt DateTime?
+  @@index([inviterId])
+}
+
+// No images retained. A DB reservation prevents concurrent duplicate provider calls.
+model NativeScan {
+  key String @id
+  digest String
+  expiresAt DateTime
+  result Json?
+  userId String?
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model UserBlock {
+  blockerId String
+  blockedId String
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model ContentReport {
+  id String @id @default(cuid())
+  reporterId String
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  recipeId String?
+  reportedUserId String?
+  reason String
+  status String @default("open")
+  createdAt DateTime @default(now())
+  @@index([status, createdAt])
+  @@index([reporterId])
 }

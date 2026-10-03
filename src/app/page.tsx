@@ -15,8 +15,8 @@ export const metadata: Metadata = {
     'Keep your favorite recipes, turn them into a shopping list, and share them with fellow chefs. Your own little corner of the kitchen.',
 };
 
-export default function Home() {
-  const { t } = getTranslation();
+export default async function Home() {
+  const { t } = await getTranslation();
   return (
     <main id="main" tabIndex={-1} className="landing-page">
       <section className="landing-hero">

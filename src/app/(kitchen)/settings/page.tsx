@@ -9,7 +9,7 @@ import { googleAuthEnabled } from '@/lib/google-auth';
 import { currentChefProgress } from '@/lib/chefs';
 import { db } from '@/lib/db';
 export default async function SettingsPage() {
-  const { t } = getTranslation();
+  const { t } = await getTranslation();
   const user = await currentUser();
   const [progress, google, recipes] = await Promise.all([
     currentChefProgress(user.id),

@@ -1,8 +1,8 @@
 import { getTranslation } from '@/lib/i18n-server';
 import Link from 'next/link';
 import { BookOpen } from 'lucide-react';
-export default function NotFound() {
-  const { t } = getTranslation();
+export default async function NotFound() {
+  const { t } = await getTranslation();
   return (
     <main id="main" tabIndex={-1} className="not-found-page">
       <BookOpen aria-hidden="true" size={40} />

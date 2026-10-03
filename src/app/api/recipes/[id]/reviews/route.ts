@@ -1,3 +1,4 @@
+import { requireTerms } from '@/lib/account-controls';
 import { db } from '@/lib/db';
 import { api, body, HttpError, userId } from '@/lib/http';
 import { sharedRecipeWhere } from '@/lib/social-policy';
@@ -6,13 +7,16 @@ import { recipeReviews } from '@/lib/reviews';
 import { rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
-type Context = { params: { id: string } };
-export async function GET(_request: Request, { params }: Context) {
+type Context = { params: Promise<{ id: string }> };
+export async function GET(_request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => recipeReviews(params.id, await userId()));
 }
-export async function PUT(request: Request, { params }: Context) {
+export async function PUT(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const authorId = await userId();
+    await requireTerms(authorId);
     const input = apronReviewSchema.parse(await body(request));
     if (!(await rateLimit(`review:${authorId}`, 20)))
       throw new HttpError(429, 'Too many review updates. Try again in a minute.');
@@ -42,7 +46,8 @@ export async function PUT(request: Request, { params }: Context) {
     return recipeReviews(params.id, authorId);
   });
 }
-export async function DELETE(request: Request, { params }: Context) {
+export async function DELETE(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const authorId = await userId();
     await body(request);

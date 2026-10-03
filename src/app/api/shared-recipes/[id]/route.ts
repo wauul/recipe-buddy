@@ -4,7 +4,8 @@ import { recipeView } from '@/lib/data';
 import { sharedRecipeWhere } from '@/lib/social-policy';
 import { displayUsername } from '@/lib/username';
 export const dynamic = 'force-dynamic';
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return api(async () => {
     const share = await db.recipeShare.findFirst({ where: sharedRecipeWhere(await userId(), params.id), include: { recipe: { include: { user: { select: { email: true, username: true } } } } } });
     if (!share) throw new HttpError(404, 'This recipe is no longer shared with you.');

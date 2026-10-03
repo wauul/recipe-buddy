@@ -1,0 +1,6 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Existing chef-hat brand, centered inside the adaptive safe zone. -->
+    <group android:scaleX="0.16" android:scaleY="0.16" android:translateX="13.04" android:translateY="13.04">
+        <path android:strokeColor="#FAF9F5" android:strokeWidth="25" android:fillColor="@android:color/transparent" android:strokeLineJoin="round" android:pathData="M160,302C119,294 96,264 96,228C96,187 128,155 168,155C182,121 216,100 256,100C296,100 330,121 344,155C384,155 416,187 416,228C416,264 393,294 352,302V376C352,396 336,412 316,412H196C176,412 160,396 160,376V302ZM165,342H347" />
+    </group>
+</vector>

@@ -1,0 +1,15 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp" android:background="@drawable/widget_surface" android:clipToOutline="true">
+    <FrameLayout android:layout_width="match_parent" android:layout_height="120dp" android:background="@drawable/widget_media" android:clipToOutline="true">
+        <ImageView android:id="@+id/widget_photo" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" android:contentDescription="@string/recipe_photo" />
+        <ImageView android:id="@+id/widget_art" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:src="@drawable/kitchen_cozy" android:contentDescription="@string/recipe_photo" />
+        <Button android:id="@+id/widget_cook" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="48dp" android:layout_gravity="top|end" android:layout_margin="4dp" android:textSize="12sp" android:textAllCaps="false" android:text="@string/open_app" android:backgroundTint="#E4EBDF" android:textColor="#243C30" />
+    </FrameLayout>
+    <TextView android:id="@+id/widget_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/choose_recipe" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/widget_text" android:maxLines="2" />
+    <TextView android:id="@+id/widget_progress" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:layout_marginBottom="8dp" android:textSize="13sp" android:textColor="@color/widget_text" />
+    <ProgressBar android:id="@+id/widget_progress_bar" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="4dp" android:layout_marginBottom="8dp" android:progressTint="@color/illustration_line" android:progressBackgroundTint="@color/illustration_fill" />
+    <ListView android:id="@+id/widget_steps" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@null" android:scrollbars="vertical" />
+    <LinearLayout android:id="@+id/widget_controls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <Button android:id="@+id/widget_previous" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="48dp" android:textAllCaps="false" android:backgroundTint="@color/widget_action" android:textColor="#FFFFFF" android:text="@string/previous" />
+        <Button android:id="@+id/widget_next" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="48dp" android:textAllCaps="false" android:backgroundTint="@color/widget_action" android:textColor="#FFFFFF" android:text="@string/next" />
+    </LinearLayout>
+</LinearLayout>

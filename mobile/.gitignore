@@ -1,0 +1,8 @@
+# Local visual verification evidence and packaged builds stay on the test machine.
+screenshots/
+dist/*.apk
+dist/*.aab
+*.jks
+*.keystore
+*.p12
+*.pfx

@@ -1,0 +1,42 @@
+[
+  {
+    "question": "Comment fonctionnent les niveaux de chef ?",
+    "answer": "Vos recettes enregistrées et les avis reçus composent un seul niveau de chef : 10 points par recette présente dans votre carnet et 2 points par tablier attribué par un autre chef. Vous commencez comme Apprenti tartine, puis devenez Charmeur de fouets, Dompteur de poêles, Sorcier des sauces, Alchimiste des saveurs, Maestro des festins et enfin Légende du tablier. Retrouvez les sept badges et seuils dans les paramètres du chef. Modifier ou supprimer des avis ou des recettes recalcule votre niveau."
+  },
+  {
+    "question": "Comment laisser un avis en tabliers ?",
+    "answer": "Ouvrez une recette partagée avec vous, choisissez de 1 à 5 tabliers dans Avis en tabliers et ajoutez un mot si vous le souhaitez. Chaque chef dispose d’un seul avis modifiable par recette. Vous pouvez modifier ou supprimer le vôtre. Vous ne pouvez pas noter vos propres recettes. Les avis restent sur la recette originale après la fin du partage ; les anciens destinataires perdent l’accès."
+  },
+  {
+    "question": "Puis-je créer un compte de chef avec Google ?",
+    "answer": "Choisissez Continuer avec Google sur la page de connexion ou d’inscription et utilisez un compte Google vérifié. Si cet e-mail vérifié correspond déjà à un compte avec mot de passe, Google est automatiquement associé et ouvre le même carnet de recettes. L’e-mail et le mot de passe restent utilisables. Les comptes créés uniquement avec Google se connectent avec Google."
+  },
+  {
+    "question": "Comment proposer ma variante d’une recette partagée ?",
+    "answer": "Ouvrez une recette partagée dans Amis et choisissez Ajouter une variante dans Variantes en cuisine. Choisissez un type (ingrédient, quantité, temps, technique, matériel, présentation ou autre), décrivez vos changements et associez éventuellement un ingrédient ou expliquez votre choix. Commentez la recette ou ouvrez les commentaires d’une variante. Le chef de la recette et ses destinataires actuels voient les contributions. Les auteurs peuvent supprimer les leurs ; le chef de la recette peut toutes les modérer. Les contributions restent sur la recette originale après la fin du partage, mais les anciens destinataires perdent l’accès."
+  },
+  {
+    "question": "Comment importer une recette depuis un site ?",
+    "answer": "Ouvrez Ajouter une recette, collez une URL HTTPS publique et choisissez Importer la recette. Les ingrédients, les étapes et la photo disponible sont importés. Vérifiez le résultat avant d’enregistrer. Si le site bloque l’accès, collez plutôt le texte de la recette."
+  },
+  {
+    "question": "Qui peut voir mes recettes ?",
+    "answer": "Vos recettes sont privées. Ajoutez un ami avec l’e-mail exact de son compte, attendez son acceptation puis choisissez Partager la recette sur une recette enregistrée. Vos amis peuvent lire cette recette mais ne peuvent ni la modifier ni la supprimer."
+  },
+  {
+    "question": "Comment arrêter le partage ?",
+    "answer": "Ouvrez la recette et choisissez Arrêter le partage. Supprimer un ami retire l’accès aux recettes partagées dans les deux sens. Les copies déjà enregistrées par une personne ne peuvent pas être supprimées."
+  },
+  {
+    "question": "Puis-je ajouter une photo ?",
+    "answer": "Oui. Ajoutez ou modifiez une recette et choisissez un JPG, PNG ou WebP de moins de 10 Mo. La photo est compressée avant l’enregistrement. Vous pouvez aussi coller une URL HTTPS vers une image."
+  },
+  {
+    "question": "Comment la liste de courses regroupe-t-elle les ingrédients ?",
+    "answer": "Sélectionnez des recettes dans Liste de courses. Les ingrédients de même nom et d’unités compatibles sont regroupés. Les unités différentes et les quantités ambiguës restent séparées pour ne rien perdre."
+  },
+  {
+    "question": "Comment fonctionnent les jours de cuisine et les petites piques du chef ?",
+    "answer": "Marquez une recette comme cuisinée pour compter la journée. L’activité hebdomadaire compte les jours UTC distincts du lundi au dimanche. Vous pouvez désactiver les remarques taquines dans Paramètres quand vous voulez."
+  }
+]

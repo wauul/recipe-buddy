@@ -13,6 +13,7 @@ export function sharedRecipeWhere(
   // Check the recipient and active friendship on every read, including direct URLs.
   return {
     recipientId,
+    recipe: { user: { NOT: { OR: [{ blockedUsers: { some: { blockedId: recipientId } } }, { blockedBy: { some: { blockerId: recipientId } } }] } } },
     ...(recipeId ? { recipeId } : {}),
     friendship: {
       acceptedAt: { not: null },

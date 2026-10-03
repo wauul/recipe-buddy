@@ -14,15 +14,18 @@ export function AuthForm({
   signup = false,
   googleEnabled = false,
   errorMessage = '',
+  callbackUrl = '/recipes',
 }: {
   signup?: boolean;
   googleEnabled?: boolean;
   errorMessage?: string;
+  callbackUrl?: string;
 }) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const router = useRouter();
+  const destination = callbackUrl === '/import' || /^\/(?:mobile\/connect\?attempt=c[a-z0-9]+|invite\/[A-Za-z0-9_-]{43})$/.test(callbackUrl) ? callbackUrl : '/recipes';
   const [error, setError] = useState(errorMessage),
     [busy, setBusy] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -50,7 +53,7 @@ export function AuthForm({
             ? 'Account created. Log in to continue.'
             : 'Check your email and password, or try again later.',
         );
-      router.push('/recipes');
+      router.push(destination);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not connect. Try again.');
@@ -102,7 +105,7 @@ export function AuthForm({
                 : 'Log in to your recipes and shopping list.',
             )}
           </p>
-          <GoogleSignIn enabled={googleEnabled} disabled={busy} onBusyChange={setGoogleBusy} />
+          <GoogleSignIn enabled={googleEnabled} disabled={busy} onBusyChange={setGoogleBusy} callbackUrl={destination} />
           <div className="auth-divider">
             <span>{t('or use email')}</span>
           </div>
@@ -168,7 +171,7 @@ export function AuthForm({
           </button>
           <p className="auth-switch">
             {t(signup ? 'Already have an account?' : 'New to Recipe Buddy?')}{' '}
-            <Link href={signup ? '/login' : '/signup'}>
+            <Link href={`${signup ? '/login' : '/signup'}?callbackUrl=${encodeURIComponent(destination)}`}>
               {t(signup ? 'Log in' : 'Create account')}
             </Link>
           </p>

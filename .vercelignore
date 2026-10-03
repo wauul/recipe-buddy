@@ -1,0 +1,10 @@
+node_modules/
+.next/
+.git/
+.vercel/
+.env*
+.test-build/
+test-results/
+/mobile/
+*.tsbuildinfo
+*.log

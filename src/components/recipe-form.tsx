@@ -9,6 +9,7 @@ import { ArrowLeft, Plus, FileText, Trash2, Save, LoaderCircle } from 'lucide-re
 import { recipeSchema, type RecipeInput, type RecipeView } from '@/lib/validation';
 import { request } from '@/lib/client';
 import { RecipePhotoInput } from './recipe-photo-input';
+import { browserImportKey, browserImportRecipe, readBrowserImport } from '@/lib/browser-import';
 const blank: RecipeInput = {
   imageUrl: '',
   title: '',
@@ -18,7 +19,7 @@ const blank: RecipeInput = {
   ingredients: [{ name: '', quantity: '', unit: '' }],
   steps: [''],
 };
-export function RecipeForm({ initial }: { initial?: RecipeView }) {
+export function RecipeForm({ initial, fromBrowser = false }: { initial?: RecipeView; fromBrowser?: boolean }) {
   const { t } = useTranslation();
   const router = useRouter();
   const [form, setForm] = useState<RecipeInput>(initial || blank),
@@ -30,6 +31,28 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
     [busy, setBusy] = useState<'parse' | 'save' | null>(null);
   const [issues, setIssues] = useState<Record<string, string>>({});
   const errorSummary = useRef<HTMLDivElement>(null);
+  const browserLoaded = useRef(false);
+  const [browserSource, setBrowserSource] = useState('');
+  const [browserHasRecipe, setBrowserHasRecipe] = useState(false);
+  useEffect(() => {
+    if (!fromBrowser || initial || browserLoaded.current) return;
+    browserLoaded.current = true;
+    try {
+      const text = sessionStorage.getItem(browserImportKey);
+      if (!text) throw new Error('No recipe to import. Add a recipe from the extension first.');
+      const payload = readBrowserImport(text);
+      const recipe = browserImportRecipe(payload);
+      if (recipe) {
+        setForm(recipe);
+        setBrowserHasRecipe(true);
+      }
+      setRaw(payload.sourceUrl);
+      setBrowserSource(payload.sourceUrl);
+      sessionStorage.removeItem(browserImportKey);
+    } catch {
+      setParseError('Could not read this recipe. Add it again from the extension.');
+    }
+  }, [fromBrowser, initial]);
   useEffect(() => {
     if (error) errorSummary.current?.focus();
   }, [error]);
@@ -105,13 +128,23 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
             {t(
               initial
                 ? 'Update the recipe everyone sees when you share it.'
+                : browserHasRecipe
+                  ? 'Review this recipe, then save it to your collection.'
                 : 'Keep a favorite by hand, or import it below.',
             )}
           </p>
         </div>
       </div>
       {!initial && (
-        <section className="parse-panel">
+        <>
+          {browserSource && (
+            <section className="parse-panel">
+              <h2>{t('Recipe from your browser')}</h2>
+              <p>{t('Review the servings, ingredients and steps before saving. Ingredient lines are kept as written on the website; you can separate quantities and units below.')}</p>
+              <a href={browserSource} target="_blank" rel="noopener noreferrer">{t('View original recipe')}</a>
+            </section>
+          )}
+          {!browserHasRecipe && <section className="parse-panel">
           <h2>
             <FileText aria-hidden="true" size={22} />
             {t('Import a recipe')}
@@ -150,7 +183,8 @@ export function RecipeForm({ initial }: { initial?: RecipeView }) {
               {t(parseError)}
             </p>
           )}
-        </section>
+        </section>}
+        </>
       )}
       <form onSubmit={save} noValidate aria-busy={busy === 'save'}>
         {error && (

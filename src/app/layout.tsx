@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   },
   description: 'Save your recipes, build a shopping list, and share favorites with friends.',
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const { locale } = getTranslation();
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale } = await getTranslation();
   return (
     <html lang={locale} className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <head>

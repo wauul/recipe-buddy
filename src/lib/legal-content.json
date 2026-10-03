@@ -1,0 +1,154 @@
+{
+  "version": "2026-10-03",
+  "owner": "Wae Fezari",
+  "country": "France",
+  "email": "waelfezari@gmail.com",
+  "en": {
+    "privacy": [
+      {
+        "title": "Who runs Recipe Buddy",
+        "text": "Wae Fezari, France, is responsible for Recipe Buddy account data. Contact waelfezari@gmail.com for support, privacy questions, access, correction, export, objection or deletion requests. Updated October 3, 2026."
+      },
+      {
+        "title": "Your account and recipes",
+        "text": "We process email, chef name, basic Google identity when used, password hashes, preferences, recipes, photos, cooking activity, friend connections, shares and contributions to provide the service you request. Google sign-in requests basic identity only, not Gmail, Drive, Calendar or contacts. Passwords are hashed; native session credentials are protected by Android Keystore. Your collection stays private until you choose each recipe to share. Friends see your chef name and shared content. Email invitations use the exact email you enter, not an uploaded address book."
+      },
+      {
+        "title": "Photos and optional AI",
+        "text": "The Android app uses the camera or system photo picker only when you choose them. Selected photos are resized and re-encoded to remove metadata before upload. An ingredient photo is sent for recognition only when you tap Analyze after the disclosure. Recognition does not determine freshness, allergens or food safety; you review suggestions. Optional import, roasts and saved recipe translations send relevant recipe text to Groq; enabled photo recognition sends the selected image. Your Google tokens and profile are not sent to Groq. Manual entry works without recognition. Saved recipe photos are stored with your recipe; analysis does not retain the source image in the app database."
+      },
+      {
+        "title": "Voice Chef and microphone",
+        "text": "Voice Chef reads only the current step when you tap Play, using an installed offline speech voice. Scrolling, reopening a card or moving between steps does not start speech. Pro explanations send the selected recipe step, relevant ingredients, servings and language to Groq. Pro voice commands are single requests after a disclosure and explicit tap: the phone’s chosen speech recognition service processes microphone audio under that provider’s privacy terms; recognized command text is sent to Groq to classify a small set of cooking controls. Recipe Buddy does not store microphone recordings or retain command transcripts in its database. You can cancel recognition; the app does not listen continuously. AI can make mistakes and cannot see or verify cooking. The original recipe remains visible. Playful roasts remain optional."
+      },
+      {
+        "title": "Your device and widget",
+        "text": "Recipes and viewed social content are cached per account on your device. Recipe edits, comments, twists, ratings and cooked records made offline are stored in a persistent queue and sent when connectivity returns. Shopping lists, confirmed pantry ingredients, cooking progress and timer deadlines are synchronized with your account. Drafts and downloaded images remain device-local. Synchronization receipts prevent duplicate saves; conflicting edits remain on your device for your choice. Cached AI guidance and saved roasts can remain on your device until sign-out. Revoked sharing is checked when reconnecting; downloaded copies cannot be recalled while a device is offline. Sign-out/account deletion on this device clears private caches, local account data, timers and widget selections. Android backups are disabled. Other offline devices clear their local data when they reconnect and discover account revocation; uninstall or sign out to clear them immediately."
+      },
+      {
+        "title": "Providers, purposes and rights",
+        "text": "Vercel hosts the website and provides website usage/performance analytics; Neon hosts PostgreSQL; Google handles optional Google authentication; Groq handles enabled recipe AI requests. Android contains no advertising or analytics SDK. Essential processing provides your requested service; security, abuse prevention and report review protect it. Optional camera/microphone access and optional recognition require your choice. Website analytics and hosting can process device/network metadata. Data may be processed outside France by these providers under their applicable safeguards. We do not sell personal data or use it for advertising. You may also complain to the CNIL at cnil.fr. We respond to rights requests within one month, subject to lawful identity checks and permitted extensions."
+      },
+      {
+        "title": "Retention and deletion",
+        "text": "Account content is retained while your account is active. Delete account in Settings or use /delete-account on the website; verified deletion immediately removes the account and associated active-database recipes, photos, contributions, shares, friend connections, sessions, linked identities and attributable analysis results. Copies already made by others cannot be recalled. Account-related authentication attempts are removed. Unattributable temporary security counters and legacy analysis cache entries have expiry times and are purged by maintenance. Hosting logs and any provider-managed backups follow the operator’s configured retention; contact us for the applicable retention before sharing sensitive information. Reports are private to the operator and retained while needed for review, then removed by maintenance; account deletion removes your reports and reports identifying your deleted content."
+      },
+      {
+        "title": "Browser extension",
+        "text": "The extension reads HTTPS recipe metadata locally to offer an Add prompt; it does not retain browsing history. Only clicking Add sends the selected URL and recipe metadata into a reviewable draft. No recipe is saved until you choose Save. The extension stores its suggestions preference and chosen app address locally. It has no advertising/analytics SDK and does not read passwords, authentication cookies, contacts or private tokens. You can disable suggestions, limit Chrome site access or uninstall to remove extension preferences."
+      },
+      {
+        "title": "Pro purchases",
+        "text": "Google Play processes subscription payment details; Recipe Buddy does not receive card information. We store the subscription state, expiry and an encrypted purchase token linked to a hashed account identifier to verify access, restore purchases and prevent reuse. These records are deleted with your account. Deleting the account does not cancel Google Play billing; cancel the subscription in Google Play first."
+      }
+    ],
+    "terms": [
+      {
+        "title": "Recipe Buddy terms of use",
+        "text": "Updated October 3, 2026. Recipe Buddy is operated by Wae Fezari, France. Contact: waelfezari@gmail.com. Accept these terms before creating, uploading or sharing content. Use the service only if you can legally agree to these terms; it is not designed for children under 16."
+      },
+      {
+        "title": "Your account",
+        "text": "Keep your sign-in details secure and use an account you control. Do not impersonate others, attempt unauthorized access, bypass limits, scrape private content or abuse invitations. You can stop using the service and delete your account at any time."
+      },
+      {
+        "title": "Your content and sharing",
+        "text": "You retain rights to recipes and photos you provide. Grant Recipe Buddy the limited permission needed to store, display, translate and process content to deliver features you choose. Upload/share only content you have rights to use; respect source attribution and others’ privacy. A friendship does not share your collection automatically. Recipients may copy information; revocation cannot recall those copies."
+      },
+      {
+        "title": "Community safety",
+        "text": "Do not upload or share illegal content, harassment, threats, hateful abuse, sexually explicit content, child sexual abuse or exploitation, doxxing, fraud, spam, or harmful instructions. Report a chef or recipe using Report; block a chef to end the connection and stop further requests. Reports are reviewed by the operator, who may remove content or restrict accounts to protect users. Contact waelfezari@gmail.com to report urgent issues, raise an appeal or report child safety concerns."
+      },
+      {
+        "title": "Cooking and Voice Chef",
+        "text": "Recipes and coaching are informational. Check ingredients, allergens, temperatures, equipment and food safety yourself. Voice Chef adds general technique context; it cannot inspect food or establish doneness. Follow the original recipe’s quantities and times. Do not rely on voice recognition or timer delivery for safety-critical decisions. Roast mode is optional playful commentary from an original fictional chef personality; it does not impersonate or imply endorsement by a real chef."
+      },
+      {
+        "title": "AI and availability",
+        "text": "Optional AI output and translations can be incorrect; review before saving or using them. Manual entry remains available. Feature availability may depend on your device, network, language packs and configured providers. We may change or suspend features for maintenance, security or legal reasons and will communicate material terms changes before requiring acceptance."
+      },
+      {
+        "title": "Recipe Buddy Pro",
+        "text": "Pro is offered at €9.99 per month or €99.99 per year in euro-priced regions. The full localized charge, billing period and applicable taxes are disclosed by Google Play before purchase. Pro includes AI Voice Chef, ingredient-photo recognition and roast refreshes. One recipe roast and basic cooking tools remain free. Subscriptions renew automatically until canceled in Google Play; cancellation normally preserves access until the paid period ends. Restore purchases using the same Recipe Buddy and Google Play accounts. AI usage limits and provider availability apply; no unlimited usage is promised. Do not purchase until checkout is available. Google Play handles payments and applicable refund requests; contact support for access problems. Account deletion does not cancel the subscription; cancel in Google Play before deletion. Mandatory withdrawal and consumer rights remain applicable."
+      },
+      {
+        "title": "Your rights",
+        "text": "These terms do not exclude mandatory consumer rights or liability that cannot lawfully be excluded. French law applies subject to mandatory protections in your country of residence; consumers keep their right to use a competent court. For questions, complaints or account deletion, contact waelfezari@gmail.com or use the in-app/website account controls."
+      }
+    ]
+  },
+  "fr": {
+    "privacy": [
+      {
+        "title": "Responsable de Recipe Buddy",
+        "text": "Wae Fezari, France, est responsable des données de compte Recipe Buddy. Contact : waelfezari@gmail.com pour l’assistance, l’accès, la rectification, l’export, l’opposition ou l’effacement. Mise à jour : 3 octobre 2026."
+      },
+      {
+        "title": "Compte, recettes et partage",
+        "text": "Nous traitons votre email, nom de chef, identité Google de base si utilisée, mot de passe haché, préférences, recettes, photos, activité, liens d’amitié et contributions pour fournir le service demandé. Google ne donne accès ni à Gmail, ni à Drive, Calendar ou vos contacts. Votre collection reste privée jusqu’au partage de chaque recette choisi par vous. Vos amis voient votre nom et le contenu partagé. L’invitation utilise l’email exact saisi, sans importer votre carnet d’adresses."
+      },
+      {
+        "title": "Photos et IA facultative",
+        "text": "Caméra et sélecteur photo sont utilisés à votre demande. Les photos Android sont redimensionnées et réencodées sans métadonnées. Une photo d’ingrédients n’est envoyée que si vous choisissez Analyser après l’information affichée. La reconnaissance ne vérifie ni fraîcheur, ni allergènes, ni sécurité alimentaire : vérifiez les suggestions. L’import, les roasts et les traductions de recettes utilisent Groq si activés ; la reconnaissance utilise la photo sélectionnée. Profil et jetons Google ne sont pas envoyés à Groq. La saisie manuelle reste disponible. Les photos enregistrées appartiennent à la recette ; l’image source d’analyse n’est pas conservée en base."
+      },
+      {
+        "title": "Chef vocal et microphone",
+        "text": "Le Chef vocal lit uniquement l’étape actuelle lorsque vous appuyez sur Lecture, avec une voix hors ligne installée. Le défilement, la réouverture de la carte ou le changement d’étape ne déclenchent pas la lecture. Les explications Pro envoient l’étape choisie, les ingrédients utiles, les portions et la langue à Groq. Les commandes vocales Pro sont ponctuelles, après une information et une action explicite : le service de reconnaissance vocale du téléphone traite le son selon ses propres règles de confidentialité ; le texte reconnu est envoyé à Groq pour identifier une commande de cuisine limitée. Recipe Buddy ne conserve aucun enregistrement ni transcription de commande dans sa base. La reconnaissance peut être annulée ; l’application n’écoute pas en continu. L’IA peut se tromper et ne peut pas voir ni vérifier la cuisson. La recette originale reste visible. Les plaisanteries du chef sont facultatives."
+      },
+      {
+        "title": "Appareil et widget",
+        "text": "Les recettes et contenus sociaux consultés sont mis en cache par compte sur votre appareil. Les modifications, commentaires, variantes, notes et préparations enregistrés hors ligne sont conservés dans une file persistante puis envoyés au retour du réseau. Les listes de courses, ingrédients confirmés, progression et échéances des minuteurs sont synchronisés avec votre compte. Les brouillons et images téléchargées restent locaux. Des reçus de synchronisation empêchent les doublons ; les modifications en conflit restent sur votre appareil pour vous laisser choisir. Les conseils IA et roasts enregistrés peuvent rester sur votre appareil jusqu’à la déconnexion. Les droits de partage sont vérifiés au retour du réseau ; les copies hors ligne ne peuvent être rappelées avant ce retour. La déconnexion et la suppression du compte sur cet appareil effacent les données locales privées, caches et minuteurs. Les sauvegardes Android sont désactivées."
+      },
+      {
+        "title": "Prestataires et droits",
+        "text": "Vercel héberge le site et fournit ses statistiques de fonctionnement ; Neon héberge PostgreSQL ; Google fournit la connexion facultative ; Groq traite les demandes IA activées. Android n’intègre aucun SDK publicitaire ou analytique. Les traitements essentiels exécutent le service demandé ; sécurité, prévention des abus et examen des signalements le protègent. Caméra, microphone et reconnaissance facultative dépendent de votre choix. Les statistiques et l’hébergement web peuvent traiter des données appareil/réseau. Ces prestataires peuvent traiter des données hors de France selon leurs garanties applicables. Nous ne vendons pas vos données et ne les utilisons pas pour la publicité. Vous pouvez saisir la CNIL : cnil.fr. Réponse aux demandes de droits sous un mois, avec vérification d’identité et prolongations autorisées si nécessaires."
+      },
+      {
+        "title": "Conservation et suppression",
+        "text": "Le contenu est conservé tant que le compte est actif. Supprimez le compte dans Réglages ou sur /delete-account. Après vérification, le compte et ses recettes, photos, contributions, partages, liens, sessions, identités liées et résultats d’analyse attribuables sont immédiatement retirés de la base active. Les copies faites par autrui ne sont pas rappelables. Les tentatives de connexion liées sont retirées. Compteurs de sécurité non attribuables et anciens caches expirent et sont purgés par maintenance. Journaux et sauvegardes éventuelles des hébergeurs suivent la conservation configurée par l’opérateur ; contactez-nous pour la durée applicable avant de partager des données sensibles. Les signalements sont privés, conservés le temps de l’examen puis supprimés ; la suppression du compte retire vos signalements et ceux identifiant votre contenu supprimé."
+      },
+      {
+        "title": "Extension navigateur",
+        "text": "L’extension lit localement les métadonnées de recettes HTTPS sans conserver votre historique. Seul le clic Ajouter transfère le lien et les métadonnées vers un brouillon à vérifier, enregistré uniquement après votre choix Enregistrer. Elle conserve localement les préférences de suggestions et l’adresse de l’application. Aucun SDK publicitaire/analytique ; aucun accès aux mots de passe, cookies d’authentification, contacts ou jetons privés. Désactivez les suggestions, limitez l’accès Chrome aux sites ou désinstallez pour retirer ces préférences."
+      },
+      {
+        "title": "Achats Pro",
+        "text": "Google Play traite le paiement ; Recipe Buddy ne reçoit pas vos données de carte. Nous conservons l’état, l’expiration et un jeton d’achat chiffré associé à un identifiant de compte haché pour vérifier l’accès, restaurer les achats et empêcher leur réutilisation. Ces données sont supprimées avec le compte. Supprimer le compte ne résilie pas la facturation Google Play : résiliez d’abord dans Google Play."
+      }
+    ],
+    "terms": [
+      {
+        "title": "Conditions d’utilisation de Recipe Buddy",
+        "text": "Mise à jour : 3 octobre 2026. Éditeur : Wae Fezari, France. Contact : waelfezari@gmail.com. Acceptez ces conditions avant de créer, téléverser ou partager du contenu. Utilisez le service uniquement si vous pouvez légalement accepter ces conditions ; il n’est pas destiné aux enfants de moins de 16 ans."
+      },
+      {
+        "title": "Votre compte",
+        "text": "Protégez vos identifiants et utilisez un compte que vous contrôlez. Usurpation d’identité, accès non autorisé, contournement des limites, collecte de contenu privé et invitations abusives sont interdits. Vous pouvez cesser d’utiliser le service et supprimer votre compte à tout moment."
+      },
+      {
+        "title": "Contenus et partage",
+        "text": "Vous conservez vos droits sur recettes et photos. Vous accordez les permissions limitées nécessaires au stockage, affichage, traduction et traitement pour les fonctions choisies. Ne partagez que des contenus que vous avez le droit d’utiliser ; respectez sources et vie privée. L’amitié ne partage pas automatiquement votre collection. Les destinataires peuvent copier des informations ; la révocation ne rappelle pas ces copies."
+      },
+      {
+        "title": "Sécurité de la communauté",
+        "text": "Sont interdits : contenu illégal, harcèlement, menaces, haine, contenu sexuel explicite, abus ou exploitation sexuelle d’enfants, divulgation de données privées, fraude, spam et instructions dangereuses. Signalez un chef ou une recette via Signaler et bloquez un chef pour interrompre le lien et les demandes. L’éditeur examine les signalements et peut retirer des contenus ou restreindre des comptes pour protéger les utilisateurs. Contactez waelfezari@gmail.com pour une urgence, un recours ou une question de protection des enfants."
+      },
+      {
+        "title": "Cuisine et chef vocal",
+        "text": "Recettes et conseils sont informatifs. Vérifiez vous-même ingrédients, allergènes, températures, matériel et sécurité alimentaire. Le chef vocal explique des techniques générales sans inspecter le plat ni établir sa cuisson. Suivez les quantités et durées originales. Reconnaissance vocale et minuteurs ne doivent pas servir de garantie de sécurité. Le roast est un commentaire facultatif d’un chef fictif original, sans imitation ni soutien d’un chef réel."
+      },
+      {
+        "title": "IA et disponibilité",
+        "text": "IA et traductions peuvent être incorrectes : vérifiez avant enregistrement ou utilisation. La saisie manuelle reste disponible. Les fonctions dépendent de l’appareil, du réseau, des langues installées et des prestataires configurés. Des changements ou suspensions peuvent intervenir pour maintenance, sécurité ou obligation légale. Les changements matériels de conditions sont communiqués avant une nouvelle acceptation."
+      },
+      {
+        "title": "Recipe Buddy Pro",
+        "text": "Pro est proposé à 9,99 € par mois ou 99,99 € par an dans les régions tarifées en euros. Google Play affiche le montant total localisé, la période de facturation et les taxes applicables avant l’achat. Pro comprend le Chef vocal IA, la reconnaissance des ingrédients sur photo et le renouvellement des piques. Une pique par recette et les outils de cuisine de base restent gratuits. L’abonnement se renouvelle automatiquement jusqu’à sa résiliation dans Google Play ; l’accès reste normalement actif jusqu’à la fin de la période payée. Restaurez les achats avec les mêmes comptes Recipe Buddy et Google Play. Des limites d’utilisation de l’IA et la disponibilité du fournisseur s’appliquent ; aucun usage illimité n’est promis. N’achetez pas avant la disponibilité du paiement. Google Play gère le paiement et les demandes de remboursement applicables ; contactez le support en cas de problème d’accès. Supprimer le compte ne résilie pas l’abonnement : résiliez dans Google Play avant la suppression. Les droits impératifs de rétractation et de consommation restent applicables."
+      },
+      {
+        "title": "Vos droits",
+        "text": "Ces conditions ne suppriment aucun droit impératif du consommateur ni responsabilité légalement obligatoire. Le droit français s’applique sous réserve des protections obligatoires de votre pays de résidence ; les consommateurs conservent le recours à une juridiction compétente. Questions, réclamations et effacement : waelfezari@gmail.com ou les contrôles de compte dans l’application et sur le site."
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 import { getTranslation } from '@/lib/i18n-server';
-export default function Loading() {
-  const { t } = getTranslation();
+export default async function Loading() {
+  const { t } = await getTranslation();
   return (
     <div className="loading-layout" role="status" aria-label={t('Loading your kitchen')}>
       <div className="skeleton skeleton-heading" />

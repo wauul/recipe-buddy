@@ -6,8 +6,9 @@ import { currentUser, recipeView } from '@/lib/data';
 import { db } from '@/lib/db';
 import { faqs } from '@/lib/help';
 import { sharedRecipeWhere } from '@/lib/social-policy';
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
-  const { t } = getTranslation();
+export default async function SearchPage(props: { searchParams: Promise<{ q?: string }> }) {
+  const searchParams = await props.searchParams;
+  const { t } = await getTranslation();
   const user = await currentUser();
   const q = (typeof searchParams.q === 'string' ? searchParams.q : '').trim().slice(0, 100);
   const term = q.toLowerCase();

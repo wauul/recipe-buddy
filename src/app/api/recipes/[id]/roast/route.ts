@@ -4,7 +4,8 @@ import { freshRoast } from '@/lib/ai';
 import { savedLanguages } from '@/lib/recipe-languages';
 import { rateLimit } from '@/lib/rate-limit';
 export const maxDuration = 30;
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return api(async () => {
     const owner = await userId();
     await body(request);

@@ -8,6 +8,7 @@ import { usernameSchema } from '@/lib/username';
 import { LanguageSelector } from './language-provider';
 import { ThemeSettings } from './theme-settings';
 import { ChefHat } from 'lucide-react';
+import { LegalAccountLinks } from './account-controls';
 
 export function SettingsForm({
   roastEnabled,
@@ -163,6 +164,7 @@ export function SettingsForm({
         <LanguageSelector settings />
       </section>
       <ThemeSettings />
+      <LegalAccountLinks />
     </>
   );
 }

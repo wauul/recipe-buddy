@@ -1,0 +1,17 @@
+CREATE TABLE "NativeSubscription" (
+  "userId" TEXT PRIMARY KEY REFERENCES "User"("id") ON DELETE CASCADE,
+  "tokenHash" TEXT NOT NULL UNIQUE,
+  "tokenCipher" TEXT NOT NULL,
+  "state" TEXT NOT NULL,
+  "expiresAt" TIMESTAMP(3) NOT NULL,
+  "verifiedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE "ChefRoast" (
+  "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "recipeId" TEXT NOT NULL REFERENCES "Recipe"("id") ON DELETE CASCADE,
+  "text" TEXT NOT NULL DEFAULT '',
+  "language" TEXT NOT NULL,
+  "step" INTEGER NOT NULL,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY ("userId", "recipeId")
+);

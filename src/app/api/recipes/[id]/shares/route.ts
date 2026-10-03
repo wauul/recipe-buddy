@@ -3,23 +3,29 @@ import { db } from '@/lib/db';
 import { api, body, HttpError, userId } from '@/lib/http';
 import { friendPair } from '@/lib/social-policy';
 import { rateLimit } from '@/lib/rate-limit';
+import { assertNotBlocked } from '@/lib/moderation';
+import { requireTerms } from '@/lib/account-controls';
 
-type Context = { params: { id: string } };
+type Context = { params: Promise<{ id: string }> };
 const recipientSchema = z.object({ recipientId: z.string().cuid() });
 export const dynamic = 'force-dynamic';
 async function owned(recipeId: string, ownerId: string) {
-  if (!await db.recipe.findFirst({ where: { id: recipeId, userId: ownerId }, select: { id: true } })) throw new HttpError(404, 'Recipe not found.');
+  if (!(await db.recipe.findFirst({ where: { id: recipeId, userId: ownerId }, select: { id: true } }))) throw new HttpError(404, 'Recipe not found.');
 }
-export async function GET(_request: Request, { params }: Context) {
+export async function GET(_request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const owner = await userId(); await owned(params.id, owner);
     return db.recipeShare.findMany({ where: { recipeId: params.id }, select: { recipientId: true, recipient: { select: { email: true } } } });
   });
 }
-export async function POST(request: Request, { params }: Context) {
+export async function POST(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const owner = await userId(); const { recipientId } = recipientSchema.parse(await body(request));
     await owned(params.id, owner);
+    await requireTerms(owner);
+    await assertNotBlocked(owner, recipientId);
     if (owner === recipientId) throw new HttpError(400, 'This recipe is already in your kitchen.');
     if (!(await rateLimit(`share:${owner}`, 30))) throw new HttpError(429, 'Too many shares. Try again in a minute.');
     const friendship = await db.friendship.findFirst({ where: { ...friendPair(owner, recipientId), acceptedAt: { not: null } }, select: { id: true } });
@@ -29,7 +35,8 @@ export async function POST(request: Request, { params }: Context) {
     return { ok: true };
   });
 }
-export async function DELETE(request: Request, { params }: Context) {
+export async function DELETE(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const owner = await userId(); const { recipientId } = recipientSchema.parse(await body(request));
     await owned(params.id, owner);

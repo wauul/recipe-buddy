@@ -1,24 +1,29 @@
+import { requireTerms } from '@/lib/account-controls';
 import { db } from '@/lib/db';
 import { api, body, HttpError, userId } from '@/lib/http';
 import { discussionAccess, recipeDiscussion } from '@/lib/discussion';
 import { takeSchema, commentSchema, deleteContributionSchema } from '@/lib/discussion-validation';
 import { rateLimit } from '@/lib/rate-limit';
 import { z } from 'zod';
+import { syncContext } from '@/lib/native-sync-context';
 
 export const dynamic = 'force-dynamic';
-type Context = { params: { id: string } };
+type Context = { params: Promise<{ id: string }> };
 const contributionSchema = z.discriminatedUnion('kind', [
   takeSchema.extend({ kind: z.literal('take') }),
   commentSchema.extend({ kind: z.literal('comment') }),
 ]);
 
-export async function GET(_request: Request, { params }: Context) {
+export async function GET(_request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => recipeDiscussion(params.id, await userId()));
 }
 
-export async function POST(request: Request, { params }: Context) {
+export async function POST(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const authorId = await userId();
+    await requireTerms(authorId);
     const data = contributionSchema.parse(await body(request));
     const recipe = await discussionAccess(params.id, authorId);
     if (!(await rateLimit(`discussion:${authorId}`, 30)))
@@ -42,6 +47,7 @@ export async function POST(request: Request, { params }: Context) {
       }
       await db.recipeTake.create({
         data: {
+          id: syncContext.getStore()?.entityId,
           recipeId: params.id,
           authorId,
           type: data.type,
@@ -63,6 +69,7 @@ export async function POST(request: Request, { params }: Context) {
         throw new HttpError(404, 'This twist is no longer available.');
       await db.recipeComment.create({
         data: {
+          id: syncContext.getStore()?.entityId,
           recipeId: params.id,
           authorId,
           takeId: data.takeId,
@@ -74,7 +81,8 @@ export async function POST(request: Request, { params }: Context) {
   }, 201);
 }
 
-export async function DELETE(request: Request, { params }: Context) {
+export async function DELETE(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const viewer = await userId();
     const { kind, id } = deleteContributionSchema.parse(await body(request));

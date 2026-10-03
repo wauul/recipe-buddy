@@ -1,0 +1,9 @@
+<!-- Paths reused from src/components/cooking-illustration.tsx; original kitchen art. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="320dp" android:height="240dp" android:viewportWidth="320" android:viewportHeight="240">
+    <group android:translateY="25">
+        <path android:strokeColor="@color/illustration_line" android:strokeWidth="2" android:strokeLineCap="round" android:fillColor="@android:color/transparent" android:pathData="M40,154H282M66,164H256M143,68Q136,59 143,50Q150,42 143,35M164,61Q157,52 164,43Q171,35 164,28M185,68Q178,59 185,50Q192,42 185,35" />
+        <path android:strokeColor="@color/illustration_line" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="@android:color/transparent" android:pathData="M263,147V79M257,85V65M263,85V65M269,85V65M257,85Q263,93 269,85M64,150L52,95Q48,81 56,77Q65,75 66,90L72,147M82,144L90,106M87,124Q74,109 79,103Q93,106 87,124ZM90,115Q105,112 105,102Q90,103 90,115Z" />
+        <path android:strokeColor="@color/illustration_line" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="@color/illustration_fill" android:pathData="M110,98H217V129Q217,149 198,149H129Q110,149 110,129Z" />
+        <path android:strokeColor="@color/illustration_line" android:strokeWidth="3" android:strokeLineCap="round" android:fillColor="@android:color/transparent" android:pathData="M110,107H97V124H109M218,107H230V124H218M108,91H219M153,91V83H174V91M121,111V129Q121,138 131,138" />
+    </group>
+</vector>

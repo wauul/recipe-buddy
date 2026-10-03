@@ -4,6 +4,8 @@ A private recipe box with a playful sous-chef. Built with **Next.js 14 App Route
 
 ## What's inside
 
+- A desktop Chrome extension in [`extension/`](extension/README.md) that detects recipes while browsing and opens a reviewable draft in the app. Load it unpacked for development; the `/import` app route must be deployed before using the live destination.
+
 - A public landing page with simple kitchen line art, the recipe/shopping/sharing workflow and all seven chef badges. Login and signup use a clean text-first layout.
 - Email/password and optional Google signup/login; a matching verified Google email automatically connects to the existing chef account, and Settings also supports connecting Google. Bcrypt hashes and signed, HTTP-only JWT sessions remain. See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for activation and live checks.
 - Seven illustrated chef levels combine current saved recipes and apron reviews from other chefs. Each saved recipe earns 10 points; every received apron earns 2. Share a recipe to receive one editable 1–5 apron review from each other chef.

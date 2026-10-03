@@ -1,8 +1,9 @@
 import { db } from '@/lib/db';
 import { api, body, HttpError, userId } from '@/lib/http';
 
-type Context = { params: { id: string } };
-export async function PATCH(request: Request, { params }: Context) {
+type Context = { params: Promise<{ id: string }> };
+export async function PATCH(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const actor = await userId(); await body(request);
     // Only the addressee can accept; a sender cannot approve their own request.
@@ -11,7 +12,8 @@ export async function PATCH(request: Request, { params }: Context) {
     return { ok: true };
   });
 }
-export async function DELETE(request: Request, { params }: Context) {
+export async function DELETE(request: Request, props: Context) {
+  const params = await props.params;
   return api(async () => {
     const actor = await userId(); await body(request);
     // Delete is also cancel/decline. The FK cascade revokes both users' shares.

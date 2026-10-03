@@ -8,11 +8,13 @@ export function GoogleSignIn({
   connect = false,
   disabled = false,
   onBusyChange,
+  callbackUrl = '/recipes',
 }: {
   enabled: boolean;
   connect?: boolean;
   disabled?: boolean;
   onBusyChange?: (busy: boolean) => void;
+  callbackUrl?: string;
 }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false),
@@ -30,7 +32,7 @@ export function GoogleSignIn({
           setError('');
           try {
             await signIn('google', {
-              callbackUrl: connect ? '/settings' : '/recipes',
+              callbackUrl: connect ? '/settings' : callbackUrl,
             });
           } catch {
             setError('Could not open Google sign-in. Please try again.');

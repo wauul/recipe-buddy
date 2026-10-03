@@ -9,7 +9,8 @@ import { recipeDiscussion } from '@/lib/discussion';
 import { RecipeReviewsPanel } from '@/components/recipe-reviews';
 import { recipeReviews } from '@/lib/reviews';
 import { currentChefProgress } from '@/lib/chefs';
-export default async function SharedRecipePage({ params }: { params: { id: string } }) {
+export default async function SharedRecipePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await currentUser();
   const share = await db.recipeShare.findFirst({
     where: sharedRecipeWhere(user.id, params.id),
