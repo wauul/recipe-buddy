@@ -15,6 +15,7 @@ import kotlinx.serialization.json.*
 import java.util.UUID
 
 data class BuddyState(
+    val initializing: Boolean = false,
     val account: String? = null, val me: Me? = null, val recipes: List<Recipe> = emptyList(),
     val shared: List<Recipe> = emptyList(), val friends: List<Friend> = emptyList(),
     val blocked: List<FriendPerson> = emptyList(),
@@ -40,7 +41,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as BuddyApp
     val api = app.api
     private val local = app.database.entries()
-    private val mutable = MutableStateFlow(BuddyState(account = api.session?.userId,
+    private val mutable = MutableStateFlow(BuddyState(initializing = true, account = api.session?.userId,
         pendingInvite = app.vault.read("pendingInvite"), pendingImport = app.vault.read("pendingImport"), pendingRoute = app.vault.read("pendingRoute")))
     val state: StateFlow<BuddyState> = mutable.asStateFlow()
     private var generation = 0
@@ -51,14 +52,11 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     private val kitchen get() = app.kitchen
     init {
         viewModelScope.launch {
-            val initial = app.preferences.data.first()
-            initial[stringPreferencesKey("backend")]?.let { runCatching { api.configure(it) } }
             if (api.session != null) { app.vault.write("cachedAccount", api.session!!.userId); observeLocal(); refresh() }
             launch { kitchen.connection.collect { online -> mutable.update { it.copy(offline = !online) } } }
             launch { kitchen.authenticationRequired.collect { required -> if(required && api.session != null) expireAccount() } }
             app.preferences.data.collect { prefs ->
-                prefs[stringPreferencesKey("backend")]?.let { runCatching { api.configure(it) } }
-                mutable.update { it.copy(theme = prefs[stringPreferencesKey("theme")] ?: "system", language = prefs[stringPreferencesKey("language")] ?: "system") }
+                mutable.update { it.copy(initializing = false, theme = prefs[stringPreferencesKey("theme")] ?: "system", language = prefs[stringPreferencesKey("language")] ?: "system") }
             }
         }
     }
@@ -361,10 +359,6 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun report(recipeId: String?, chefId: String?, reason: String, done: () -> Unit) = run { kitchen.enqueue("reports", "POST", buildJsonObject { if(recipeId != null) put("recipeId", recipeId); if(chefId != null) put("chefId", chefId); put("reason", reason) }.toString(), "report", UUID.randomUUID().toString(), "true"); done() }
     fun preference(name: String, value: String) { viewModelScope.launch { app.preferences.edit { it[stringPreferencesKey(name)] = value } } }
-    fun backend(url: String) {
-        try { if (api.session != null) throw IllegalStateException(); api.configure(url); preference("backend", api.baseUrl) }
-        catch (_: Exception) { mutable.update { it.copy(error = 400) } }
-    }
     fun photo(encoded: String) { scanId = UUID.randomUUID().toString(); mutable.update { it.copy(photo = encoded, suggestions = emptyList()) } }
     fun removePhoto() { mutable.update { it.copy(photo = null) } }
     fun analyze(locale: String) = run {

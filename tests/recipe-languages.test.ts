@@ -39,7 +39,7 @@ test('saved bilingual recipe covers title, nickname, roast, ingredient names and
       [original.steps[0]]: 'Cuire à 200°C pendant 20 minutes.',
     },
     pending: false,
-    version: 2,
+    version: 3,
   };
   const seed = recipeLanguageSeed({ ...original, translations });
   assert.equal(
@@ -61,7 +61,7 @@ test('missing or corrupted stored versions leave the original intact and never c
       en: {},
       fr: { [original.steps[0]]: 'Cuire à 999°C pendant 20 minutes.' },
       pending: false,
-      version: 2,
+      version: 3,
     },
   });
   assert.equal(seed.fr[original.steps[0]], original.steps[0]);
@@ -73,7 +73,7 @@ test('literal ingredient names that resemble object properties remain data', () 
     ...original,
     ingredients: [{ name: '__proto__', quantity: '', unit: '' }],
     translations: JSON.parse(
-      '{"en":{"__proto__":"__proto__"},"fr":{"__proto__":"nom"},"pending":false,"version":2}',
+      '{"en":{"__proto__":"__proto__"},"fr":{"__proto__":"nom"},"pending":false,"version":3}',
     ),
   };
   const seed = recipeLanguageSeed(recipe);
@@ -122,7 +122,7 @@ test('saved cooking containers and pan-frying retain their culinary meaning', ()
     en: {},
     fr: { [recipe.title]: 'Boulettes de tempeh panées', '1 (15‑ounce) can': '1 (15-once) peut' },
     pending: false,
-    version: 2,
+    version: 3,
   };
   const repaired = repairRecipeLanguageMeasurements(recipe, saved);
   assert.equal(repaired.fr[recipe.title], 'Boulettes de tempeh poêlées');

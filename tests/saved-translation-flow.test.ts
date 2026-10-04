@@ -20,6 +20,66 @@ function load(file: string, dependencies: Record<string, unknown>) {
   runInContext(source, context);
   return exports;
 }
+
+test('foreign recipes get both languages and EN/FR originals survive provider paraphrases', async () => {
+  const examples = [
+    { title: 'Sopa de tomate', name: 'tomates', step: 'Añadir los tomates y cocinar durante 10 minutos.', language: 'other',
+      en: ['Tomato soup', 'tomatoes', 'Add the tomatoes and cook for ⟦V0⟧ minutes.'],
+      fr: ['Soupe de tomates', 'tomates', 'Ajouter les tomates et cuire pendant ⟦V0⟧ minutes.'] },
+    { title: 'Kartoffelsuppe', name: 'Kartoffeln', step: 'Die Kartoffeln zugeben und 10 Minuten kochen.', language: 'other',
+      en: ['Potato soup', 'potatoes', 'Add the potatoes and cook for ⟦V0⟧ minutes.'],
+      fr: ['Soupe de pommes de terre', 'pommes de terre', 'Ajouter les pommes de terre et cuire pendant ⟦V0⟧ minutes.'] },
+    { title: '番茄汤', name: '番茄', step: '加入番茄，煮10分钟。', language: 'other',
+      en: ['Tomato soup', 'tomatoes', 'Add the tomatoes and cook for ⟦V0⟧ minutes.'],
+      fr: ['Soupe de tomates', 'tomates', 'Ajouter les tomates et cuire pendant ⟦V0⟧ minutes.'] },
+    { title: 'Soupe aux tomates', name: 'tomates fraîches', step: 'Ajouter les tomates et cuire pendant 10 minutes.', language: 'fr',
+      en: ['Tomato soup', 'fresh tomatoes', 'Add the tomatoes and cook for ⟦V0⟧ minutes.'],
+      fr: ['Soupe de tomates', 'tomates', 'Faire mijoter les tomates pendant ⟦V0⟧ minutes.'] },
+    { title: 'Fresh tomato soup', name: 'fresh tomatoes', step: 'Add the tomatoes and cook for 10 minutes.', language: 'en',
+      en: ['Tomato soup', 'tomatoes', 'Simmer the tomatoes for ⟦V0⟧ minutes.'],
+      fr: ['Soupe aux tomates fraîches', 'tomates fraîches', 'Ajouter les tomates et cuire pendant ⟦V0⟧ minutes.'] },
+  ];
+  for (const example of examples) {
+    const source = [example.title, example.name, example.step];
+    const module = load('src/lib/translate.ts', {
+      'zod': require('zod'),
+      './db': { db: { contentTranslation: { findMany: async () => [], createMany: async () => {} } } },
+      './ai': { completion: async (system: string, input: string) => {
+        const texts = JSON.parse(input).texts;
+        const locale = system.includes('into French') ? 'fr' : 'en';
+        const protectedSource = integrity.protectCookingValues(source).texts;
+        return JSON.stringify({ sourceLanguages: texts.map(() => example.language),
+          translations: texts.map((text: string) => example[locale][protectedSource.indexOf(text)]) });
+      } },
+      './content-translation': integrity,
+      './recipe-languages': languages,
+    });
+    const saved = await module.prepareRecipeLanguages('chef-a', {
+      title: example.title, altTitle: '', roastLine: '', imageUrl: '', servings: 2, vibe: 'cozy',
+      ingredients: [{ name: example.name, quantity: '2', unit: 'g' }], steps: [example.step],
+    });
+    assert.equal(saved.pending, false, example.title);
+    for (const locale of ['en', 'fr'] as const) {
+      assert.equal(saved[locale][example.title], example.language === locale ? example.title : example[locale][0]);
+      assert.equal(saved[locale][example.step], example.language === locale ? example.step : example[locale][2].replace('⟦V0⟧', '10'));
+    }
+  }
+});
+
+test('unchanged third-language prose cannot be cached as a completed translation', async () => {
+  let calls = 0, writes = 0;
+  const source = 'Mezclar la harina con el agua.';
+  const module = load('src/lib/translate.ts', {
+    'zod': require('zod'),
+    './db': { db: { contentTranslation: { findMany: async () => [], createMany: async () => { writes++; } } } },
+    './ai': { completion: async () => { calls++; return JSON.stringify({ translations: [source], sourceLanguages: ['other'] }); } },
+    './content-translation': integrity,
+    './recipe-languages': languages,
+  });
+  for (const locale of ['en', 'fr']) await assert.rejects(module.translateTexts('chef-a', locale, [source]), (error: any) => error.code === 'untranslated');
+  assert.equal(calls, 4, 'one forced retry for each language');
+  assert.equal(writes, 0);
+});
 test('save-time bilingual preparation persists reusable translations; reopening, repeat saves and other chefs cannot consume or expose another chef’s cached rows', async () => {
   const rows: any[] = [];
   let calls = 0;
@@ -33,12 +93,14 @@ test('save-time bilingual preparation persists reusable translations; reopening,
     },
   };
   const module = load('src/lib/translate.ts', {
+    'zod': require('zod'),
     './db': { db },
     './ai': {
       completion: async (system: string, input: string) => {
         calls++;
         const texts = JSON.parse(input).texts;
         return JSON.stringify({
+          sourceLanguages: texts.map(() => "en"),
           translations: texts.map((text: string) =>
             system.includes('into French') ? 'FR ' + text : text,
           ),
@@ -91,7 +153,7 @@ test('roast replacement requires ownership and roast mode; failure preserves the
       en: { Bread: 'Bread', 'Old joke': 'Old joke' },
       fr: { Bread: 'Pain', 'Old joke': 'Ancienne blague' },
       pending: false,
-      version: 2,
+      version: 3,
     },
   };
   const db = {
@@ -164,6 +226,7 @@ test('an untranslated roast is retried by itself and accepted fields remain pers
     },
   };
   const module = load('src/lib/translate.ts', {
+    'zod': require('zod'),
     './db': { db },
     './ai': {
       completion: async (system: string, input: string) => {
@@ -172,10 +235,11 @@ test('an untranslated roast is retried by itself and accepted fields remain pers
         if (texts.length === 1) {
           assert.equal(rows[0].text, 'farine', 'completed ingredient was stored before retry');
           return JSON.stringify({
+            sourceLanguages: ['en'],
             translations: ['Ces pâtes ont plus de drame que votre télévision.'],
           });
         }
-        return JSON.stringify({ translations: ['farine', source] });
+        return JSON.stringify({ sourceLanguages: ['en', 'en'], translations: ['farine', source] });
       },
     },
     './content-translation': integrity,
@@ -193,6 +257,7 @@ test('an untranslated roast is retried by itself and accepted fields remain pers
 test('provider JSON truncation retries once with a larger output budget', async () => {
   const budgets: number[] = [];
   const module = load('src/lib/translate.ts', {
+    'zod': require('zod'),
     './db': {
       db: { contentTranslation: { findMany: async () => [], createMany: async () => {} } },
     },
@@ -204,7 +269,7 @@ test('provider JSON truncation retries once with a larger output budget', async 
             status: 400,
             code: 'json_validate_failed',
           });
-        return JSON.stringify({ translations: ['farine'] });
+        return JSON.stringify({ sourceLanguages: ['en'], translations: ['farine'] });
       },
     },
     './content-translation': integrity,

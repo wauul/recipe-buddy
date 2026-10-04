@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.*
 import androidx.compose.ui.text.input.*
@@ -52,24 +53,30 @@ import kotlinx.coroutines.isActive
                 Text(stringResource(message), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
                 IconButton(onClick = dismiss) { Icon(Icons.Default.Close, stringResource(R.string.dismiss), tint = MaterialTheme.colorScheme.onErrorContainer) }
             }
-            TextButton(onClick = retry) { Text(stringResource(R.string.retry)) }
+            KitchenTextButton(onClick = retry) { Text(stringResource(R.string.retry)) }
         }
     }
 }
 @Composable fun LoginScreen(state: BuddyState, vm: BuddyViewModel) {
     var email by rememberSaveable { mutableStateOf("") }; var password by remember { mutableStateOf("") }
-    var configure by rememberSaveable { mutableStateOf(false) }; var backend by rememberSaveable { mutableStateOf(vm.api.baseUrl) }
     var googleAttempt by rememberSaveable { mutableStateOf(false) }
     var legal by remember { mutableStateOf<String?>(null) }
     var signup by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     val canSubmit = !state.busy && email.isNotBlank() && password.length >= 8 && (!signup || password.toByteArray().size <= 72)
     fun submit() { if (canSubmit) { googleAttempt = false; if (signup) vm.signup(email.trim(), password) else vm.login(email.trim(), password) } }
-    Surface(Modifier.fillMaxSize()) { Column(Modifier.safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(KitchenGutter), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Image(painterResource(R.drawable.chef_hat), null, Modifier.size(32.dp).clip(RoundedCornerShape(10.dp))); Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge) }
-        Image(painterResource(R.drawable.ingredients_hero), null, Modifier.fillMaxWidth().aspectRatio(2.2f).clip(RoundedCornerShape(24.dp)), contentScale = ContentScale.Crop)
-        Heading(stringResource(if (signup) R.string.create_account else R.string.welcome))
-        OutlinedButton(onClick = { googleAttempt = true; vm.google(context.findActivity() ?: context) }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+    Surface(Modifier.fillMaxSize()) { BoxWithConstraints(Modifier.safeDrawingPadding().imePadding()) {
+      val compact = maxHeight < 560.dp
+      Column(Modifier.widthIn(max = 440.dp).fillMaxWidth().align(Alignment.TopCenter).verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = if (compact) 16.dp else 32.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(Modifier.fillMaxWidth().padding(bottom = if (compact) 8.dp else 20.dp), horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            BuddyLogo(Modifier.testTag("sign-in-logo"), size = if (compact) 64.dp else 80.dp)
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Text(stringResource(if (signup) R.string.create_account else R.string.welcome), style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        }
+        KitchenOutlinedButton(onClick = { googleAttempt = true; vm.google(context.findActivity() ?: context) }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
             Image(painterResource(R.drawable.google_g), null, Modifier.size(20.dp)); Spacer(Modifier.width(12.dp)); Text(stringResource(R.string.google_sign_in))
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant); SmallNote(stringResource(R.string.or_email)); HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant) }
@@ -78,15 +85,12 @@ import kotlinx.coroutines.isActive
         OutlinedTextField(password, { password = it }, label = { Text(stringResource(R.string.password)) }, visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(), singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { submit() }), colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
             trailingIcon = { IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(if (visible) R.string.hide_password else R.string.show_password)) } })
-        if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
-        state.error?.let { if (googleAttempt) { SmallNote(stringResource(if (it == 503) R.string.google_setup else R.string.google_error)); TextButton(onClick = vm::clearError) { Text(stringResource(R.string.dismiss)) } } else ErrorNotice(it, { submit() }, vm::clearError, authentication = true) }
+        state.error?.let { if (googleAttempt) { SmallNote(stringResource(if (it == 503) R.string.google_setup else R.string.google_error)); KitchenTextButton(onClick = vm::clearError) { Text(stringResource(R.string.dismiss)) } } else ErrorNotice(it, { submit() }, vm::clearError, authentication = true) }
         if (signup) SmallNote(stringResource(R.string.password_rules))
-        Button(onClick = ::submit, enabled = canSubmit, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(if (signup) R.string.create_account else R.string.sign_in)) }
-        TextButton(onClick = { signup = !signup; vm.clearError() }, enabled = !state.busy, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(if (signup) R.string.have_account else R.string.create_account)) }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { TextButton(onClick = { legal = "terms" }) { Text(stringResource(R.string.terms_of_use)) }; TextButton(onClick = { legal = "privacy" }) { Text(stringResource(R.string.privacy_policy)) } }
-        if (BuildConfig.DEBUG) TextButton(onClick = { configure = !configure }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.backend_settings), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        if (configure) { Field(backend, { backend = it }, R.string.backend_url); OutlinedButton(onClick = { vm.backend(backend) }) { Text(stringResource(R.string.apply)) }; SmallNote(stringResource(R.string.backend_description)) }
-    } }
+        KitchenButton(onClick = ::submit, enabled = canSubmit, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(if (signup) R.string.create_account else R.string.sign_in)) }
+        KitchenTextButton(onClick = { signup = !signup; vm.clearError() }, enabled = !state.busy, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(if (signup) R.string.have_account else R.string.create_account)) }
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) { KitchenTextButton(onClick = { legal = "terms" }) { Text(stringResource(R.string.terms_of_use)) }; KitchenTextButton(onClick = { legal = "privacy" }) { Text(stringResource(R.string.privacy_policy)) } }
+    } } }
     legal?.let { LegalReader(it, displayLanguage(state)) { legal = null } }
 }
 @Composable fun RecipePhoto(recipe: Recipe, modifier: Modifier = Modifier) {
@@ -135,20 +139,20 @@ import kotlinx.coroutines.isActive
                 if (filters) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("", "cozy", "lazy", "fancy", "chaotic").forEach { vibe -> FilterChip(state.vibe == vibe,
                         { vm.search(query, vibe) }, label = { Text(vibeLabel(vibe)) }) }
-                    if (query.isNotBlank() || state.vibe.isNotBlank()) TextButton(onClick = { query = ""; vm.search("", "") }) { Text(stringResource(R.string.clear_search)) }
+                    if (query.isNotBlank() || state.vibe.isNotBlank()) KitchenTextButton(onClick = { query = ""; vm.search("", "") }) { Text(stringResource(R.string.clear_search)) }
                 }
                 state.me?.let { ChefProgressTile(it.chef, it.levels, it.username, it.week, compact = true) }
             }
         }
         if (recipes.isEmpty() && !state.busy && state.me != null) item(span = { GridItemSpan(maxLineSpan) }) {
             KitchenEmpty(R.string.empty_recipes) {
-                if (query.isNotBlank() || state.vibe.isNotBlank()) TextButton(onClick = { query = ""; vm.search("", "") }) { Text(stringResource(R.string.clear_search)) }
+                if (query.isNotBlank() || state.vibe.isNotBlank()) KitchenTextButton(onClick = { query = ""; vm.search("", "") }) { Text(stringResource(R.string.clear_search)) }
             }
         }
         items(recipes, key = { it.id }) { recipe ->
             if (fontScale > 1.3f) RecipeResultRow(recipe, language) { open(recipe) }
             else
-            Column(Modifier.clip(RoundedCornerShape(24.dp)).clickable { open(recipe) }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.clip(RoundedCornerShape(24.dp)).kitchenClickable { open(recipe) }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Box {
                     RecipePhoto(recipe, Modifier.fillMaxWidth().aspectRatio(.96f))
                     Surface(Modifier.align(Alignment.BottomStart).padding(10.dp), shape = RoundedCornerShape(10.dp),
@@ -165,7 +169,7 @@ import kotlinx.coroutines.isActive
             }
         }
         if (state.nextCursor != null) item(span = { GridItemSpan(maxLineSpan) }) {
-            TextButton(onClick = vm::more, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.load_more)) }
+            KitchenTextButton(onClick = vm::more, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.load_more)) }
         }
     }
 }
@@ -215,7 +219,7 @@ import kotlinx.coroutines.isActive
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) { Icon(Icons.Default.LocalDining, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary); SmallNote(pluralStringResource(R.plurals.servings, recipe.servings, recipe.servings)) }
                         SmallNote(vibeLabel(recipe.vibe))
                     }
-                    if (!recipe.owned) TextButton(onClick = { kitchen(recipe.sharedChefId) }, enabled = recipe.sharedChefId.isNotBlank(), contentPadding = PaddingValues(0.dp)) {
+                    if (!recipe.owned) KitchenTextButton(onClick = { kitchen(recipe.sharedChefId) }, enabled = recipe.sharedChefId.isNotBlank(), contentPadding = PaddingValues(0.dp)) {
                         Icon(Icons.Default.PersonOutline, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.shared_by, recipe.sharedBy))
                     }
                 }
@@ -230,7 +234,7 @@ import kotlinx.coroutines.isActive
                         }
                         if (index < recipe.ingredients.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .6f))
                     }
-                    OutlinedButton(onClick = { vm.shoppingFrom(listOf(recipe.id)); shopping() }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    KitchenOutlinedButton(onClick = { vm.shoppingFrom(listOf(recipe.id)); shopping() }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Icon(Icons.Default.ShoppingBasket, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.add_to_shopping))
                     }
                 }
@@ -248,7 +252,7 @@ import kotlinx.coroutines.isActive
                 SectionTitle(stringResource(R.string.recipe_community))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(R.string.aprons_short, R.string.twists_short, R.string.comments).forEachIndexed { index, label ->
-                        OutlinedButton(onClick = { community(index) }) {
+                        KitchenOutlinedButton(onClick = { community(index) }) {
                             if (index == 0) ApronIcon(true, Modifier.size(18.dp)) else Icon(if (index == 1) Icons.Default.AutoAwesome else Icons.Default.ChatBubbleOutline, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp)); Text(stringResource(label))
                         }
@@ -265,13 +269,13 @@ import kotlinx.coroutines.isActive
                 if (details) {
                     if (recipe.owned && translating) SmallNote(stringResource(R.string.languages_pending))
                     if (recipe.updatedAt.isNotBlank()) SmallNote(stringResource(R.string.updated_on, recipe.updatedAt.substringBefore('T')))
-                    if (!recipe.owned) { TextButton(onClick = { kitchen(recipe.sharedChefId) }, enabled = recipe.sharedChefId.isNotBlank()) { Text(stringResource(R.string.view_kitchen)) } }
-                    TextButton(onClick = { reporting = true }) { Icon(Icons.Default.Flag, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.report)) }
+                    if (!recipe.owned) { KitchenTextButton(onClick = { kitchen(recipe.sharedChefId) }, enabled = recipe.sharedChefId.isNotBlank()) { Text(stringResource(R.string.view_kitchen)) } }
+                    KitchenTextButton(onClick = { reporting = true }) { Icon(Icons.Default.Flag, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.report)) }
                 }
             }
         }
         KitchenActionBar {
-            Button(onClick = cook, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            KitchenButton(onClick = cook, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                 Icon(Icons.Default.PlayArrow, null, Modifier.size(22.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.start_cooking))
             }
         }
@@ -281,8 +285,8 @@ import kotlinx.coroutines.isActive
         widget = { menu = false; state.account?.let { widgetHelp = !CookingWidget.pin(context, recipe, it) } },
         roast = { menu = false; vm.recipePersonality(recipe, "roast") },
         delete = { menu = false; delete = true })
-    if (delete) KitchenAlertDialog(onDismissRequest = { if (!state.busy) delete = false }, title = { Text(stringResource(R.string.delete_recipe)) }, text = { Text(recipe.text(recipe.title, language)) }, confirmButton = { TextButton(onClick = { vm.delete(recipe) { delete = false; deleted() } }, enabled = !state.busy) { Text(stringResource(R.string.delete)) } }, dismissButton = { TextButton(onClick = { delete = false }, enabled = !state.busy) { Text(stringResource(R.string.cancel)) } })
-    if (widgetHelp) KitchenAlertDialog(onDismissRequest = { widgetHelp = false }, text = { Text(stringResource(R.string.widget_help)) }, confirmButton = { TextButton(onClick = { widgetHelp = false }) { Text(stringResource(R.string.done)) } })
+    if (delete) KitchenAlertDialog(onDismissRequest = { if (!state.busy) delete = false }, title = { Text(stringResource(R.string.delete_recipe)) }, text = { Text(recipe.text(recipe.title, language)) }, confirmButton = { KitchenTextButton(onClick = { vm.delete(recipe) { delete = false; deleted() } }, enabled = !state.busy) { Text(stringResource(R.string.delete)) } }, dismissButton = { KitchenTextButton(onClick = { delete = false }, enabled = !state.busy) { Text(stringResource(R.string.cancel)) } })
+    if (widgetHelp) KitchenAlertDialog(onDismissRequest = { widgetHelp = false }, text = { Text(stringResource(R.string.widget_help)) }, confirmButton = { KitchenTextButton(onClick = { widgetHelp = false }) { Text(stringResource(R.string.done)) } })
     if (share) RecipeSharingSheet(recipe, state, vm) { share = false }
     if (reporting) ReportSheet(state, vm, recipeId = recipe.id) { reporting = false }
 }
@@ -298,7 +302,7 @@ import kotlinx.coroutines.isActive
         LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(KitchenGutter, 8.dp, KitchenGutter, 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedButton(onClick = { picking = true }) { Icon(Icons.Default.MenuBook, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.from_recipes)) }
+                    KitchenOutlinedButton(onClick = { picking = true }) { Icon(Icons.Default.MenuBook, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.from_recipes)) }
                     Spacer(Modifier.weight(1f))
                     IconButton(onClick = { shareText(context, state.shopping.joinToString("\n") { "${if (it.checked) "✓" else "□"} ${it.name} ${it.amount}" }) }, enabled = state.shopping.isNotEmpty()) { Icon(Icons.Default.Share, stringResource(R.string.share_list)) }
                 }
@@ -315,7 +319,7 @@ import kotlinx.coroutines.isActive
                     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
                         Row(Modifier.fillMaxWidth().padding(end = 4.dp).heightIn(min = 68.dp), verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(item.checked, { vm.addShopping(item.copy(checked = it)) })
-                            Column(Modifier.weight(1f).clickable(onClickLabel = stringResource(R.string.edit_item)) { editing = item }.padding(vertical = 12.dp)) {
+                            Column(Modifier.weight(1f).kitchenClickable(onClickLabel = stringResource(R.string.edit_item)) { editing = item }.padding(vertical = 12.dp)) {
                                 Text(item.name, style = MaterialTheme.typography.titleMedium, color = if (item.checked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                     textDecoration = if (item.checked) androidx.compose.ui.text.style.TextDecoration.LineThrough else null)
                                 if (item.amount.isNotEmpty()) SmallNote(item.amount)
@@ -329,24 +333,24 @@ import kotlinx.coroutines.isActive
             if (state.shopping.any { it.checked }) item { Text(stringResource(R.string.shopping_checked), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             state.shopping.filter { it.checked }.forEach { shoppingRow(it) }
             removed?.let { removedItem -> item { Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.item_removed), Modifier.weight(1f)); TextButton(onClick = { vm.addShopping(removedItem); removed = null }) { Text(stringResource(R.string.undo)) }
+                Text(stringResource(R.string.item_removed), Modifier.weight(1f)); KitchenTextButton(onClick = { vm.addShopping(removedItem); removed = null }) { Text(stringResource(R.string.undo)) }
             } } }
         }
         KitchenActionBar {
-            Button(onClick = { adding = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            KitchenButton(onClick = { adding = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                 Icon(Icons.Default.Add, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.add_item))
             }
         }
     }
     if (adding) KitchenBottomSheet(onDismissRequest = { adding = false }) { Column(Modifier.fillMaxWidth().imePadding().verticalScroll(rememberScrollState()).padding(KitchenGutter), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(stringResource(R.string.add_item), style = MaterialTheme.typography.titleLarge); Field(name, { name = it }, R.string.item_name); Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) { Field(amount, { amount = it }, R.string.quantity, Modifier.weight(1f)); UnitField(shoppingUnit, { shoppingUnit = it }, Modifier.weight(1f)) }
-        Button(onClick = { vm.addShopping(ShoppingItem(UUID.randomUUID().toString(), name.trim(), "$amount $shoppingUnit".trim())); name = ""; amount = ""; shoppingUnit = ""; adding = false }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.add_item)) }
+        KitchenButton(onClick = { vm.addShopping(ShoppingItem(UUID.randomUUID().toString(), name.trim(), "$amount $shoppingUnit".trim())); name = ""; amount = ""; shoppingUnit = ""; adding = false }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.add_item)) }
     } }
     editing?.let { item -> var editName by remember(item.id) { mutableStateOf(item.name) }; var editAmount by remember(item.id) { mutableStateOf(item.amount.substringBefore(" ").takeIf { numericInput(it) } ?: "") }; var editUnit by remember(item.id) { mutableStateOf(if(numericInput(item.amount.substringBefore(" "))) item.amount.substringAfter(" ", "") else item.amount) }
         KitchenAlertDialog(onDismissRequest = { editing = null }, title = { Text(stringResource(R.string.edit_item)) }, text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { Field(editName, { editName = it }, R.string.item_name); Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) { Field(editAmount, { editAmount = it }, R.string.quantity, Modifier.weight(1f)); UnitField(editUnit, { editUnit = it }, Modifier.weight(1f)) } } },
-            confirmButton = { TextButton(onClick = { vm.addShopping(item.copy(name = editName.trim(), amount = "$editAmount $editUnit".trim())); editing = null }, enabled = editName.isNotBlank()) { Text(stringResource(R.string.save)) } }, dismissButton = { TextButton(onClick = { editing = null }) { Text(stringResource(R.string.cancel)) } })
+            confirmButton = { KitchenTextButton(onClick = { vm.addShopping(item.copy(name = editName.trim(), amount = "$editAmount $editUnit".trim())); editing = null }, enabled = editName.isNotBlank()) { Text(stringResource(R.string.save)) } }, dismissButton = { KitchenTextButton(onClick = { editing = null }) { Text(stringResource(R.string.cancel)) } })
     }
-    if (picking) KitchenAlertDialog(onDismissRequest = { picking = false }, title = { Text(stringResource(R.string.from_recipes)) }, text = { Column(Modifier.verticalScroll(rememberScrollState())) { (state.recipes + state.shared).distinctBy { it.id }.forEach { recipe -> Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(recipe.id in selected, { selected = if (it) selected + recipe.id else selected - recipe.id }); Text(recipe.text(recipe.title, language)) } } } }, confirmButton = { TextButton(onClick = { vm.shoppingFrom(selected.toList()); picking = false }, enabled = selected.isNotEmpty()) { Text(stringResource(R.string.add_to_shopping)) } }, dismissButton = { TextButton(onClick = { picking = false }) { Text(stringResource(R.string.cancel)) } })
+    if (picking) KitchenAlertDialog(onDismissRequest = { picking = false }, title = { Text(stringResource(R.string.from_recipes)) }, text = { Column(Modifier.verticalScroll(rememberScrollState())) { (state.recipes + state.shared).distinctBy { it.id }.forEach { recipe -> Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(recipe.id in selected, { selected = if (it) selected + recipe.id else selected - recipe.id }); Text(recipe.text(recipe.title, language)) } } } }, confirmButton = { KitchenTextButton(onClick = { vm.shoppingFrom(selected.toList()); picking = false }, enabled = selected.isNotEmpty()) { Text(stringResource(R.string.add_to_shopping)) } }, dismissButton = { KitchenTextButton(onClick = { picking = false }) { Text(stringResource(R.string.cancel)) } })
 }
 fun shareText(context: android.content.Context, text: String) { context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), context.getString(R.string.share))) }
 
@@ -373,7 +377,7 @@ fun shareText(context: android.content.Context, text: String) { context.startAct
                 Column(Modifier.weight(1f)) { Text(stringResource(R.string.roast_mode), style = MaterialTheme.typography.titleMedium); SmallNote(stringResource(R.string.roast_short_note)) }
                 Switch(roast, { roast = it })
             }
-            if (name != state.me?.username || roast != state.me?.roastEnabled) Button(onClick = { vm.settings(name.trim(), roast) },
+            if (name != state.me?.username || roast != state.me?.roastEnabled) KitchenButton(onClick = { vm.settings(name.trim(), roast) },
                 enabled = !state.busy && name.isNotBlank(), modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.save)) }
         }
         SectionTitle(stringResource(R.string.preferences))
@@ -392,7 +396,7 @@ fun shareText(context: android.content.Context, text: String) { context.startAct
             }
         }
         if(state.pendingChanges > 0) SmallNote(stringResource(R.string.sync_pending_logout))
-        OutlinedButton(onClick = vm::logout, enabled = !state.busy && state.pendingChanges == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+        KitchenOutlinedButton(onClick = vm::logout, enabled = !state.busy && state.pendingChanges == 0, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Icon(Icons.Default.Logout, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.sign_out))
         }
         SmallNote(stringResource(R.string.logout_data))

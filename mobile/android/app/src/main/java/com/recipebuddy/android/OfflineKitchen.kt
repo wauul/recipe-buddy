@@ -128,7 +128,6 @@ class OfflineKitchen(private val app: BuddyApp) {
         return payload
     }
     suspend fun synchronize() = sync.withLock {
-        app.preferences.data.first()[androidx.datastore.preferences.core.stringPreferencesKey("backend")]?.let { app.api.configure(it) }
         val account = app.api.session?.userId ?: return@withLock
         try {
             val failedEntities = mutableSetOf<String>()

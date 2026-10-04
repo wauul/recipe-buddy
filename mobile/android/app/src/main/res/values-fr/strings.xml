@@ -24,9 +24,6 @@
     <string name="sign_in">Se connecter</string>
     <string name="browser_sign_in">Continuer dans le navigateur</string>
     <string name="browser_description">Utilisez Google ou créez un compte dans votre navigateur système.</string>
-    <string name="backend_settings">Connexion au serveur</string>
-    <string name="backend_url">URL HTTPS du serveur</string>
-    <string name="backend_description">Utilisez un serveur de test avec les API mobiles. Le localhost du téléphone ne désigne pas votre ordinateur.</string>
     <string name="apply">Appliquer</string>
     <string name="your_collection">Mes recettes</string>
     <string name="search_recipes">Rechercher vos recettes</string>
@@ -413,4 +410,5 @@
     <string name="add_friend">Ajouter</string>
     <string name="sync_pending_logout">Des modifications attendent la synchronisation. Connectez-vous avant de vous déconnecter pour les conserver.</string>
     <string name="sync_keep_mine">Conserver ma version</string>
+    <string name="action_loading">En cours…</string>
 </resources>

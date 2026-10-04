@@ -1,11 +1,4 @@
 const DEFAULT_APP = 'https://recipe-buddy-wauul.vercel.app';
-function appOrigin(value) {
-  const url = new URL(value || DEFAULT_APP);
-  if ((url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname))) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
-    throw new Error('Enter an HTTPS app address, or http://localhost:3000 for development.');
-  }
-  return url.origin;
-}
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.type === 'RECIPE_COUNT' && sender.tab?.id !== undefined && sender.frameId === 0) {
     const count = Math.max(0, Math.min(20, Number(message.count) || 0));
@@ -24,8 +17,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     if (fromContent && new URL(sender.url).origin !== source.origin) throw new Error('The recipe page changed. Please try again.');
     const encoded = encodeURIComponent(JSON.stringify(payload));
     if (encoded.length > 240000) throw new Error('This recipe is too large. Use the URL importer in Recipe Buddy.');
-    const { appUrl } = await chrome.storage.local.get('appUrl');
-    await chrome.tabs.create({ url: `${appOrigin(appUrl)}/import#recipe=${encoded}` });
+    await chrome.tabs.create({ url: `${DEFAULT_APP}/import#recipe=${encoded}` });
     reply({ ok: true });
   })().catch((error) => reply({ error: error.message || 'Could not open Recipe Buddy. Please try again.' }));
   return true;

@@ -212,9 +212,9 @@ class WidgetConfigureActivity : ComponentActivity() {
             CompositionLocalProvider(androidx.compose.ui.platform.LocalContext provides localized) {
             KitchenTheme(theme) { Surface(Modifier.fillMaxSize().safeDrawingPadding()) { LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { Text(stringResource(R.string.choose_recipe), style = MaterialTheme.typography.headlineMedium) }
-                if (loading && recipes.isEmpty()) item { CircularProgressIndicator() }
+                if (loading && recipes.isEmpty()) item { BuddyLoader() }
                 if (!loading && !failed && recipes.isEmpty()) item { KitchenEmpty(R.string.empty_recipes) }
-                if (failed) item { Text(stringResource(R.string.widget_connection)); TextButton(onClick = { startActivity(Intent(this@WidgetConfigureActivity, MainActivity::class.java)); finish() }) { Text(stringResource(R.string.open_app)) } }
+                if (failed) item { Text(stringResource(R.string.widget_connection)); KitchenTextButton(onClick = { startActivity(Intent(this@WidgetConfigureActivity, MainActivity::class.java)); finish() }) { Text(stringResource(R.string.open_app)) } }
                 items(recipes, key = { it.id }) { recipe -> RecipeResultRow(recipe, language) {
                     val account = app.api.session?.userId ?: return@RecipeResultRow
                     CookingWidget.select(this@WidgetConfigureActivity, id, recipe, account)

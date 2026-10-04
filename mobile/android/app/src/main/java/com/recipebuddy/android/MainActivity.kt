@@ -9,6 +9,7 @@ import androidx.activity.SystemBarStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import android.content.res.Configuration
 import java.util.Locale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import androidx.navigation.compose.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.toRoute
@@ -95,8 +97,18 @@ class MainActivity : ComponentActivity() {
                             else SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
                         this@MainActivity.enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                     }
-                    if (state.account == null) LoginScreen(state, vm)
-                    else key(state.account) { BuddyNavigation(state, vm); TermsGate(state, vm) }
+                    var launching by rememberSaveable { mutableStateOf(savedInstanceState == null) }
+                    LaunchedEffect(Unit) { if (launching) { delay(650); launching = false } }
+                    val splash = launching || state.initializing
+                    val motion = LocalKitchenMotion.current
+                    AnimatedContent(splash, transitionSpec = { fadeIn(tween(if (motion) 180 else 0)) togetherWith fadeOut(tween(if (motion) 120 else 0)) }, label = "launch") { showingSplash ->
+                        if (showingSplash) BuddySplash()
+                        else AnimatedContent(state.account != null, transitionSpec = { fadeIn(tween(if (motion) 180 else 0)) togetherWith fadeOut(tween(if (motion) 120 else 0)) }, label = "account") { authenticated ->
+                            if (!authenticated) LoginScreen(state, vm)
+                            else key(state.account) { BuddyNavigation(state, vm); TermsGate(state, vm) }
+                        }
+                    }
+                    if (!splash) BuddyActionIndicator(state.busy)
                 }
             }
         }
@@ -106,6 +118,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun BuddyNavigation(state: BuddyState, vm: BuddyViewModel) {
+    val motion = LocalKitchenMotion.current
     if(state.proPrompt) ProSheet(state, vm)
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
@@ -153,7 +166,7 @@ class MainActivity : ComponentActivity() {
         bottomBar = {
             if (current >= 0) Column {
                 if (current == 0 && largeType) KitchenActionBar {
-                    Button(onClick = ::addRecipe, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics { contentDescription = actionLabel }) {
+                    KitchenButton(onClick = ::addRecipe, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics { contentDescription = actionLabel }) {
                         Icon(if (resume) Icons.Default.Edit else Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text(actionLabel)
                     }
                 }
@@ -171,13 +184,25 @@ class MainActivity : ComponentActivity() {
         } },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             state.error?.let { ErrorNotice(it, vm::refresh, vm::clearError) }
             NavHost(nav, startDestination = RecipesRoute, modifier = Modifier.weight(1f),
-                enterTransition = { if (roots.any { it::class.qualifiedName == targetState.destination.route }) fadeIn(tween(120)) else slideInHorizontally(tween(220)) { it / 8 } + fadeIn(tween(180)) },
-                exitTransition = { fadeOut(tween(120)) },
-                popEnterTransition = { slideInHorizontally(tween(220)) { -it / 8 } + fadeIn(tween(180)) },
-                popExitTransition = { slideOutHorizontally(tween(220)) { it / 8 } + fadeOut(tween(120)) }) {
+                enterTransition = {
+                    when {
+                        !motion -> EnterTransition.None
+                        roots.any { it::class.qualifiedName == targetState.destination.route } -> fadeIn(tween(160))
+                        targetState.destination.route in listOf(EditorRoute::class.qualifiedName, SearchRoute::class.qualifiedName) -> slideInVertically(tween(220)) { it / 10 } + fadeIn(tween(180))
+                        else -> slideInHorizontally(tween(220)) { it / 8 } + fadeIn(tween(180))
+                    }
+                },
+                exitTransition = { if (motion) fadeOut(tween(120)) else ExitTransition.None },
+                popEnterTransition = { if (motion) fadeIn(tween(180)) else EnterTransition.None },
+                popExitTransition = {
+                    when {
+                        !motion -> ExitTransition.None
+                        initialState.destination.route in listOf(EditorRoute::class.qualifiedName, SearchRoute::class.qualifiedName) -> slideOutVertically(tween(180)) { it / 10 } + fadeOut(tween(120))
+                        else -> slideOutHorizontally(tween(180)) { it / 8 } + fadeOut(tween(120))
+                    }
+                }) {
                 composable<RecipesRoute> { CollectionScreen(state, vm, ::open) }
                 composable<IngredientsRoute> { IngredientsScreen(state, vm, ::open, { root(ShoppingRoute) }) }
                 composable<ShoppingRoute> { ShoppingScreen(state, vm) }
@@ -202,5 +227,5 @@ class MainActivity : ComponentActivity() {
     // Back navigation must restore the route's recipe, rather than whichever friend recipe was opened last.
     LaunchedEffect(id) { if (refreshOnEnter || state.active?.id != id) vm.openRecipe(id) }
     if (state.active?.id == id) content()
-    else Box(Modifier.fillMaxSize().padding(KitchenGutter), contentAlignment = Alignment.Center) { if (state.busy) CircularProgressIndicator() else KitchenEmpty(R.string.error_missing) { TextButton(onClick = { vm.openRecipe(id) }) { Text(stringResource(R.string.retry)) } } }
+    else Box(Modifier.fillMaxSize().padding(KitchenGutter), contentAlignment = Alignment.Center) { if (state.busy) BuddyLoader() else KitchenEmpty(R.string.error_missing) { KitchenTextButton(onClick = { vm.openRecipe(id) }) { Text(stringResource(R.string.retry)) } } }
 }

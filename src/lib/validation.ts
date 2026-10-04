@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeIngredient } from './cooking-units';
 export const imageSchema = z
   .string()
   .max(300000)
@@ -16,7 +17,7 @@ export const ingredientSchema = z.object({
   name: z.string().trim().min(1, 'Enter an ingredient name.').max(120),
   quantity: z.string().trim().max(40),
   unit: z.string().trim().max(40),
-});
+}).transform(normalizeIngredient);
 export const recipeSchema = z.object({
   title: z.string().trim().min(1, 'Enter a recipe title.').max(160),
   imageUrl: imageSchema.default(''),

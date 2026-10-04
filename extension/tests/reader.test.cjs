@@ -46,14 +46,16 @@ test('worker opens only a review URL with recipe in fragment, without cookies or
   const payload = reader.payload('https://example.com/soup', reader.normalize(recipe, 'https://example.com'));
   assert.equal((await w.send({ type: 'OPEN_IMPORT', payload })).ok, true);
   const url = new URL(w.opened[0].url);
+  assert.equal(url.origin, 'https://recipe-buddy-wauul.vercel.app', 'old saved localhost override is ignored');
   assert.equal(url.pathname, '/import'); assert.equal(url.search, '');
   assert.deepEqual(JSON.parse(decodeURIComponent(url.hash.slice(8))), payload);
 });
-test('worker rejects unsafe destinations, oversized transfers and forged frame/source messages', async () => {
+test('worker ignores all saved destination overrides and rejects oversized or forged transfers', async () => {
   const payload = reader.payload('https://example.com/soup');
   for (const appUrl of ['javascript:alert(1)', 'http://evil.example', 'https://user:password@example.com', 'https://example.com/unexpected']) {
     const w = worker({ appUrl });
-    assert.ok((await w.send({ type: 'OPEN_IMPORT', payload })).error); assert.equal(w.opened.length, 0);
+    assert.equal((await w.send({ type: 'OPEN_IMPORT', payload })).ok, true);
+    assert.equal(new URL(w.opened[0].url).origin, 'https://recipe-buddy-wauul.vercel.app');
   }
   const w = worker();
   assert.ok((await w.send({ type: 'OPEN_IMPORT', payload }, { tab: { id: 1 }, frameId: 1, url: 'https://example.com' })).error);

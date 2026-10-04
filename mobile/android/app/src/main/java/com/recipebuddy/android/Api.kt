@@ -26,6 +26,8 @@ class BuddyApi(private val vault: SecureVault) {
     var baseUrl: String = BuildConfig.BACKEND_URL; private set
     fun configure(url: String) {
         val parsed = java.net.URI(url)
+        // Endpoint overrides exist only for instrumented debug tests.
+        require(BuildConfig.DEBUG)
         val debugLocal = BuildConfig.DEBUG && parsed.scheme == "http" && parsed.host in listOf("127.0.0.1", "localhost", "10.0.2.2")
         require((parsed.scheme == "https" || debugLocal) && parsed.host != null && parsed.userInfo == null && parsed.query == null && parsed.fragment == null && (parsed.path.isNullOrBlank() || parsed.path == "/"))
         baseUrl = url.trimEnd('/')

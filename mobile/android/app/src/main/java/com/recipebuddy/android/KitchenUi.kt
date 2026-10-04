@@ -1,6 +1,8 @@
 package com.recipebuddy.android
 
 import androidx.compose.foundation.*
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,7 +33,7 @@ val KitchenGutter = 20.dp
 }
 
 @Composable fun KitchenPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Surface(modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+    Surface(modifier.fillMaxWidth().animateContentSize(tween(if (LocalKitchenMotion.current) 180 else 0)), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
     }
 }
@@ -53,7 +55,7 @@ val KitchenGutter = 20.dp
         supportingContent = supporting?.let { { Text(it, maxLines = 2, overflow = TextOverflow.Ellipsis) } },
         leadingContent = { Icon(icon, null, tint = if (destructive) color else MaterialTheme.colorScheme.primary) },
         trailingContent = { Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-        modifier = Modifier.fillMaxWidth().clickable(onClick = action),
+        modifier = Modifier.fillMaxWidth().kitchenClickable(onClick = action),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent))
 }
 
@@ -93,5 +95,5 @@ val KitchenGutter = 20.dp
     var open by rememberSaveable { mutableStateOf(false) }
     IconButton(onClick = { open = true }) { Icon(Icons.Outlined.Info, stringResource(label), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
     if (open) KitchenAlertDialog(onDismissRequest = { open = false }, title = { Text(stringResource(label)) }, text = { Text(stringResource(message)) },
-        confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.done)) } })
+        confirmButton = { KitchenTextButton(onClick = { open = false }) { Text(stringResource(R.string.done)) } })
 }

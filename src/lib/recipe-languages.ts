@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import type { RecipeInput } from './validation';
 import { validateTranslations } from './content-translation';
-export const recipeTranslationVersion = 2;
+import { normalizeCookingUnit, splitCookingAmount } from './cooking-units';
+export const recipeTranslationVersion = 3;
 export const savedLanguagesSchema = z.object({
   en: z.record(z.string()),
   fr: z.record(z.string()),
@@ -127,6 +128,19 @@ export function cookingMeasurement(text: string, locale: 'en' | 'fr'): string | 
       }
     }
   }
+  const labels: Record<string, [string, string]> = {
+    tsp: ['tsp', 'c. à café'], tbsp: ['tbsp', 'c. à soupe'],
+    g: ['g', 'g'], kg: ['kg', 'kg'], mg: ['mg', 'mg'], ml: ['ml', 'ml'],
+    cl: ['cl', 'cl'], dl: ['dl', 'dl'], l: ['l', 'l'],
+    oz: ['oz', 'oz'], lb: ['lb', 'lb'], 'fl oz': ['fl oz', 'fl oz'],
+    cup: ['cup', 'tasse'], pint: ['pint', 'pinte'], quart: ['quart', 'quart'],
+    gallon: ['gallon', 'gallon'], pinch: ['pinch', 'pincée'], dash: ['dash', 'trait'],
+    clove: ['clove', 'gousse'], slice: ['slice', 'tranche'], piece: ['piece', 'morceau'],
+    can: ['can', 'boîte'], packet: ['packet', 'sachet'], bunch: ['bunch', 'botte'],
+  };
+  const amount = splitCookingAmount(text);
+  const label = labels[amount?.unit ?? normalizeCookingUnit(text)];
+  if (label) return [amount?.quantity, label[locale === 'fr' ? 1 : 0]].filter(Boolean).join(' ');
 }
 export function repairRecipeLanguageMeasurements(
   recipe: Parameters<typeof recipeTexts>[0],

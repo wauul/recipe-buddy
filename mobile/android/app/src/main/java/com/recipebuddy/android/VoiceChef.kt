@@ -193,24 +193,24 @@ class VoiceChefController(private val context: Context, private val changed: () 
                 Column(Modifier.weight(1f)) { Text(stringResource(R.string.voice_chef), style = MaterialTheme.typography.titleMedium); SmallNote(stringResource(if(controller.speaking) R.string.voice_speaking else R.string.voice_step_only)) }
                 IconButton(onClick = { if(controller.speaking) controller.stop() else readStep() }, enabled = ready) { Icon(if(controller.speaking) Icons.Outlined.StopCircle else Icons.Outlined.PlayCircle, stringResource(if(controller.speaking) R.string.stop_voice else R.string.start_voice)) }
             }
-            if(!ready) TextButton(onClick = { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) }) { Text(stringResource(R.string.voice_settings)) }
+            if(!ready) KitchenTextButton(onClick = { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) }) { Text(stringResource(R.string.voice_settings)) }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = ::explain, enabled = !busy) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.explain_voice)); ProLabel() }
-                TextButton(onClick = { if(state.me?.pro?.active == true) consent = true else vm.showPro() }, enabled = !busy) { Icon(Icons.Outlined.Mic, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.voice_commands)); ProLabel() }
+                KitchenTextButton(onClick = ::explain, enabled = !busy) { Icon(Icons.Outlined.AutoAwesome, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.explain_voice)); ProLabel() }
+                KitchenTextButton(onClick = { if(state.me?.pro?.active == true) consent = true else vm.showPro() }, enabled = !busy) { Icon(Icons.Outlined.Mic, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.voice_commands)); ProLabel() }
             }
-            if(busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if(busy) BuddyLoader(Modifier.fillMaxWidth())
             if(controller.error) SmallNote(stringResource(R.string.voice_unavailable))
             message?.let { SmallNote(it) }
         }
     }
     if(consent) KitchenAlertDialog(onDismissRequest = { consent = false }, title = { Text(stringResource(R.string.voice_commands)) }, text = { Text(stringResource(R.string.voice_ai_consent)) },
-        confirmButton = { TextButton(onClick = { consent = false; listen() }) { Text(stringResource(R.string.voice_talk)) } }, dismissButton = { TextButton(onClick = { consent = false }) { Text(stringResource(R.string.cancel)) } })
+        confirmButton = { KitchenTextButton(onClick = { consent = false; listen() }) { Text(stringResource(R.string.voice_talk)) } }, dismissButton = { KitchenTextButton(onClick = { consent = false }) { Text(stringResource(R.string.cancel)) } })
     explanation?.let { text -> KitchenBottomSheet(onDismissRequest = { explanation = null }) {
         Column(Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(KitchenGutter, 0.dp, KitchenGutter, 28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.explain_voice), style = MaterialTheme.typography.titleLarge)
             Text(text, style = MaterialTheme.typography.bodyLarge)
-            TextButton(onClick = { controller.speak(text) }, enabled = ready) { Icon(Icons.Outlined.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.voice_read_explanation)) }
+            KitchenTextButton(onClick = { controller.speak(text) }, enabled = ready) { Icon(Icons.Outlined.PlayCircle, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.voice_read_explanation)) }
         }
     } }
 }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { recipeSchema, type RecipeInput } from './validation';
+import { ingredientFromLine } from './cooking-units';
 
 export const browserImportKey = 'rb-browser-import-v1';
 export const browserImportMaxLength = 240000;
@@ -27,9 +28,9 @@ export function readBrowserImport(text: string): BrowserImport {
 }
 export function browserImportRecipe(payload: BrowserImport): RecipeInput | undefined {
   if (!payload.recipe) return undefined;
-  // Preserve publisher ingredient lines verbatim rather than guessing measurements.
+  // Split known measurements without converting values; preserve ambiguous lines.
   return recipeSchema.parse({
     ...payload.recipe,
-    ingredients: payload.recipe.ingredients.map((name) => ({ name, quantity: '', unit: '' })),
+    ingredients: payload.recipe.ingredients.map(ingredientFromLine),
   });
 }

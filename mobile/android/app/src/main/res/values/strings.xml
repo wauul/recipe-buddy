@@ -24,9 +24,6 @@
     <string name="sign_in">Sign in</string>
     <string name="browser_sign_in">Continue in browser</string>
     <string name="browser_description">Use Google or create an account securely in your system browser.</string>
-    <string name="backend_settings">Backend connection</string>
-    <string name="backend_url">HTTPS backend URL</string>
-    <string name="backend_description">Use a staging server with the native API installed. Your phone cannot use your computer’s localhost.</string>
     <string name="apply">Apply</string>
     <string name="your_collection">My recipes</string>
     <string name="search_recipes">Search your recipes</string>
@@ -413,4 +410,5 @@
     <string name="add_friend">Add friend</string>
     <string name="sync_pending_logout">Some changes are waiting to sync. Connect before signing out to keep them.</string>
     <string name="sync_keep_mine">Keep my version</string>
+    <string name="action_loading">Working…</string>
 </resources>

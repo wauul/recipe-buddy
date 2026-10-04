@@ -14,8 +14,8 @@ android {
         applicationId = "com.recipebuddy.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BACKEND_URL", "\"${providers.gradleProperty("backendUrl").getOrElse("https://recipe-buddy-wauul.vercel.app")}\"")
         manifestPlaceholders["appLinkHost"] = providers.gradleProperty("appLinkHost").getOrElse("recipe-buddy-wauul.vercel.app")
@@ -23,7 +23,9 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     // Both languages must remain available after an in-app locale switch in a Play install.
     bundle { language { enableSplit = false } }
+    bundle { language { enableSplit = false } }
     buildTypes.getByName("debug") {
+        if (providers.gradleProperty("motionReview").orNull == "true") applicationIdSuffix = ".motion"
         // UI reviews can coexist with an installed app without replacing its private data.
         if (providers.gradleProperty("designReview").orNull == "true") applicationIdSuffix = ".design"
         buildConfigField("String", "BACKEND_URL", "\"${providers.gradleProperty("debugBackendUrl").orElse(providers.gradleProperty("backendUrl")).getOrElse("https://recipe-buddy-wauul.vercel.app")}\"")

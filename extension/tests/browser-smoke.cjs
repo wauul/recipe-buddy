@@ -36,6 +36,12 @@ async function main() {
     });
     const errors = [];
     context.on('page', (page) => page.on('pageerror', (e) => errors.push(e.message)));
+    // The shipped extension always opens the web app. Redirect that handoff to
+    // the isolated fixture inside this test only, preserving its recipe fragment.
+    await context.route('https://recipe-buddy-wauul.vercel.app/import', route => route.fulfill({
+      contentType: 'text/html',
+      body: `<script>location.replace(${JSON.stringify(app)} + location.pathname + location.search + location.hash)</script>`,
+    }));
     await context.route('https://recipes.example.test/**', (route) => {
       const pathname = new URL(route.request().url()).pathname;
       let markup = '';
@@ -67,6 +73,7 @@ async function main() {
     await check('popup selection and suggestion preference changes', async () => {
       const panel = await popup();
       await panel.locator('#title').waitFor();
+      assert.equal(await panel.locator('#app-url, #connection').count(), 0);
       assert.equal(await panel.locator('#choice option').count(), 2);
       await panel.locator('#choice').selectOption('1');
       assert.equal(await panel.locator('#title').textContent(), second.name);
@@ -118,7 +125,7 @@ async function main() {
       const id = new URL(imported.url()).pathname.split('/').pop();
       const saved = await db.recipe.findUniqueOrThrow({ where: { id } });
       assert.equal(saved.userId, user.id); assert.equal(saved.title, soup.name); assert.equal(saved.servings, 4);
-      assert.deepEqual(saved.ingredients, [{ name: '2 tomatoes', quantity: '', unit: '' }, { name: '1½ cups water', quantity: '', unit: '' }]);
+      assert.deepEqual(saved.ingredients, [{ name: '2 tomatoes', quantity: '', unit: '' }, { name: 'water', quantity: '1½', unit: 'cup' }]);
       assert.deepEqual(saved.steps, ['Chop the tomatoes.', 'Simmer for 20 minutes.']);
       await imported.reload(); await imported.getByRole('heading', { name: soup.name, exact: true }).waitFor();
       await imported.screenshot({ path: path.join(output, '05-saved.png'), fullPage: true });

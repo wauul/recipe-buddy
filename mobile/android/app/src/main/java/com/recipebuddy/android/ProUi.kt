@@ -85,7 +85,7 @@ private fun Context.activity(): Activity? = when(this) { is Activity -> this; is
             SmallNote(stringResource(R.string.pro_free_note))
             if(pro.active) {
                 Text(stringResource(R.string.pro_active), style = MaterialTheme.typography.titleMedium)
-                OutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/account/subscriptions?sku=${Uri.encode(pro.productId)}&package=com.recipebuddy.android"))) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.pro_manage)) }
+                KitchenOutlinedButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/account/subscriptions?sku=${Uri.encode(pro.productId)}&package=com.recipebuddy.android"))) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.pro_manage)) }
             } else {
                 offers.sortedBy { if(it.plan == "monthly") 0 else 1 }.forEach { choice ->
                     Surface(onClick = { selectedPlan = choice.plan }, shape = RoundedCornerShape(16.dp), color = if(offer == choice) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow) {
@@ -99,15 +99,15 @@ private fun Context.activity(): Activity? = when(this) { is Activity -> this; is
                     }
                 }
                 if(offer != null) SmallNote(stringResource(if(offer.plan == "yearly") R.string.pro_yearly_terms else R.string.pro_billing_terms))
-                Button(onClick = { val choice = offer ?: return@Button; val activity = context.activity() ?: return@Button
+                KitchenButton(onClick = { val choice = offer ?: return@KitchenButton; val activity = context.activity() ?: return@KitchenButton
                     val params = BillingFlowParams.newBuilder().setObfuscatedAccountId(pro.accountId).setProductDetailsParamsList(listOf(BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(choice.product).setOfferToken(choice.token).build())).build()
                     val result = billing.launchBillingFlow(activity, params)
                     if(result.responseCode != BillingClient.BillingResponseCode.OK) message = context.getString(R.string.pro_checkout_unavailable)
                 }, enabled = pro.billingReady && offer != null && !verifying, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.pro_upgrade)) }
                 if(!pro.billingReady || offer == null) SmallNote(stringResource(R.string.pro_checkout_unavailable))
             }
-            TextButton(onClick = { if(billing.isReady) billing.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()) { result, purchases -> if(result.responseCode == BillingClient.BillingResponseCode.OK) { if(purchases.isEmpty()) message = context.getString(R.string.pro_no_purchase) else verify(purchases) } } }, enabled = billing.isReady && !verifying, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.pro_restore)) }
-            if(verifying) LinearProgressIndicator(Modifier.fillMaxWidth())
+            KitchenTextButton(onClick = { if(billing.isReady) billing.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()) { result, purchases -> if(result.responseCode == BillingClient.BillingResponseCode.OK) { if(purchases.isEmpty()) message = context.getString(R.string.pro_no_purchase) else verify(purchases) } } }, enabled = billing.isReady && !verifying, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.pro_restore)) }
+            if(verifying) BuddyLoader(Modifier.fillMaxWidth())
             message?.let { SmallNote(it) }
         }
     }
@@ -118,8 +118,8 @@ private fun Context.activity(): Activity? = when(this) { is Activity -> this; is
     KitchenPanel {
         Text(stringResource(R.string.sync_review), style = MaterialTheme.typography.titleMedium)
         SmallNote(stringResource(R.string.sync_review_note))
-        if(problem.kind == "recipe" && problem.localPayload != null) TextButton(onClick = { vm.resolveSync(problem.operationId, true) }) { Text(stringResource(R.string.sync_keep_copy)) }
-        if(problem.path == "kitchen-state") TextButton(onClick = { vm.resolveSync(problem.operationId, true) }) { Text(stringResource(R.string.sync_keep_mine)) }
-        TextButton(onClick = { vm.resolveSync(problem.operationId, false) }) { Text(stringResource(R.string.sync_use_server)) }
+        if(problem.kind == "recipe" && problem.localPayload != null) KitchenTextButton(onClick = { vm.resolveSync(problem.operationId, true) }) { Text(stringResource(R.string.sync_keep_copy)) }
+        if(problem.path == "kitchen-state") KitchenTextButton(onClick = { vm.resolveSync(problem.operationId, true) }) { Text(stringResource(R.string.sync_keep_mine)) }
+        KitchenTextButton(onClick = { vm.resolveSync(problem.operationId, false) }) { Text(stringResource(R.string.sync_use_server)) }
     }
 }
