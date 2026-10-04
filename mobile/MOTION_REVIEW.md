@@ -14,6 +14,6 @@ Shared buttons and clickable rows/cards ease to 96% on press. Root tabs crossfad
 - `NativeMotionTest` render/interaction check passed on the isolated `.motion` emulator install: English, French, light, dark, 150% body text, signup, splash and action loader.
 - A separate motion check passed: moving logo pixels, button press/release feedback, preserved click behavior, and a static reduced-motion logo.
 - Eight preview screenshots and one real cold-launch screenshot are in `test-results/motion-review/`; reviewed contact sheets are in its `sheets/` folder.
-- Production sign-in/provider calls, all signed-in routes, and physical-device behavior were not retested in this pass. No Play release was submitted.
+- Production sign-in/provider calls and all signed-in routes were not retested in the initial design pass. The subsequent 0.1.2 release passed both motion tests again, was published to Play internal testing and installed on the Samsung; see [RELEASE_0_1_2.md](RELEASE_0_1_2.md).
 
 The `.motion` package is a render-only test install and uses no production account. The ordinary debug artifact is `mobile/dist/recipe-buddy-motion-debug.apk`.
