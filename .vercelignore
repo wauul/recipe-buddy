@@ -5,6 +5,8 @@ node_modules/
 .env*
 .test-build/
 test-results/
+.tmp/
+feature-prompts/
 /mobile/
 *.tsbuildinfo
 *.log
