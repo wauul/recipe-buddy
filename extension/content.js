@@ -1,7 +1,8 @@
 (function () {
   if (globalThis.recipeBuddyContentLoaded) return;
   globalThis.recipeBuddyContentLoaded = true;
-  let recipes = [], enabled = true, appUrl = 'https://recipe-buddy-wauul.vercel.app';
+  const appUrl = 'https://recipe-buddy-wauul.vercel.app';
+  let recipes = [], enabled = true;
   let currentUrl = location.href, dismissed = false, host, timer, lastCount = -1;
   const reader = RecipeBuddyReader;
   function remove() { host?.remove(); host = undefined; }
@@ -54,11 +55,10 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
     if (changes.automatic) enabled = changes.automatic.newValue !== false;
-    if (changes.appUrl) appUrl = changes.appUrl.newValue || 'https://recipe-buddy-wauul.vercel.app';
     prompt();
   });
-  chrome.storage.local.get(['automatic', 'appUrl']).then((settings) => {
-    enabled = settings.automatic !== false; appUrl = settings.appUrl || appUrl; scan();
+  chrome.storage.local.get(['automatic']).then((settings) => {
+    enabled = settings.automatic !== false; scan();
   });
   // Only metadata/content changes trigger a debounced scan; our own prompt is ignored.
   const observer = new MutationObserver((changes) => {

@@ -23,7 +23,9 @@ android {
     buildFeatures { compose = true; buildConfig = true }
     // Both languages must remain available after an in-app locale switch in a Play install.
     bundle { language { enableSplit = false } }
+    bundle { language { enableSplit = false } }
     buildTypes.getByName("debug") {
+        if (providers.gradleProperty("motionReview").orNull == "true") applicationIdSuffix = ".motion"
         // UI reviews can coexist with an installed app without replacing its private data.
         if (providers.gradleProperty("designReview").orNull == "true") applicationIdSuffix = ".design"
         if (providers.gradleProperty("mealReview").orNull == "true") applicationIdSuffix = ".meals"

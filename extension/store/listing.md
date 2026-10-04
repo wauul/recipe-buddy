@@ -41,7 +41,7 @@ Identify recipes on the user’s current recipe webpage and let the user import 
 
 ## Permission justifications
 
-- storage: Stores only the automatic-suggestions preference and the Recipe Buddy app origin chosen by the user. No history or account credentials are stored by the extension.
+- storage: Stores only the automatic-suggestions preference. No history or account credentials are stored by the extension.
 - activeTab: Lets the popup inspect the currently active webpage when the user invokes the extension, including tabs opened before installation or sites where automatic site access is restricted.
 - scripting: Injects the bundled local recipe reader after the user invokes the popup if that page does not already have the content script.
 - HTTPS content-script match (`https://*/*`): Enables automatic recipe detection on arbitrary HTTPS recipe publishers, rather than a fixed list of websites. Reading and detection happen locally. The selected recipe and source URL are transmitted to the app only after an explicit Add action.

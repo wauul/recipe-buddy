@@ -9,11 +9,11 @@ This Manifest V3 extension detects complete Recipe JSON-LD or Recipe microdata o
 3. Pin Recipe Buddy in Chrome's extensions menu. Reload any recipe tabs that were already open.
 4. Open a recipe website and click **Add to Recipe Buddy**. Sign in to the app if needed, review the populated recipe, and click **Save recipe**.
 
-The default live app address supports extension imports as of October 3, 2026. For local development, use **App connection** in the popup to set its address, for example `http://localhost:3000` (or the port printed by Next.js). This setting only changes the destination app; automatic detection still runs on HTTPS recipe websites.
+Imports always open the Recipe Buddy web app at https://recipe-buddy-wauul.vercel.app. There is no connection setting; older saved destination overrides are ignored.
 
 ## Behavior and limitations
 
-- Complete structured recipes populate the existing editor without AI. Ingredients retain their original publisher lines in the ingredient-name field; quantities and units can be separated manually before saving. Ambiguous yields default to 2 servings, which the user can edit.
+- Complete structured recipes populate the existing editor without AI. Recognized quantities and units are separated and normalized without conversions; ambiguous publisher lines remain intact for review. Ambiguous yields default to 2 servings, which the user can edit.
 - No metadata: the popup can pass the page URL to the existing importer, which requires the app's AI configuration and may be blocked by the website.
 - The extension uses the app's normal sign-in and save flow. A tab-local draft survives email or Google sign-in, then is consumed when the editor opens. It never reads cookies, passwords, or account tokens. Nothing is saved until the user clicks Save in the app.
 - The recipe travels in a URL fragment (not a query string), which the import screen removes immediately. The extension does not keep browsing history or recipe drafts. Drafts briefly remain in app session storage during sign-in.
@@ -24,7 +24,7 @@ The default live app address supports extension imports as of October 3, 2026. F
 
 ## Permissions
 
-`storage` saves only the suggestions preference and app address. `activeTab` and `scripting` let the popup inspect a page when clicked, including pages opened before installation. The HTTPS content-script match lets automatic detection run while browsing; Chrome can display a site-access warning for this. No `cookies`, `history`, `tabs`, notification, or cross-origin API permissions are requested.
+`storage` saves only the suggestions preference. `activeTab` and `scripting` let the popup inspect a page when clicked, including pages opened before installation. The HTTPS content-script match lets automatic detection run while browsing; Chrome can display a site-access warning for this. No `cookies`, `history`, `tabs`, notification, or cross-origin API permissions are requested.
 
 ## Checks
 

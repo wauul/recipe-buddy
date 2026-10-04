@@ -27,25 +27,15 @@ $('add').onclick = async () => {
     window.close();
   } catch (error) { $('error').textContent = error.message; $('add').disabled = !sourceUrl; }
 };
-$('connection').onsubmit = async (event) => {
-  event.preventDefault();
-  try {
-    const url = new URL($('app-url').value.trim());
-    if ((url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname))) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) throw new Error('Enter an HTTPS app address, or http://localhost:3000.');
-    await chrome.storage.local.set({ appUrl: url.origin });
-    $('connection-status').textContent = 'Connection saved.';
-  } catch (error) { $('connection-status').textContent = error.message; }
-};
 (async () => {
   try {
-    const settings = await chrome.storage.local.get(['automatic', 'appUrl']);
+    const settings = await chrome.storage.local.get(['automatic']);
     $('automatic').checked = settings.automatic !== false;
-    $('app-url').value = settings.appUrl || DEFAULT_APP;
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id || (tab.url && !RecipeBuddyReader.httpsUrl(tab.url))) {
       $('status').textContent = 'Open a public HTTPS recipe page to add it.'; return;
     }
-    if (tab.url && new URL(tab.url).origin === new URL(settings.appUrl || DEFAULT_APP).origin) {
+    if (tab.url && new URL(tab.url).origin === new URL(DEFAULT_APP).origin) {
       $('status').textContent = 'Browse a recipe website to find your next favorite.'; return;
     }
     let result;
@@ -56,7 +46,7 @@ $('connection').onsubmit = async (event) => {
       result = await chrome.tabs.sendMessage(tab.id, { type: 'GET_RECIPES' });
     }
     recipes = result.recipes || []; sourceUrl = RecipeBuddyReader.httpsUrl(result.sourceUrl);
-    if (sourceUrl && new URL(sourceUrl).origin === new URL(settings.appUrl || DEFAULT_APP).origin) {
+    if (sourceUrl && new URL(sourceUrl).origin === new URL(DEFAULT_APP).origin) {
       sourceUrl = ''; $('status').textContent = 'Browse a recipe website to find your next favorite.'; return;
     }
     $('status').textContent = 'No complete recipe metadata found. You can try the app’s URL importer.';
