@@ -82,13 +82,17 @@ function clearlyNeedsTranslation(text: string, locale: 'en' | 'fr') {
   );
 }
 
-export function translationIsUnnecessary(text: string, locale: 'en' | 'fr') {
+export function translationIsInvariant(text: string) {
   // Plain numbers and internationally used metric abbreviations need no provider call.
   if (
     /^[\d\s.,/+−°¼½¾\u2150-\u215e-]+$/.test(text) ||
     /^[\d\s.,/+−¼½¾\u2150-\u215e-]*(?:(?:kg|mg|g|ml|cl|l|°C|°F)\s*)+$/i.test(text)
   )
     return true;
+  return false;
+}
+export function translationIsUnnecessary(text: string, locale: 'en' | 'fr') {
+  if (translationIsInvariant(text)) return true;
   const english =
     text.match(
       /\b(the|this|with|and|your|that|until|another|while|you|add|stir|bake|cook|preheat)\b/gi,
@@ -105,14 +109,22 @@ export function validateTranslations(
   source: string[],
   value: unknown,
   locale?: 'en' | 'fr',
+  sourceLanguages?: Array<'en' | 'fr' | 'other' | 'neutral'>,
 ): string[] {
   const result = z.object({ translations: z.array(z.string().min(1).max(8000)) }).parse(value);
   if (result.translations.length !== source.length)
     throw new TranslationIntegrityError('incomplete');
   result.translations.forEach((text, index) => {
+    const language = sourceLanguages?.[index];
+    // Shared short words (for example Spanish/French "tomates") can legitimately
+    // remain identical. Foreign prose and non-Latin content must be translated.
+    const foreignProse = language && language !== locale && language !== 'neutral' &&
+      ((source[index].match(/\p{L}+/gu)?.length ?? 0) >= 4 ||
+        /[^\p{Script=Latin}\p{M}\p{N}\p{P}\p{Z}\p{S}]/u.test(source[index]));
     if (
       locale &&
-      clearlyNeedsTranslation(source[index], locale) &&
+      language !== locale && language !== 'neutral' &&
+      (clearlyNeedsTranslation(source[index], locale) || foreignProse) &&
       text.trim() === source[index].trim()
     )
       throw new TranslationIntegrityError('untranslated');

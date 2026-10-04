@@ -9,6 +9,7 @@ import androidx.activity.SystemBarStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import android.content.res.Configuration
 import java.util.Locale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 import androidx.navigation.compose.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.toRoute
@@ -44,6 +46,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable object RecipesRoute
 @Serializable object IngredientsRoute
+@Serializable object AgendaRoute
+@Serializable object PantryRoute
+@Serializable object ActivityRoute
 @Serializable object ShoppingRoute
 @Serializable object FriendsRoute
 @Serializable object SettingsRoute
@@ -87,7 +92,7 @@ class MainActivity : ComponentActivity() {
                     if (state.theme == "dark") Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
                 android.view.ContextThemeWrapper(this@MainActivity, 0).apply { applyOverrideConfiguration(config) }
             }
-            CompositionLocalProvider(LocalContext provides localized, LocalConfiguration provides localized.resources.configuration) {
+            CompositionLocalProvider(LocalContext provides localized, LocalConfiguration provides localized.resources.configuration, LocalMealLanguage provides localized.resources.configuration.locales[0].language) {
                 KitchenTheme(state.theme) {
                     val lightSurface = MaterialTheme.colorScheme.background.luminance() > 0.5f
                     LaunchedEffect(lightSurface) {
@@ -95,8 +100,18 @@ class MainActivity : ComponentActivity() {
                             else SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
                         this@MainActivity.enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                     }
-                    if (state.account == null) LoginScreen(state, vm)
-                    else key(state.account) { BuddyNavigation(state, vm); TermsGate(state, vm) }
+                    var launching by rememberSaveable { mutableStateOf(savedInstanceState == null) }
+                    LaunchedEffect(Unit) { if (launching) { delay(650); launching = false } }
+                    val splash = launching || state.initializing
+                    val motion = LocalKitchenMotion.current
+                    AnimatedContent(splash, transitionSpec = { fadeIn(tween(if (motion) 180 else 0)) togetherWith fadeOut(tween(if (motion) 120 else 0)) }, label = "launch") { showingSplash ->
+                        if (showingSplash) BuddySplash()
+                        else AnimatedContent(state.account != null, transitionSpec = { fadeIn(tween(if (motion) 180 else 0)) togetherWith fadeOut(tween(if (motion) 120 else 0)) }, label = "account") { authenticated ->
+                            if (!authenticated) LoginScreen(state, vm)
+                            else key(state.account) { BuddyNavigation(state, vm); TermsGate(state, vm) }
+                        }
+                    }
+                    if (!splash) BuddyActionIndicator(state.waiting)
                 }
             }
         }
@@ -106,17 +121,21 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun BuddyNavigation(state: BuddyState, vm: BuddyViewModel) {
+    val motion = LocalKitchenMotion.current
     if(state.proPrompt) ProSheet(state, vm)
+    if(state.mealDraft.containsKey("recipeId")) MealCookingSheet(state, vm)
+    state.lastMealOccasion?.let {id->MealCookingSuccess(state,vm,id)}
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val destination = entry?.destination
-    val roots = listOf(RecipesRoute, IngredientsRoute, ShoppingRoute, FriendsRoute)
-    val labels = listOf(R.string.recipes, R.string.ingredients, R.string.shopping, R.string.friends)
-    val icons = listOf(Icons.AutoMirrored.Outlined.MenuBook, Icons.Outlined.Eco, Icons.Outlined.ShoppingBasket, Icons.Outlined.People)
-    val selectedIcons = listOf(Icons.AutoMirrored.Filled.MenuBook, Icons.Filled.Eco, Icons.Filled.ShoppingBasket, Icons.Filled.People)
+    val roots = listOf(RecipesRoute, AgendaRoute, PantryRoute, ShoppingRoute, FriendsRoute)
+    val labels = listOf(R.string.recipes, R.string.agenda, R.string.pantry, R.string.shopping, R.string.friends)
+    val icons = listOf(Icons.AutoMirrored.Outlined.MenuBook, Icons.Outlined.CalendarMonth, Icons.Outlined.Eco, Icons.Outlined.ShoppingBasket, Icons.Outlined.People)
+    val selectedIcons = listOf(Icons.AutoMirrored.Filled.MenuBook, Icons.Filled.CalendarMonth, Icons.Filled.Eco, Icons.Filled.ShoppingBasket, Icons.Filled.People)
     val current = roots.indexOfFirst { destination?.route?.substringBefore('?') == it::class.qualifiedName }
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(state.mealDraft) { if(state.mealDraft.containsKey("recipeId")) {focus.clearFocus();keyboard?.hide()} }
     val largeType = LocalConfiguration.current.fontScale > 1.3f
     val resume = state.draft.id.isEmpty() && (state.draft.title.isNotBlank() || state.draft.ingredients.isNotEmpty() || state.draft.steps.isNotEmpty())
     val actionLabel = stringResource(if (resume) R.string.resume_draft else R.string.add_recipe)
@@ -153,12 +172,12 @@ class MainActivity : ComponentActivity() {
         bottomBar = {
             if (current >= 0) Column {
                 if (current == 0 && largeType) KitchenActionBar {
-                    Button(onClick = ::addRecipe, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics { contentDescription = actionLabel }) {
+                    KitchenButton(onClick = ::addRecipe, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).semantics { contentDescription = actionLabel }) {
                         Icon(if (resume) Icons.Default.Edit else Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text(actionLabel)
                     }
                 }
                 NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 0.dp) { roots.forEachIndexed { index, route ->
-                NavigationBarItem(selected = current == index, onClick = { root(route) }, icon = { Icon(if (current == index) selectedIcons[index] else icons[index], null) }, label = { Text(stringResource(labels[index])) })
+                NavigationBarItem(selected = current == index, onClick = { root(route) }, icon = { Icon(if (current == index) selectedIcons[index] else icons[index], null) }, label = { Text(if(index==2) mealText("Pantry","Stock") else stringResource(labels[index])) })
                 } }
             }
         },
@@ -171,17 +190,32 @@ class MainActivity : ComponentActivity() {
         } },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             state.error?.let { ErrorNotice(it, vm::refresh, vm::clearError) }
             NavHost(nav, startDestination = RecipesRoute, modifier = Modifier.weight(1f),
-                enterTransition = { if (roots.any { it::class.qualifiedName == targetState.destination.route }) fadeIn(tween(120)) else slideInHorizontally(tween(220)) { it / 8 } + fadeIn(tween(180)) },
-                exitTransition = { fadeOut(tween(120)) },
-                popEnterTransition = { slideInHorizontally(tween(220)) { -it / 8 } + fadeIn(tween(180)) },
-                popExitTransition = { slideOutHorizontally(tween(220)) { it / 8 } + fadeOut(tween(120)) }) {
+                enterTransition = {
+                    when {
+                        !motion -> EnterTransition.None
+                        roots.any { it::class.qualifiedName == targetState.destination.route } -> fadeIn(tween(160))
+                        targetState.destination.route in listOf(EditorRoute::class.qualifiedName, SearchRoute::class.qualifiedName) -> slideInVertically(tween(220)) { it / 10 } + fadeIn(tween(180))
+                        else -> slideInHorizontally(tween(220)) { it / 8 } + fadeIn(tween(180))
+                    }
+                },
+                exitTransition = { if (motion) fadeOut(tween(120)) else ExitTransition.None },
+                popEnterTransition = { if (motion) fadeIn(tween(180)) else EnterTransition.None },
+                popExitTransition = {
+                    when {
+                        !motion -> ExitTransition.None
+                        initialState.destination.route in listOf(EditorRoute::class.qualifiedName, SearchRoute::class.qualifiedName) -> slideOutVertically(tween(180)) { it / 10 } + fadeOut(tween(120))
+                        else -> slideOutHorizontally(tween(180)) { it / 8 } + fadeOut(tween(120))
+                    }
+                }) {
                 composable<RecipesRoute> { CollectionScreen(state, vm, ::open) }
+                composable<AgendaRoute> { MealsScreen(state,vm) }
+                composable<PantryRoute> { MealsScreen(state,vm,"pantry") { nav.navigate(IngredientsRoute) } }
+                composable<ActivityRoute> { MealActivityScreen(state,vm) }
                 composable<IngredientsRoute> { IngredientsScreen(state, vm, ::open, { root(ShoppingRoute) }) }
-                composable<ShoppingRoute> { ShoppingScreen(state, vm) }
-                composable<FriendsRoute> { FriendsScreen(state, vm, ::open, { nav.navigate(InviteRoute) }, { nav.navigate(ChefKitchenRoute(it)) }) }
+                composable<ShoppingRoute> { Column { KitchenTextButton(onClick={nav.navigate(AgendaRoute)}){Text(mealText("Connected meal shopping","Courses du planning"))};ShoppingScreen(state, vm) } }
+                composable<FriendsRoute> { Column { KitchenTextButton(onClick={nav.navigate(ActivityRoute)}){Text(mealText("Friends activity","Activité des amis"))};FriendsScreen(state, vm, ::open, { nav.navigate(InviteRoute) }, { nav.navigate(ChefKitchenRoute(it)) }) } }
                 composable<InviteRoute> { InvitationScreen(state, vm) }
                 composable<SettingsRoute> { SettingsScreen(state, vm) { nav.navigate(HelpRoute) } }
                 composable<EditorRoute> { EditorScreen(state, vm, { nav.popBackStack() }) }
@@ -202,5 +236,5 @@ class MainActivity : ComponentActivity() {
     // Back navigation must restore the route's recipe, rather than whichever friend recipe was opened last.
     LaunchedEffect(id) { if (refreshOnEnter || state.active?.id != id) vm.openRecipe(id) }
     if (state.active?.id == id) content()
-    else Box(Modifier.fillMaxSize().padding(KitchenGutter), contentAlignment = Alignment.Center) { if (state.busy) CircularProgressIndicator() else KitchenEmpty(R.string.error_missing) { TextButton(onClick = { vm.openRecipe(id) }) { Text(stringResource(R.string.retry)) } } }
+    else Box(Modifier.fillMaxSize().padding(KitchenGutter), contentAlignment = Alignment.Center) { if (state.busy) BuddyLoader() else KitchenEmpty(R.string.error_missing) { KitchenTextButton(onClick = { vm.openRecipe(id) }) { Text(stringResource(R.string.retry)) } } }
 }

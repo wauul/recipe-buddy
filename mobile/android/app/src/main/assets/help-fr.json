@@ -38,5 +38,25 @@
   {
     "question": "Comment fonctionnent les jours de cuisine et les petites piques du chef ?",
     "answer": "Marquez une recette comme cuisinée pour compter la journée. L’activité hebdomadaire compte les jours UTC distincts du lundi au dimanche. Vous pouvez désactiver les remarques taquines dans Paramètres quand vous voulez."
+  },
+  {
+    "question": "Comment fonctionnent cuissons, stock et repas consommés ?",
+    "answer": "Confirmez les portions réellement préparées pour enregistrer cuisson et consommation connue du stock ensemble. Photo, appréciation personnelle et commentaire privé sont facultatifs. Manger se note explicitement pour un profil que vous gérez. Les corrections rapprochent le stock ; annuler restaure seulement les déductions enregistrées. Manger des restes utilise le lot cuisiné sans redéduire les ingrédients crus. Partagez uniquement les champs choisis avec les amis."
+  },
+  {
+    "question": "Que modifient le point cuisine et les tâches de préparation ?",
+    "answer": "Le point cuisine est facultatif. Les réponses ignorées restent inconnues. Chaque confirmation utilise les opérations normales de cuisine. Notez explicitement collations, boissons, quantités et contexte pratique. Les tâches utilisent vos instructions, dépendances et durées connues. Elles consomment du stock seulement si vous notez les quantités réellement utilisées. La cuisson finale liée les comptabilise une seule fois. Votre application calendrier gère les rappels facultatifs ; vérifiez son fuseau et ses notifications."
+  },
+  {
+    "question": "Recipe Buddy peut-il passer ma commande de courses ?",
+    "answer": "Une liste préparée ou un lien commerçant ne sont pas une commande. Le connecteur américain est un transfert Instacart de développement avec identifiants agréés ; le paiement en France attend un partenaire commerçant agréé. Aucun magasin ou lieu vérifié pour Recipe Buddy. Vérifiez produits, prix, frais, créneaux et substitutions chez le commerçant. Aucun identifiant commerçant ni paiement conservé. Confirmez les commandes réelles avec leur référence, puis notez les produits et quantités effectivement reçus. Les produits attendus ne sont pas du stock ; un remboursement seul ne retire pas de stock."
+  },
+  {
+    "question": "Que fait Réorganiser ma semaine Pro ?",
+    "answer": "Cette fonction prévisualise les repas futurs selon vos recettes et le stock connu. Acceptez les changements choisis ou annulez. Repas verrouillés et événements terminés protégés. Actualisez les aperçus périmés. L’annulation préserve les autres activités ultérieures et signale les conflits. Aucun achat, consommation de stock, repas mangé ou import internet silencieux. Les durées, prix et preuves de santé manquants restent inconnus."
+  },
+  {
+    "question": "Comment fonctionnent la nutrition quotidienne et les objectifs thérapeutiques ?",
+    "answer": "Ouvrez Cuisine et repas puis Nutrition quotidienne et objectifs. Recopiez la composition de la portion réellement consommée depuis son étiquette ou une source nommée, en laissant les nutriments inconnus vides. Configurez limites exactes, source, dates d’émission et de révision. Enfants, grossesse, allaitement et pathologies nécessitent des objectifs prescrits, confirmés explicitement ; Recipe Buddy ne vérifie pas les prescriptions et ne génère pas de doses. Confirmez une journée uniquement après avoir enregistré repas, collations et boissons. Les modifications invalident cette confirmation. Sous/dans/au-dessus compare un nutriment complet à un objectif actif, sans diagnostic de carence ni évaluation à long terme. Vitamines et minéraux non évalués ; validation clinique en attente."
   }
 ]

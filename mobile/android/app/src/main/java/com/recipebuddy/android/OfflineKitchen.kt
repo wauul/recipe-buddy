@@ -123,12 +123,14 @@ class OfflineKitchen(private val app: BuddyApp) {
         }
     }
     private suspend fun fetch(path: String, account: String): String {
-        val payload = app.api.request(path)
+        val payload = try { app.api.request(path) } catch(error: ApiFailure) {
+            if(path.startsWith("meals") && error.status in listOf(403,404)) writes.withLock { if(still(account)) dao.delete(account,"response",path) }
+            throw error
+        }
         writes.withLock { if (still(account) && dao.entries(account, "outbox").none { buddyJson.decodeFromString<PendingChange>(it.payload).let { it.kind == "response" && it.localId == path } }) dao.put(LocalEntry(account, "response", path, payload)) }
         return payload
     }
     suspend fun synchronize() = sync.withLock {
-        app.preferences.data.first()[androidx.datastore.preferences.core.stringPreferencesKey("backend")]?.let { app.api.configure(it) }
         val account = app.api.session?.userId ?: return@withLock
         try {
             val failedEntities = mutableSetOf<String>()
@@ -251,7 +253,13 @@ class OfflineKitchen(private val app: BuddyApp) {
         val account = account()
         val row = dao.entry(account, "outbox", operationId) ?: return
         val change = buddyJson.decodeFromString<PendingChange>(row.payload)
-        val kitchenReplacement = if(keepCopy && change.path == "kitchen-state") {
+        val kitchenReplacement = if(keepCopy && change.path == "meals" && change.failure == 409) {
+            val old=buddyJson.parseToJsonElement(change.payload).jsonObject
+            val kitchenId=old["kitchenId"]?.jsonPrimitive?.contentOrNull
+            val fresh=buddyJson.parseToJsonElement(app.api.request("meals"+(kitchenId?.let{"?kitchenId=${android.net.Uri.encode(it)}"}?:""))).jsonObject
+            val operation=JsonObject(old+mapOf("operationId" to JsonPrimitive(UUID.randomUUID().toString()),"baseVersion" to fresh["version"]!!))
+            change.copy(operationId=UUID.randomUUID().toString(),payload=operation.toString(),localPayload=operation.toString(),failure=null,occurredAt=Instant.now().toString())
+        } else if(keepCopy && change.path == "kitchen-state") {
             val current = buddyJson.decodeFromString<List<RemoteKitchen>>(app.api.request("kitchen-state")).firstOrNull { it.kind == change.kind && it.id == change.localId }
             val latest = dao.entry(account, change.kind, change.localId)?.payload
             change.copy(operationId = UUID.randomUUID().toString(), baseVersion = current?.updatedAt ?: "missing", occurredAt = Instant.now().toString(), failure = null,

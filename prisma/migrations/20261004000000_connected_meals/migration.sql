@@ -1,0 +1,9 @@
+CREATE TABLE "MealKitchen" ("id" TEXT PRIMARY KEY, "ownerId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE, "version" INTEGER NOT NULL DEFAULT 0, "state" JSONB NOT NULL);
+CREATE TABLE "MealMember" ("kitchenId" TEXT NOT NULL REFERENCES "MealKitchen"("id") ON DELETE CASCADE, "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE, "role" TEXT NOT NULL CHECK ("role" IN ('owner','planner','shopper','member')), PRIMARY KEY ("kitchenId","userId"));
+CREATE TABLE "MealProfile" ("id" TEXT PRIMARY KEY, "kitchenId" TEXT NOT NULL REFERENCES "MealKitchen"("id") ON DELETE CASCADE, "managerId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE, "version" INTEGER NOT NULL DEFAULT 1, "data" JSONB NOT NULL);
+CREATE INDEX "MealProfile_kitchenId_idx" ON "MealProfile"("kitchenId");
+CREATE TABLE "MealReceipt" ("kitchenId" TEXT NOT NULL REFERENCES "MealKitchen"("id") ON DELETE CASCADE, "operationId" TEXT NOT NULL, "actorId" TEXT NOT NULL, "digest" TEXT NOT NULL, "response" JSONB NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY ("kitchenId","operationId"));
+CREATE TABLE "MealPost" ("id" TEXT PRIMARY KEY, "kitchenId" TEXT NOT NULL REFERENCES "MealKitchen"("id") ON DELETE CASCADE, "authorId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE, "occasionId" TEXT NOT NULL, "caption" TEXT NOT NULL, "rating" INTEGER CHECK ("rating" BETWEEN 1 AND 5), "photo" BYTEA, "recipeId" TEXT, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE INDEX "MealPost_authorId_createdAt_id_idx" ON "MealPost"("authorId", "createdAt", "id");
+CREATE TABLE "MealReaction" ("postId" TEXT NOT NULL REFERENCES "MealPost"("id") ON DELETE CASCADE, "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE, PRIMARY KEY ("postId","userId"));
+-- Legacy CookedLog remains untouched. It does not establish eating or stock use.

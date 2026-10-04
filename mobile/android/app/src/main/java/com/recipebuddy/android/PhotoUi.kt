@@ -58,7 +58,7 @@ import java.io.File
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(if (hero || selected) 1.65f else 2.6f)
             .clip(RoundedCornerShape(24.dp)).background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(enabled = !preparing, onClickLabel = label) { choosing = true }) {
+            .kitchenClickable(enabled = !preparing, onClickLabel = label) { choosing = true }) {
             if (selected) AsyncImage(imageSource(photo!!), stringResource(R.string.photo_preview), Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
             else if (hero) Image(painterResource(R.drawable.ingredients_hero), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             else Image(painterResource(R.drawable.kitchen_pot), null, Modifier.align(Alignment.Center).fillMaxWidth(0.7f), contentScale = ContentScale.Fit)
@@ -68,26 +68,29 @@ import java.io.File
                     Icon(Icons.Outlined.AddPhotoAlternate, null, Modifier.size(20.dp)); Text(label, style = MaterialTheme.typography.labelLarge)
                 }
             }
-            if (preparing) LinearProgressIndicator(Modifier.align(Alignment.BottomCenter).fillMaxWidth())
+            if (preparing) BuddyLoader(Modifier.align(Alignment.Center))
         }
-        if (error) Text(stringResource(R.string.photo_denied), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        if (error) {
+            Text(stringResource(R.string.photo_denied), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            KitchenTextButton(onClick={context.startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+context.packageName)))}){Text(stringResource(R.string.settings))}
+        }
     }
     if (choosing) KitchenBottomSheet(onDismissRequest = { choosing = false }) {
         Column(Modifier.padding(bottom = 24.dp)) {
             Text(stringResource(R.string.add_photo), Modifier.padding(start = 20.dp, bottom = 12.dp), style = MaterialTheme.typography.titleLarge)
             ListItem(headlineContent = { Text(stringResource(R.string.take_photo)) }, leadingContent = { Icon(Icons.Outlined.PhotoCamera, null) },
-                trailingContent = { Icon(Icons.Outlined.ChevronRight, null) }, modifier = Modifier.clickable {
+                trailingContent = { Icon(Icons.Outlined.ChevronRight, null) }, modifier = Modifier.kitchenClickable {
                     choosing = false
                     if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) take() else permission.launch(Manifest.permission.CAMERA)
                 }, colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow))
             ListItem(headlineContent = { Text(stringResource(R.string.choose_photo)) }, leadingContent = { Icon(Icons.Outlined.PhotoLibrary, null) },
-                trailingContent = { Icon(Icons.Outlined.ChevronRight, null) }, modifier = Modifier.clickable {
+                trailingContent = { Icon(Icons.Outlined.ChevronRight, null) }, modifier = Modifier.kitchenClickable {
                     choosing = false; picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }, colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow))
             onImageLink?.let { action -> ListItem(headlineContent = { Text(stringResource(R.string.photo_url)) }, leadingContent = { Icon(Icons.Outlined.Link, null) },
-                modifier = Modifier.clickable { choosing = false; action() }, colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) }
+                modifier = Modifier.kitchenClickable { choosing = false; action() }, colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) }
             if (selected && onRemove != null) ListItem(headlineContent = { Text(stringResource(R.string.remove_photo), color = MaterialTheme.colorScheme.error) },
-                leadingContent = { Icon(Icons.Outlined.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) }, modifier = Modifier.clickable { choosing = false; onRemove() },
+                leadingContent = { Icon(Icons.Outlined.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) }, modifier = Modifier.kitchenClickable { choosing = false; onRemove() },
                 colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow))
         }
     }

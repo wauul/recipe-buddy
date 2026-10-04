@@ -51,11 +51,11 @@ import java.io.File
             if (importExpanded) KitchenPanel {
                 Field(import, { import = it }, R.string.import_text, single = false)
                 SmallNote(stringResource(R.string.import_consent))
-                OutlinedButton(onClick = { vm.importText(import) }, enabled = !state.busy && import.length >= 10, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.parse_recipe)) }
+                KitchenOutlinedButton(onClick = { vm.importText(import) }, enabled = !state.busy && import.length >= 10, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(R.string.parse_recipe)) }
             }
             Field(draft.title, { vm.updateDraft(draft.copy(title = it)) }, R.string.recipe_title)
             if (subtitle) Field(draft.altTitle, { if (it.length <= 180) vm.updateDraft(draft.copy(altTitle = it)) }, R.string.recipe_subtitle)
-            else TextButton(onClick = { subtitle = true }) { Text(stringResource(R.string.add_subtitle)) }
+            else KitchenTextButton(onClick = { subtitle = true }) { Text(stringResource(R.string.add_subtitle)) }
             PhotoActions(photo = draft.imageUrl, onRemove = { vm.updateDraft(draft.copy(imageUrl = "")) }, onImageLink = { imageLink = true }) { vm.updateDraft(draft.copy(imageUrl = it)) }
             Field(servings, { servings = it; it.toIntOrNull()?.takeIf { n -> n in 1..100 }?.let { n -> vm.updateDraft(draft.copy(servings = n)) } }, R.string.servings)
             KitchenTabs(listOf("cozy", "lazy", "fancy", "chaotic").indexOf(draft.vibe), listOf(R.string.cozy, R.string.lazy, R.string.fancy, R.string.chaotic)) { vm.updateDraft(draft.copy(vibe = listOf("cozy", "lazy", "fancy", "chaotic")[it])) }
@@ -71,7 +71,7 @@ import java.io.File
                     UnitField(ingredient.unit, { update(ingredient.copy(unit = it)) }, Modifier.weight(1f))
                 }
             } }
-            OutlinedButton(onClick = { vm.updateDraft(draft.copy(ingredients = draft.ingredients + Ingredient())) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            KitchenOutlinedButton(onClick = { vm.updateDraft(draft.copy(ingredients = draft.ingredients + Ingredient())) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Icon(Icons.Default.Add, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.add_ingredient))
             }
             SectionTitle(stringResource(R.string.instructions))
@@ -82,24 +82,24 @@ import java.io.File
                 }
                 Field(step, { text -> vm.updateDraft(draft.copy(steps = draft.steps.mapIndexed { i, v -> if (i == index) text else v })) }, R.string.instruction_hint, single = false)
             } }
-            OutlinedButton(onClick = { vm.updateDraft(draft.copy(steps = draft.steps + "")) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+            KitchenOutlinedButton(onClick = { vm.updateDraft(draft.copy(steps = draft.steps + "")) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Icon(Icons.Default.Add, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.add_step))
             }
             if (draft.id.isEmpty() && (draft.title.isNotBlank() || draft.ingredients.isNotEmpty() || draft.steps.isNotEmpty())) {
-                TextButton(onClick = { discard = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.discard_draft), color = MaterialTheme.colorScheme.error) }
+                KitchenTextButton(onClick = { discard = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.discard_draft), color = MaterialTheme.colorScheme.error) }
             }
         }
         KitchenActionBar {
-            Button(onClick = vm::save, enabled = !state.busy && draft.title.isNotBlank() && draft.ingredients.isNotEmpty() && draft.ingredients.all { it.name.isNotBlank() } && draft.steps.isNotEmpty() && draft.steps.all { it.isNotBlank() } && servings.toIntOrNull() in 1..100,
+            KitchenButton(onClick = vm::save, enabled = !state.busy && draft.title.isNotBlank() && draft.ingredients.isNotEmpty() && draft.ingredients.all { it.name.isNotBlank() } && draft.steps.isNotEmpty() && draft.steps.all { it.isNotBlank() } && servings.toIntOrNull() in 1..100,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Icon(Icons.Default.Check, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.save_recipe)) }
         }
     }
     if (discard) KitchenAlertDialog(onDismissRequest = { discard = false }, title = { Text(stringResource(R.string.discard_draft)) }, text = { Text(stringResource(R.string.discard_draft_note)) },
-        confirmButton = { TextButton(onClick = { vm.edit(); discard = false; done() }) { Text(stringResource(R.string.discard_draft), color = MaterialTheme.colorScheme.error) } },
-        dismissButton = { TextButton(onClick = { discard = false }) { Text(stringResource(R.string.cancel)) } })
+        confirmButton = { KitchenTextButton(onClick = { vm.edit(); discard = false; done() }) { Text(stringResource(R.string.discard_draft), color = MaterialTheme.colorScheme.error) } },
+        dismissButton = { KitchenTextButton(onClick = { discard = false }) { Text(stringResource(R.string.cancel)) } })
     if (imageLink) { var link by remember { mutableStateOf(if (draft.imageUrl.startsWith("https:")) draft.imageUrl else "") }
         KitchenAlertDialog(onDismissRequest = { imageLink = false }, title = { Text(stringResource(R.string.photo_url)) }, text = { Field(link, { link = it }, R.string.photo_url) },
-            confirmButton = { TextButton(onClick = { vm.updateDraft(draft.copy(imageUrl = link.trim())); imageLink = false }, enabled = link.startsWith("https://")) { Text(stringResource(R.string.save)) } }, dismissButton = { TextButton(onClick = { imageLink = false }) { Text(stringResource(R.string.cancel)) } })
+            confirmButton = { KitchenTextButton(onClick = { vm.updateDraft(draft.copy(imageUrl = link.trim())); imageLink = false }, enabled = link.startsWith("https://")) { Text(stringResource(R.string.save)) } }, dismissButton = { KitchenTextButton(onClick = { imageLink = false }) { Text(stringResource(R.string.cancel)) } })
     }
 }
 
@@ -155,7 +155,7 @@ import java.io.File
                 if (state.timers.none { it.recipeId == recipe.id } && explicitDurations(recipe.steps.getOrElse(step) { "" }).isEmpty()) SmallNote(stringResource(R.string.no_timers))
             }
             items(explicitDurations(recipe.steps.getOrElse(step) { "" })) { duration ->
-                OutlinedButton(onClick = { minutes = (duration.seconds / 60.0).toString(); name = duration.label; timerDialog = true }) {
+                KitchenOutlinedButton(onClick = { minutes = (duration.seconds / 60.0).toString(); name = duration.label; timerDialog = true }) {
                     Icon(Icons.Default.Timer, null, Modifier.size(20.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.suggest_timer, duration.label))
                 }
             }
@@ -175,16 +175,16 @@ import java.io.File
             }
         }
         KitchenActionBar {
-            OutlinedButton(onClick = { vm.progress(recipe, step - 1, progress.servings) }, enabled = step > 0, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(stringResource(R.string.previous)) }
-            if (recipe.owned && step == recipe.steps.lastIndex) Button(onClick = { vm.cooked(recipe) }, enabled = !state.busy && recipe.id !in (state.me?.cookedToday ?: emptyList()), modifier = Modifier.weight(1.2f).heightIn(min = 52.dp)) {
-                Text(stringResource(if (recipe.id in (state.me?.cookedToday ?: emptyList())) R.string.cooked_today else R.string.mark_cooked))
-            } else Button(onClick = { vm.progress(recipe, step + 1, progress.servings) }, enabled = step < recipe.steps.lastIndex, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(stringResource(R.string.next)) }
+            KitchenOutlinedButton(onClick = { vm.progress(recipe, step - 1, progress.servings) }, enabled = step > 0, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(stringResource(R.string.previous)) }
+            if (recipe.owned && step == recipe.steps.lastIndex) KitchenButton(onClick = { vm.cooked(recipe) }, enabled = !state.busy, modifier = Modifier.weight(1.2f).heightIn(min = 52.dp)) {
+                Text(stringResource(R.string.mark_cooked))
+            } else KitchenButton(onClick = { vm.progress(recipe, step + 1, progress.servings) }, enabled = step < recipe.steps.lastIndex, modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(stringResource(R.string.next)) }
         }
     }
     if (timerDialog) KitchenAlertDialog(onDismissRequest = { timerDialog = false }, title = { Text(stringResource(R.string.add_timer)) }, text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Field(name, { name = it }, R.string.timer_name); Field(minutes, { minutes = it }, R.string.minutes)
-        if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) TextButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text(stringResource(R.string.enable_notifications)) }
-        if (Build.VERSION.SDK_INT >= 31 && !context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()) TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}"))) }) { Text(stringResource(R.string.enable_precise_timers)) }
-    } }, confirmButton = { TextButton(onClick = { vm.timer(recipe, step, name, ((quantityValue(minutes) ?: 0.0) * 60).toLong()); timerDialog = false }, enabled = name.isNotBlank() && (quantityValue(minutes) ?: 0.0) * 60 in 1.0..604800.0) { Text(stringResource(R.string.start_timer)) } }, dismissButton = { TextButton(onClick = { timerDialog = false }) { Text(stringResource(R.string.cancel)) } })
+        if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) KitchenTextButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text(stringResource(R.string.enable_notifications)) }
+        if (Build.VERSION.SDK_INT >= 31 && !context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()) KitchenTextButton(onClick = { context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}"))) }) { Text(stringResource(R.string.enable_precise_timers)) }
+    } }, confirmButton = { KitchenTextButton(onClick = { vm.timer(recipe, step, name, ((quantityValue(minutes) ?: 0.0) * 60).toLong()); timerDialog = false }, enabled = name.isNotBlank() && (quantityValue(minutes) ?: 0.0) * 60 in 1.0..604800.0) { Text(stringResource(R.string.start_timer)) } }, dismissButton = { KitchenTextButton(onClick = { timerDialog = false }) { Text(stringResource(R.string.cancel)) } })
 }
 fun android.content.Context.findActivity(): android.app.Activity? = when (this) { is android.app.Activity -> this; is android.content.ContextWrapper -> baseContext.findActivity(); else -> null }

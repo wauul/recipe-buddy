@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowUp, Menu, Moon, Sun, Search, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import {clearMealDrafts} from '@/lib/meal-drafts';
 import { trackedOutbound } from '@/lib/outbound';
 import { LanguageSelector } from './language-provider';
 import { applyTheme, themePreference } from '@/lib/theme';
@@ -225,7 +226,7 @@ export function SiteTools() {
           <a href="mailto:contact@recipebuddy.waelfz.com?subject=Recipe%20Buddy%20feedback">
             {t('Contact')}
           </a>
-          <button onClick={() => signOut({ callbackUrl: '/login' })}>{t('Sign out')}</button>
+          <button onClick={() => {clearMealDrafts();void signOut({ callbackUrl: '/login' });}}>{t('Sign out')}</button>
         </nav>
       )}
       {top && (

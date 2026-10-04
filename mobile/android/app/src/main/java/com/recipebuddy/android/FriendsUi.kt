@@ -58,7 +58,7 @@ import com.journeyapps.barcodescanner.*
             Text(stringResource(R.string.no_friends), style = MaterialTheme.typography.titleMedium)
             SmallNote(stringResource(R.string.friends_privacy))
         } }
-        if (tab == 0) items(accepted, key = { "chef-${it.id}" }) { friend -> Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceContainerLow).heightIn(min = 80.dp).clickable { selected = friend }.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (tab == 0) items(accepted, key = { "chef-${it.id}" }) { friend -> Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(MaterialTheme.colorScheme.surfaceContainerLow).heightIn(min = 80.dp).kitchenClickable { selected = friend }.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ChefAvatar(friend.friend.username, 48)
             Text(friend.friend.username, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Icon(Icons.Outlined.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -76,7 +76,7 @@ import com.journeyapps.barcodescanner.*
             RecipePhoto(Recipe(vibe = "cozy"), Modifier.fillMaxWidth().aspectRatio(1.8f))
             SmallNote(stringResource(R.string.empty_shared))
         } }
-        if (tab == 1) items(state.shared, key = { it.id }) { recipe -> Column(Modifier.fillMaxWidth().clickable { open(recipe) }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (tab == 1) items(state.shared, key = { it.id }) { recipe -> Column(Modifier.fillMaxWidth().kitchenClickable { open(recipe) }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             RecipePhoto(recipe, Modifier.fillMaxWidth().aspectRatio(1.7f))
             Text(recipe.text(recipe.title, language), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { ChefAvatar(recipe.sharedBy, 28); SmallNote(stringResource(R.string.shared_by, recipe.sharedBy)) }
@@ -87,11 +87,11 @@ import com.journeyapps.barcodescanner.*
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { ChefAvatar(friend.friend.username, 56); Text(friend.friend.username, style = MaterialTheme.typography.titleLarge) }
             FilledTonalButton(onClick = { selected = null; kitchen(friend.friend.id) }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.MenuBook, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.view_kitchen)) }
             SmallNote(stringResource(R.string.friends_privacy))
-            Button(onClick = { share = friend; selected = null }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.IosShare, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.share_a_recipe)) }
+            KitchenButton(onClick = { share = friend; selected = null }, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Outlined.IosShare, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.share_a_recipe)) }
             HorizontalDivider()
             Column {
                 listOf(R.string.remove_friend to Icons.Outlined.PersonRemove, R.string.report to Icons.Outlined.Flag, R.string.block_friend to Icons.Outlined.Block).forEach { (label, icon) ->
-                    ListItem(headlineContent = { Text(stringResource(label)) }, leadingContent = { Icon(icon, null) }, modifier = Modifier.clickable {
+                    ListItem(headlineContent = { Text(stringResource(label)) }, leadingContent = { Icon(icon, null) }, modifier = Modifier.kitchenClickable {
                         when (label) { R.string.remove_friend -> remove = friend; R.string.report -> report = friend; else -> blocking = friend }; selected = null
                     }, colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface, headlineColor = if (label == R.string.report) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error))
                 }
@@ -102,20 +102,20 @@ import com.journeyapps.barcodescanner.*
         LazyColumn(contentPadding = PaddingValues(16.dp, 0.dp, 16.dp, 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { Text(stringResource(R.string.share_with, friend.friend.username), style = MaterialTheme.typography.titleLarge); SmallNote(stringResource(R.string.choose_one_recipe)) }
             if (state.recipes.isEmpty()) item { SmallNote(stringResource(R.string.empty_recipes)) }
-            items(state.recipes.filter { it.owned }, key = { it.id }) { recipe -> Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable(enabled = !state.busy) {
+            items(state.recipes.filter { it.owned }, key = { it.id }) { recipe -> Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).kitchenClickable(enabled = !state.busy) {
                 vm.shareRecipe(recipe, friend.friend.id, true) { share = null; android.widget.Toast.makeText(context, context.getString(R.string.recipe_shared), android.widget.Toast.LENGTH_SHORT).show() }
             }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 RecipePhoto(recipe, Modifier.size(64.dp)); Text(recipe.text(recipe.title, language), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis); Icon(Icons.Outlined.ChevronRight, null)
             } }
-            if (state.nextCursor != null) item { TextButton(onClick = vm::more, enabled = !state.busy) { Text(stringResource(R.string.load_more)) } }
+            if (state.nextCursor != null) item { KitchenTextButton(onClick = vm::more, enabled = !state.busy) { Text(stringResource(R.string.load_more)) } }
         }
     } }
     remove?.let { friend -> KitchenAlertDialog(onDismissRequest = { remove = null }, title = { Text(stringResource(if (friend.status == "accepted") R.string.remove_friend else R.string.cancel_request)) },
         text = { Text(stringResource(R.string.remove_friend_note, friend.friend.username)) },
-        confirmButton = { TextButton(onClick = { vm.friendship(friend.id, false); remove = null }) { Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error) } },
-        dismissButton = { TextButton(onClick = { remove = null }) { Text(stringResource(R.string.cancel)) } }) }
+        confirmButton = { KitchenTextButton(onClick = { vm.friendship(friend.id, false); remove = null }) { Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error) } },
+        dismissButton = { KitchenTextButton(onClick = { remove = null }) { Text(stringResource(R.string.cancel)) } }) }
     report?.let { ReportSheet(state, vm, chefId = it.friend.id) { report = null } }
-    blocking?.let { friend -> KitchenAlertDialog(onDismissRequest = { blocking = null }, title = { Text(stringResource(R.string.block_friend)) }, text = { Text(stringResource(R.string.block_note)) }, confirmButton = { TextButton(onClick = { vm.block(friend.friend.id); blocking = null }) { Text(stringResource(R.string.block_friend), color = MaterialTheme.colorScheme.error) } }, dismissButton = { TextButton(onClick = { blocking = null }) { Text(stringResource(R.string.cancel)) } }) }
+    blocking?.let { friend -> KitchenAlertDialog(onDismissRequest = { blocking = null }, title = { Text(stringResource(R.string.block_friend)) }, text = { Text(stringResource(R.string.block_note)) }, confirmButton = { KitchenTextButton(onClick = { vm.block(friend.friend.id); blocking = null }) { Text(stringResource(R.string.block_friend), color = MaterialTheme.colorScheme.error) } }, dismissButton = { KitchenTextButton(onClick = { blocking = null }) { Text(stringResource(R.string.cancel)) } }) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -139,8 +139,8 @@ import com.journeyapps.barcodescanner.*
         state.invitePreview?.let { preview -> KitchenPanel {
             Text(stringResource(R.string.invited_by, preview.chefName), style = MaterialTheme.typography.titleLarge)
             SmallNote(stringResource(R.string.friends_privacy))
-            Button(onClick = vm::acceptInvite, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.accept_invitation)) }
-            TextButton(onClick = vm::declineInvite, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.decline_invitation)) }
+            KitchenButton(onClick = vm::acceptInvite, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.accept_invitation)) }
+            KitchenTextButton(onClick = vm::declineInvite, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.decline_invitation)) }
         } }
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(state.me?.username ?: "", style = MaterialTheme.typography.titleLarge)
@@ -148,13 +148,13 @@ import com.journeyapps.barcodescanner.*
                 val bitmap = remember(invite.url) { chefQrBitmap(invite.url) }
                 Surface(shape = RoundedCornerShape(24.dp), color = Color.White) { Image(bitmap.asImageBitmap(), stringResource(R.string.invite_qr), Modifier.widthIn(max = 360.dp).fillMaxWidth().aspectRatio(1f)) }
                 SmallNote(stringResource(R.string.invite_qr_hint))
-                Button(onClick = { shareText(context, context.getString(R.string.invite_share_message, invite.url)) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Icon(Icons.Outlined.IosShare, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.share_link)) }
+                KitchenButton(onClick = { shareText(context, context.getString(R.string.invite_share_message, invite.url)) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Icon(Icons.Outlined.IosShare, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.share_link)) }
             } ?: Box(Modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) {
-                if(state.busy) CircularProgressIndicator() else TextButton(onClick = vm::ensureInvite) { Text(stringResource(R.string.retry)) }
+                if(state.busy) BuddyLoader() else KitchenTextButton(onClick = vm::ensureInvite) { Text(stringResource(R.string.retry)) }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                TextButton(onClick = { if(context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) scanning = true else permission.launch(Manifest.permission.CAMERA) }) { Icon(Icons.Outlined.QrCodeScanner, null, Modifier.size(20.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.scan_qr)) }
-                TextButton(onClick = { paste = true }) { Icon(Icons.Outlined.Link, null, Modifier.size(20.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.paste_link)) }
+                KitchenTextButton(onClick = { if(context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) scanning = true else permission.launch(Manifest.permission.CAMERA) }) { Icon(Icons.Outlined.QrCodeScanner, null, Modifier.size(20.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.scan_qr)) }
+                KitchenTextButton(onClick = { paste = true }) { Icon(Icons.Outlined.Link, null, Modifier.size(20.dp)); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.paste_link)) }
             }
             if(permissionDenied) SmallNote(stringResource(R.string.qr_camera_denied))
         }
@@ -162,21 +162,21 @@ import com.journeyapps.barcodescanner.*
             SectionTitle(stringResource(R.string.find_chef))
             Field(name, { name = it; vm.resetChefSearch() }, R.string.chef_name)
             SmallNote(stringResource(R.string.chef_search_hint))
-            if(state.chefSearching) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if(state.chefSearching) BuddyLoader(Modifier.fillMaxWidth())
             state.chefSearchError?.let { status ->
                 SmallNote(stringResource(if (status == 429) R.string.error_quota else R.string.chef_search_unavailable))
-                TextButton(onClick = { vm.searchChefs(name) }) { Text(stringResource(R.string.retry)) }
+                KitchenTextButton(onClick = { vm.searchChefs(name) }) { Text(stringResource(R.string.retry)) }
             }
             if(state.chefSearchDone && state.chefResults.isEmpty()) SmallNote(stringResource(R.string.chef_search_empty))
             state.chefResults.forEach { chef ->
                 val connected = state.friends.any { it.friend.id == chef.id }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     ChefAvatar(chef.username); Text(chef.username, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                    TextButton(onClick = { vm.inviteChef(chef) }, enabled = !state.busy && !connected) { Text(stringResource(if(connected) R.string.invite_sent else R.string.add_friend)) }
+                    KitchenTextButton(onClick = { vm.inviteChef(chef) }, enabled = !state.busy && !connected) { Text(stringResource(if(connected) R.string.invite_sent else R.string.add_friend)) }
                 }
             }
         }
-        if(state.invite != null) TextButton(onClick = { reset = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.regenerate_invite)) }
+        if(state.invite != null) KitchenTextButton(onClick = { reset = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.regenerate_invite)) }
     }
     if(scanning) KitchenBottomSheet(onDismissRequest = { scanning = false }) {
         Column(Modifier.fillMaxWidth().padding(KitchenGutter, 0.dp, KitchenGutter, 28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -189,10 +189,10 @@ import com.journeyapps.barcodescanner.*
         Column(Modifier.fillMaxWidth().imePadding().padding(KitchenGutter, 0.dp, KitchenGutter, 28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.paste_link), style = MaterialTheme.typography.titleLarge)
             Field(link, { link = it }, R.string.paste_invite)
-            Button(onClick = { vm.pendingInvite(link); paste = false }, enabled = link.startsWith("https://") && !state.busy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.preview_invite)) }
+            KitchenButton(onClick = { vm.pendingInvite(link); paste = false }, enabled = link.startsWith("https://") && !state.busy, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.preview_invite)) }
         }
     }
-    if(reset) KitchenAlertDialog(onDismissRequest = { reset = false }, title = { Text(stringResource(R.string.regenerate_invite)) }, text = { Text(stringResource(R.string.reset_code_note)) }, confirmButton = { TextButton(onClick = { vm.createInvite(); reset = false }) { Text(stringResource(R.string.regenerate_invite)) } }, dismissButton = { TextButton(onClick = { reset = false }) { Text(stringResource(R.string.cancel)) } })
+    if(reset) KitchenAlertDialog(onDismissRequest = { reset = false }, title = { Text(stringResource(R.string.regenerate_invite)) }, text = { Text(stringResource(R.string.reset_code_note)) }, confirmButton = { KitchenTextButton(onClick = { vm.createInvite(); reset = false }) { Text(stringResource(R.string.regenerate_invite)) } }, dismissButton = { KitchenTextButton(onClick = { reset = false }) { Text(stringResource(R.string.cancel)) } })
 }
 
 // Brand-colored modules and rounded finder frames; preserve all QR data and a

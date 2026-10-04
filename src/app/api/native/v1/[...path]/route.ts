@@ -38,6 +38,18 @@ import { syncInput, synchronize } from '@/lib/native-sync';
 import { voiceCommandInput, interpretVoice } from '@/lib/native-voice-command';
 import { findChefs } from '@/lib/native-chef-search';
 import { enrichRecipeLater } from '@/lib/recipe-enrichment';
+import * as meals from '@/app/api/meals/route';
+import * as mealHandoff from '@/app/api/meals/handoff/route';
+import * as mealRescue from '@/app/api/meals/rescue/route';
+import * as mealSuggestions from '@/app/api/meals/suggestions/route';
+import * as mealActivity from '@/app/api/meals/activity/route';
+import * as mealPost from '@/app/api/meals/activity/[id]/route';
+import * as mealMedia from '@/app/api/meals/activity/[id]/media/route';
+import * as mealExport from '@/app/api/meals/export/route';
+import * as mealDiscovery from '@/app/api/meals/discovery/route';
+import * as mealDiscoveryImport from '@/app/api/meals/discovery/import/route';
+import * as mealProduct from '@/app/api/meals/product/route';
+import * as privateMealMedia from '@/app/api/meals/occasions/[id]/media/route';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 async function authorizedRecipes(userId: string, ids?: string[]) {
@@ -53,6 +65,26 @@ async function handle(request: Request, context: { params: Promise<{ path: strin
     const params = await context.params;
     return await nativeContext.run({ userId: session.userId, request }, async () => {
       const [root, id, action] = params.path, method = request.method;
+      if(root==='meals') {
+        if(id==='occasions' && params.path[3]==='media' && method==='GET')return privateMealMedia.GET(request,{params:Promise.resolve({id:params.path[2]})});
+        if(id==='product' && method==='POST')return mealProduct.POST(request);
+        if(id==='discovery' && method==='POST')return params.path[2]==='import' ? mealDiscoveryImport.POST(request) : mealDiscovery.POST(request);
+        if(id==='export' && method==='GET')return mealExport.GET();
+        if(id==='handoff' && method==='POST') return mealHandoff.POST(request);
+        if(id==='rescue' && method==='POST') return mealRescue.POST(request);
+        if(id==='suggestions' && method==='POST') return mealSuggestions.POST(request);
+        if(id==='activity') {
+          const postId=params.path[2],ctx={params:Promise.resolve({id:postId})};
+          if(postId && params.path[3]==='media' && method==='GET')return mealMedia.GET(request,ctx);
+          if(postId && params.path[3]==='media' && method==='DELETE')return mealMedia.DELETE(request,ctx);
+          if(postId && method==='POST')return mealPost.POST(request,ctx);
+          if(postId && method==='DELETE')return mealPost.DELETE(request,ctx);
+          if(!postId && method==='GET')return mealActivity.GET(request);
+          if(!postId && method==='POST')return mealActivity.POST(request);
+        }
+        if(!id && method==='GET')return meals.GET(request);
+        if(!id && method==='POST')return meals.POST(request);
+      }
       if (root === 'sync' && method === 'POST') return api(async () => synchronize(session.userId, syncInput.parse(await body(request)), request,
         (inner, path) => handle(inner, { params: Promise.resolve({ path }) })));
       if (root === 'kitchen-state' && method === 'GET') return api(async () => db.nativeKitchenState.findMany({ where: { userId: session.userId }, select: { kind: true, id: true, payload: true, updatedAt: true } }));

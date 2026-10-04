@@ -8,10 +8,10 @@ const payload = {
     ingredients: ['2 onions', '1½ cups stock'], steps: ['Slice the onions.', 'Simmer for 20 minutes.'],
   },
 };
-test('browser imports preserve Unicode and all publisher ingredient lines without AI', () => {
+test('browser imports preserve Unicode and split recognized publisher measurements without AI', () => {
   const imported = browserImportRecipe(readBrowserImport(JSON.stringify(payload)))!;
   assert.equal(imported.title, payload.recipe.title);
-  assert.deepEqual(imported.ingredients, [{ name: '2 onions', quantity: '', unit: '' }, { name: '1½ cups stock', quantity: '', unit: '' }]);
+  assert.deepEqual(imported.ingredients, [{ name: '2 onions', quantity: '', unit: '' }, { name: 'stock', quantity: '1½', unit: 'cup' }]);
   assert.deepEqual(imported.steps, payload.recipe.steps);
   assert.equal(imported.servings, 4);
   assert.equal(imported.vibe, 'cozy');

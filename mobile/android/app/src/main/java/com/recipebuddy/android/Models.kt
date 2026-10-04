@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonPrimitive
     val altTitle: String = "", val vibe: String = "cozy", val roastLine: String = "",
     val owned: Boolean = true, val sharedBy: String = "", val sharedChefId: String = "", val updatedAt: String = "",
     val translations: JsonObject? = null,
+    val sourceProvenance: JsonObject? = null,
 ) {
     fun text(source: String, language: String): String = translations?.get(language)?.jsonObject?.get(source)?.jsonPrimitive?.content ?: source
     fun input() = RecipeInput(title, imageUrl, servings, ingredients, steps, altTitle, vibe)

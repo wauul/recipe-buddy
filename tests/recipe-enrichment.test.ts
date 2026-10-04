@@ -11,7 +11,7 @@ function harness(complete = false, stale = false, outage = false) {
     title: 'Toast', ingredients: [{ name: 'bread', quantity: '1', unit: 'slice' }], steps: ['Toast bread.'],
     imageUrl: '', altTitle: '', servings: 1, vibe: 'cozy', roastLine: 'Existing joke', translations: {} as any };
   const dictionary = Object.fromEntries(languages.recipeTexts(recipe).map(text => [text, text]));
-  recipe.translations = complete ? { en: dictionary, fr: dictionary, pending: false, version: 2 } : { en: {}, fr: {}, pending: true, version: 2 };
+  recipe.translations = complete ? { en: dictionary, fr: dictionary, pending: false, version: 3 } : { en: {}, fr: {}, pending: true, version: 3 };
   const jobs: (() => Promise<void>)[] = [], writes: any[] = [], leases = new Set<string>();
   let generations = 0, roasts = 0;
   const dependencies: Record<string, unknown> = {
@@ -26,7 +26,7 @@ function harness(complete = false, stale = false, outage = false) {
       if(leases.has(key)) return false; leases.add(key); return true;
     } },
     './ai': { roastRecipe: async () => { roasts++; return 'Generated joke'; } },
-    './translate': { prepareRecipeLanguages: async () => { generations++; if(outage) throw new Error('fixture outage'); return { en: dictionary, fr: dictionary, pending: false, version: 2 }; } },
+    './translate': { prepareRecipeLanguages: async () => { generations++; if(outage) throw new Error('fixture outage'); return { en: dictionary, fr: dictionary, pending: false, version: 3 }; } },
   };
   const exports: any = {};
   runInContext(transpileModule(readFileSync('src/lib/recipe-enrichment.ts', 'utf8'), {

@@ -73,7 +73,7 @@ fun chefDescription(level: Int) = when (level) { 2 -> R.string.chef_description_
     LaunchedEffect(chefId) { vm.chef(chefId) }
     val profile = state.chefProfile?.takeIf { it.id == chefId }
     LazyColumn(contentPadding = PaddingValues(KitchenGutter), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        if (profile == null) item { SmallNote(stringResource(if (state.busy) R.string.loading else R.string.error_missing)); if (!state.busy) TextButton(onClick = { vm.chef(chefId) }) { Text(stringResource(R.string.retry)) } }
+        if (profile == null) item { SmallNote(stringResource(if (state.busy) R.string.loading else R.string.error_missing)); if (!state.busy) KitchenTextButton(onClick = { vm.chef(chefId) }) { Text(stringResource(R.string.retry)) } }
         if (profile != null) {
             item { Text(stringResource(R.string.chef_kitchen_name, profile.username), style = MaterialTheme.typography.headlineMedium); Spacer(Modifier.height(12.dp)); ChefProgressTile(profile.chef, state.me?.levels ?: emptyList(), profile.username) }
             item { Text(stringResource(R.string.shared_recipes), style = MaterialTheme.typography.titleLarge); SmallNote(stringResource(R.string.friend_kitchen_privacy)) }
@@ -84,7 +84,7 @@ fun chefDescription(level: Int) = when (level) { 2 -> R.string.chef_description_
 }
 
 @Composable fun RecipeResultRow(recipe: Recipe, language: String, open: () -> Unit) {
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).clickable(onClick = open).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).kitchenClickable(onClick = open).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         RecipePhoto(recipe, Modifier.size(80.dp)); Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) { Text(recipe.text(recipe.title, language), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis); SmallNote(if (recipe.owned) vibeLabel(recipe.vibe) else stringResource(R.string.shared_by, recipe.sharedBy)) }; Icon(Icons.Outlined.ChevronRight, null)
     }
 }
@@ -98,9 +98,9 @@ fun chefDescription(level: Int) = when (level) { 2 -> R.string.chef_description_
     val answers = helpAnswers(displayLanguage(state)); var expanded by rememberSaveable { mutableStateOf<Set<Int>>(emptySet()) }; val context = LocalContext.current
     LazyColumn(contentPadding = PaddingValues(KitchenGutter), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { RecipePhoto(Recipe(vibe = "cozy"), Modifier.fillMaxWidth().height(160.dp)) }
-        items(answers.size) { index -> val row = answers[index]; Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) { Column(Modifier.fillMaxWidth().padding(16.dp)) { Row(Modifier.fillMaxWidth().clickable { expanded = if (index in expanded) expanded - index else expanded + index }.heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) { Text(row.question, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium); Icon(if (index in expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null) }; if (index in expanded) { Spacer(Modifier.height(12.dp)); Text(row.answer) } } } }
-        item { OutlinedButton(onClick = { context.startActivity(android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse("mailto:waelfezari@gmail.com"))) }) { Text(stringResource(R.string.contact_support)) } }
-        item { OutlinedButton(onClick = {
+        items(answers.size) { index -> val row = answers[index]; Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainerLow) { Column(Modifier.fillMaxWidth().padding(16.dp)) { Row(Modifier.fillMaxWidth().kitchenClickable { expanded = if (index in expanded) expanded - index else expanded + index }.heightIn(min = 44.dp), verticalAlignment = Alignment.CenterVertically) { Text(row.question, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium); Icon(if (index in expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null) }; if (index in expanded) { Spacer(Modifier.height(12.dp)); Text(row.answer) } } } }
+        item { KitchenOutlinedButton(onClick = { context.startActivity(android.content.Intent(android.content.Intent.ACTION_SENDTO, android.net.Uri.parse("mailto:waelfezari@gmail.com"))) }) { Text(stringResource(R.string.contact_support)) } }
+        item { KitchenOutlinedButton(onClick = {
             val sample = "Tomato toast\nServes 1\nIngredients: 1 slice bread, 1 tomato, salt to taste\nSteps: Toast bread. Slice tomato. Put tomato on toast and season."
             context.getSystemService(android.content.ClipboardManager::class.java).setPrimaryClip(android.content.ClipData.newPlainText("Recipe Buddy", sample))
             android.widget.Toast.makeText(context, context.getString(R.string.example_copied), android.widget.Toast.LENGTH_SHORT).show()
@@ -133,7 +133,7 @@ fun chefDescription(level: Int) = when (level) { 2 -> R.string.chef_description_
         if (state.searchCompleted && submitted.isNotBlank() && state.searchResults.isEmpty() && answers.isEmpty() && destinations.isEmpty()) item { KitchenEmpty(R.string.no_search_results, R.drawable.kitchen_lazy) }
         items(state.searchResults, key = { it.id }) { recipe -> RecipeResultRow(recipe, language) { open(recipe) } }
         items(answers) { answer -> KitchenPanel {
-            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { expanded = if (answer.question in expanded) expanded - answer.question else expanded + answer.question }, verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).kitchenClickable { expanded = if (answer.question in expanded) expanded - answer.question else expanded + answer.question }, verticalAlignment = Alignment.CenterVertically) {
                 Text(answer.question, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 Icon(if (answer.question in expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null)
             }
@@ -151,12 +151,12 @@ fun chefDescription(level: Int) = when (level) { 2 -> R.string.chef_description_
         LazyColumn(contentPadding = PaddingValues(16.dp, 0.dp, 16.dp, 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { Text(stringResource(R.string.share_recipe), style = MaterialTheme.typography.titleLarge); SmallNote(stringResource(R.string.friends_privacy)) }
             if (state.friends.none { it.status == "accepted" }) item { SmallNote(stringResource(R.string.no_friends)) }
-            if (state.recipients == null) item { SmallNote(stringResource(if (state.busy) R.string.loading else R.string.error_offline)); if (!state.busy) TextButton(onClick = { vm.recipients(recipe) }) { Text(stringResource(R.string.retry)) } }
+            if (state.recipients == null) item { SmallNote(stringResource(if (state.busy) R.string.loading else R.string.error_offline)); if (!state.busy) KitchenTextButton(onClick = { vm.recipients(recipe) }) { Text(stringResource(R.string.retry)) } }
             items(state.friends.filter { it.status == "accepted" }, key = { it.id }) { friend -> val shared = state.recipients?.any { it.recipientId == friend.friend.id } == true
-                ListItem(headlineContent = { Text(friend.friend.username) }, supportingContent = { Text(stringResource(if (shared) R.string.can_view_recipe else R.string.not_shared)) }, trailingContent = { TextButton(onClick = { if (shared) revoke = friend else vm.toggleShare(recipe, friend.friend.id, true) {} }, enabled = !state.busy && state.recipients != null) { Text(stringResource(if (shared) R.string.revoke else R.string.share)) } })
+                ListItem(headlineContent = { Text(friend.friend.username) }, supportingContent = { Text(stringResource(if (shared) R.string.can_view_recipe else R.string.not_shared)) }, trailingContent = { KitchenTextButton(onClick = { if (shared) revoke = friend else vm.toggleShare(recipe, friend.friend.id, true) {} }, enabled = !state.busy && state.recipients != null) { Text(stringResource(if (shared) R.string.revoke else R.string.share)) } })
             }
             state.error?.let { item { ErrorNotice(it, vm::clearError, vm::clearError) } }
         }
     }
-    revoke?.let { friend -> KitchenAlertDialog(onDismissRequest = { revoke = null }, title = { Text(stringResource(R.string.stop_sharing)) }, text = { Text(stringResource(R.string.stop_sharing_note, friend.friend.username)) }, confirmButton = { TextButton(onClick = { vm.toggleShare(recipe, friend.friend.id, false) { revoke = null } }, enabled = !state.busy) { Text(stringResource(R.string.revoke)) } }, dismissButton = { TextButton(onClick = { revoke = null }) { Text(stringResource(R.string.cancel)) } }) }
+    revoke?.let { friend -> KitchenAlertDialog(onDismissRequest = { revoke = null }, title = { Text(stringResource(R.string.stop_sharing)) }, text = { Text(stringResource(R.string.stop_sharing_note, friend.friend.username)) }, confirmButton = { KitchenTextButton(onClick = { vm.toggleShare(recipe, friend.friend.id, false) { revoke = null } }, enabled = !state.busy) { Text(stringResource(R.string.revoke)) } }, dismissButton = { KitchenTextButton(onClick = { revoke = null }) { Text(stringResource(R.string.cancel)) } }) }
 }

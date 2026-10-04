@@ -29,7 +29,7 @@ private val Dark = darkColorScheme(primary = Color(0xFF85B67B), onPrimary = Colo
 @Composable fun KitchenTheme(theme: String = "system", content: @Composable () -> Unit) {
     val dark = theme == "dark" || theme == "system" && isSystemInDarkTheme()
     val headings = FontFamily(Font(R.font.bricolage, FontWeight.Bold))
-    MaterialTheme(colorScheme = if (dark) Dark else Light, shapes = Shapes(
+    KitchenMotion { MaterialTheme(colorScheme = if (dark) Dark else Light, shapes = Shapes(
         extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(16.dp), large = RoundedCornerShape(20.dp), extraLarge = RoundedCornerShape(28.dp)), typography = Typography(
         headlineLarge = TextStyle(fontFamily = headings, fontWeight = FontWeight.Bold, fontSize = 32.sp, lineHeight = 38.sp),
         headlineMedium = TextStyle(fontFamily = headings, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp),
@@ -42,5 +42,5 @@ private val Dark = darkColorScheme(primary = Color(0xFF85B67B), onPrimary = Colo
         bodySmall = TextStyle(fontSize = 12.sp, lineHeight = 18.sp),
         labelLarge = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
         labelMedium = TextStyle(fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
-    ), content = content)
+    ), content = content) }
 }

@@ -20,6 +20,7 @@ export function recipeView(recipe: Recipe): RecipeView {
   return {
     ...recipeSchema.parse(recipe),
     id: recipe.id,
+      ...(recipe.sourceProvenance ? {sourceProvenance:recipe.sourceProvenance as RecipeView['sourceProvenance']} : {}),
     roastLine: recipe.roastLine,
     translations: recipeLanguageSeed({
       ...recipeSchema.parse(recipe),

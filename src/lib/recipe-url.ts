@@ -7,8 +7,9 @@ export function isPublicAddress(address: string) {
   try { return ipaddr.process(address).range() === 'unicast'; } catch { return false; }
 }
 
-export async function recipeUrlText(raw: string, redirects = 0): Promise<{ text: string; imageUrl: string }> {
+export async function recipeUrlText(raw: string, redirects = 0, permittedHosts?: string[]): Promise<ReturnType<typeof recipePage> & { sourceUrl: string }> {
   const url = new URL(raw);
+  if (permittedHosts && !permittedHosts.includes(url.hostname)) throw new Error('Recipe publisher is outside the permitted source set.');
   if (url.protocol !== 'https:' || url.username || url.password || (url.port && url.port !== '443')) {
     throw new Error('Use a public HTTPS recipe URL.');
   }
@@ -41,6 +42,6 @@ export async function recipeUrlText(raw: string, redirects = 0): Promise<{ text:
     const timer = setTimeout(() => req.destroy(new Error('Website timed out. Paste the recipe text instead.')), 6000);
     req.on('close', () => clearTimeout(timer)); req.on('error', reject);
   });
-  if (result.location) return recipeUrlText(result.location, redirects + 1);
-  return recipePage(result.html || '', url.href);
+  if (result.location) return recipeUrlText(result.location, redirects + 1, permittedHosts);
+  return { ...recipePage(result.html || '', url.href), sourceUrl: url.href };
 }

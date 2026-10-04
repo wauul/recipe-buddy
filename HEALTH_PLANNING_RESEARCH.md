@@ -2,7 +2,7 @@
 
 Research date and source access date: **2026-10-03**. Status: product-scoping evidence, not clinical advice or approval to claim medical suitability. No application code changed.
 
-Confirmed direction: Europe and the US; individual adults and households including children. Exact European launch countries remain undecided. France below is an evidence example, not a default market. Europe is not synonymous with the EU: a UK or other non-EU launch requires its own reviewed guidance and legal assessment.
+Scope update, 2026-10-04: France and the US are the confirmed primary release markets, for individual adults and households including children. Expand to other European countries afterward based on integration feasibility, retaining country-specific review and evidence requirements. The sources below were researched/accessed on 2026-10-03; this scope update does not imply a new source review. Europe is not synonymous with the EU: a UK or other non-EU launch requires its own reviewed guidance and legal assessment.
 
 ## 1. Define supported modules rather than promise every condition
 

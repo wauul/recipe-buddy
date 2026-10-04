@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
+import {clearMealDrafts} from '@/lib/meal-drafts';
 import { useTranslation } from './language-provider';
 import { request } from '@/lib/client';
 import legal from '@/lib/legal-content.json';
@@ -26,7 +27,7 @@ export function DeleteAccountForm({ accountId, email }: { accountId?: string; em
         Object.keys(localStorage).filter(key => key.includes(accountId) && (key.startsWith('rb-') || key.startsWith('recipe-buddy:'))).forEach(key => localStorage.removeItem(key));
         sessionStorage.removeItem('rb-browser-import-v1');
       } catch { /* Browser storage restrictions must not prevent sign-out after deletion. */ }
-      setPassword(''); await signOut({ callbackUrl: '/login?deleted=1' });
+      setPassword(''); clearMealDrafts();await signOut({ callbackUrl: '/login?deleted=1' });
     } catch (e) { setError(e instanceof Error ? e.message : 'Please try again.'); setPassword(''); setBusy(false); }
   }}>
     <h2>{fr ? 'Supprimer définitivement' : 'Delete permanently'}</h2><p>{email}</p>

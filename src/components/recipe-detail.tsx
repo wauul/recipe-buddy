@@ -15,8 +15,6 @@ import {
   ArrowLeft,
   Pencil,
   Trash2,
-  Check,
-  CookingPot,
   Users,
   LoaderCircle,
   RefreshCw,
@@ -27,6 +25,7 @@ import { RecipeArt, Vibe } from './recipe-art';
 import { request } from '@/lib/client';
 import { ConfirmDialog } from './confirm-dialog';
 import { RecipeBody } from './recipe-body';
+import { CookingOccasion } from './cooking-occasion';
 export function RecipeDetail({
   recipe: initialRecipe,
   roastEnabled,
@@ -46,7 +45,7 @@ export function RecipeDetail({
   const { t } = useTranslation();
   const read = useContentTranslation([recipe.title]);
   const router = useRouter();
-  const [cooked, setCooked] = useState(cookedToday),
+  const [, setCooked] = useState(cookedToday),
     [busy, setBusy] = useState(false),
     [deleting, setDeleting] = useState(false),
     [error, setError] = useState('');
@@ -108,6 +107,7 @@ export function RecipeDetail({
             </p>
           )}
           <UpdatedDate date={recipe.updatedAt} />
+          {recipe.sourceProvenance && <p className="small-note"><a href={recipe.sourceProvenance.url} target="_blank" rel="noopener noreferrer">{recipe.sourceProvenance.publisher}</a> · {recipe.sourceProvenance.license}</p>}
           <p className="servings">
             <Users aria-hidden="true" size={17} />
             {recipe.servings} {t(recipe.servings === 1 ? 'serving' : 'servings')} <span>•</span>{' '}
@@ -160,21 +160,7 @@ export function RecipeDetail({
             </div>
           )}
           <div className="detail-actions">
-            <button
-              className={`button primary ${cooked ? 'just-cooked' : ''}`}
-              disabled={busy || cooked || roastBusy || translationBusy}
-              aria-busy={busy}
-              onClick={() => action('cook')}
-            >
-              {busy ? (
-                <LoaderCircle aria-hidden="true" size={18} />
-              ) : cooked ? (
-                <Check aria-hidden="true" size={18} />
-              ) : (
-                <CookingPot aria-hidden="true" size={18} />
-              )}
-              {t(busy ? 'Saving cooking day…' : cooked ? 'Cooked today' : 'Mark as cooked')}
-            </button>
+            <CookingOccasion recipeId={recipe.id} servings={recipe.servings} />
             <Link className="button secondary" href={`/recipes/${recipe.id}/edit`}>
               <Pencil aria-hidden="true" size={16} />
               {t('Edit')}

@@ -4,7 +4,8 @@ import { useTranslation } from '@/components/language-provider';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BookOpen, ShoppingBasket, Settings, HelpCircle, LogOut, Users } from 'lucide-react';
+import {clearMealDrafts} from '@/lib/meal-drafts';
+import { BookOpen, ShoppingBasket, CalendarDays, Leaf, LogOut, Users } from 'lucide-react';
 import { Brand } from './brand';
 export function Nav({
   email,
@@ -29,8 +30,8 @@ export function Nav({
             Icon: ShoppingBasket,
           },
           { href: '/friends', label: 'Friends', Icon: Users },
-          { href: '/settings', label: 'Settings', Icon: Settings },
-          { href: '/help', label: 'Help & FAQ', Icon: HelpCircle },
+          { href: '/agenda', label: 'Agenda', Icon: CalendarDays },
+          { href: '/pantry', label: 'Pantry', Icon: Leaf },
         ].map(({ href, label, Icon }) => {
           const active =
             pathname.startsWith(href) || (href === '/friends' && pathname.startsWith('/shared/'));
@@ -48,6 +49,7 @@ export function Nav({
         })}
       </nav>
       <div className="sidebar-note">
+        <Link href="/settings">{t('Settings')}</Link> · <Link href="/help">{t('Help & FAQ')}</Link>
         <p>
           {t('Keep the recipes')}
           <br />
@@ -76,7 +78,7 @@ export function Nav({
           className="icon-button"
           aria-label={t('Sign out')}
           title={t('Sign out')}
-          onClick={() => signOut({ callbackUrl: '/login' })}
+          onClick={() => {clearMealDrafts();void signOut({ callbackUrl: '/login' });}}
         >
           <LogOut aria-hidden="true" size={18} />
         </button>

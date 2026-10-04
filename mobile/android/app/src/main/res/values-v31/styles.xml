@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.RecipeBuddy" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@color/launch_surface</item>
+        <item name="android:windowSplashScreenBackground">@color/launch_surface</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/chef_hat</item>
+    </style>
+</resources>

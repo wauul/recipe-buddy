@@ -14,8 +14,8 @@ android {
         applicationId = "com.recipebuddy.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 5
+        versionName = "0.1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BACKEND_URL", "\"${providers.gradleProperty("backendUrl").getOrElse("https://recipe-buddy-wauul.vercel.app")}\"")
         manifestPlaceholders["appLinkHost"] = providers.gradleProperty("appLinkHost").getOrElse("recipe-buddy-wauul.vercel.app")
@@ -26,6 +26,8 @@ android {
     buildTypes.getByName("debug") {
         // UI reviews can coexist with an installed app without replacing its private data.
         if (providers.gradleProperty("designReview").orNull == "true") applicationIdSuffix = ".design"
+        if (providers.gradleProperty("mealReview").orNull == "true") applicationIdSuffix = ".meals"
+        if (providers.gradleProperty("motionReview").orNull == "true") applicationIdSuffix = ".motion"
         buildConfigField("String", "BACKEND_URL", "\"${providers.gradleProperty("debugBackendUrl").orElse(providers.gradleProperty("backendUrl")).getOrElse("https://recipe-buddy-wauul.vercel.app")}\"")
     }
     val uploadPath = providers.environmentVariable("RECIPEBUDDY_UPLOAD_KEYSTORE").orNull

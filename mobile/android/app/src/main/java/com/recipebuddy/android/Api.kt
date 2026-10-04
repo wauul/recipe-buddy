@@ -26,6 +26,8 @@ class BuddyApi(private val vault: SecureVault) {
     var baseUrl: String = BuildConfig.BACKEND_URL; private set
     fun configure(url: String) {
         val parsed = java.net.URI(url)
+        // Endpoint overrides exist only for instrumented debug tests.
+        require(BuildConfig.DEBUG)
         val debugLocal = BuildConfig.DEBUG && parsed.scheme == "http" && parsed.host in listOf("127.0.0.1", "localhost", "10.0.2.2")
         require((parsed.scheme == "https" || debugLocal) && parsed.host != null && parsed.userInfo == null && parsed.query == null && parsed.fragment == null && (parsed.path.isNullOrBlank() || parsed.path == "/"))
         baseUrl = url.trimEnd('/')
@@ -41,6 +43,9 @@ class BuddyApi(private val vault: SecureVault) {
         val slowRecipeOperation = method in listOf("POST", "PUT") && Regex("^/api/native/v1/recipes(?:/[^/]+(?:/translations)?)?$").matches(path)
         val transport = when {
             slowRecipeOperation -> client.newBuilder().callTimeout(300, TimeUnit.SECONDS).build()
+            // Sync writes carry stable operation IDs and server receipts. A lost
+            // response can replay the identical body without repeating effects.
+            method == "POST" && path == "/api/native/v1/sync" -> client.newBuilder().retryOnConnectionFailure(true).build()
             method == "GET" -> client.newBuilder().retryOnConnectionFailure(true).build()
             else -> client
         }
@@ -111,5 +116,16 @@ class BuddyApi(private val vault: SecureVault) {
     }
     suspend fun logout() {
         session?.let { raw("/api/native/auth/logout", "POST", buildJsonObject { put("refreshToken", it.refreshToken) }.toString(), it.accessToken) }
+    }
+    suspend fun photo(path: String): String = withContext(Dispatchers.IO) {
+        // Refresh through the normal authenticated path first; never put a token in a URL.
+        request("me")
+        val token=session?.accessToken ?: throw ApiFailure(401)
+        client.newCall(Request.Builder().url("$baseUrl/api/native/v1/$path").header("Authorization","Bearer $token").build()).execute().use { response ->
+            if(!response.isSuccessful) throw ApiFailure(response.code)
+            val bytes=response.body?.bytes() ?: throw ApiFailure(502)
+            if(bytes.size>200000 || response.header("Content-Type")!="image/webp") throw ApiFailure(502)
+            "data:image/webp;base64,"+android.util.Base64.encodeToString(bytes,android.util.Base64.NO_WRAP)
+        }
     }
 }

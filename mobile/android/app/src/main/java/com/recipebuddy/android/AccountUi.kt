@@ -42,10 +42,10 @@ const val LEGAL_VERSION = "2026-10-03"
     if (state.me != null && state.me.termsVersion != LEGAL_VERSION) KitchenAlertDialog(onDismissRequest = {}, title = { Text(stringResource(R.string.terms_of_use)) },
         text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.terms_required))
-            TextButton(onClick = { document = "terms" }) { Text(stringResource(R.string.terms_of_use)) }
-            TextButton(onClick = { document = "privacy" }) { Text(stringResource(R.string.privacy_policy)) }
-            Row(Modifier.clickable { accepted = !accepted }, verticalAlignment = Alignment.CenterVertically) { Checkbox(accepted, { accepted = it }); Text(stringResource(R.string.agree_terms), Modifier.weight(1f)) }
-        } }, confirmButton = { TextButton(onClick = vm::acceptTerms, enabled = accepted && !state.busy) { Text(stringResource(R.string.accept)) } }, dismissButton = { TextButton(onClick = vm::logout, enabled = !state.busy) { Text(stringResource(R.string.sign_out)) } })
+            KitchenTextButton(onClick = { document = "terms" }) { Text(stringResource(R.string.terms_of_use)) }
+            KitchenTextButton(onClick = { document = "privacy" }) { Text(stringResource(R.string.privacy_policy)) }
+            Row(Modifier.kitchenClickable { accepted = !accepted }, verticalAlignment = Alignment.CenterVertically) { Checkbox(accepted, { accepted = it }); Text(stringResource(R.string.agree_terms), Modifier.weight(1f)) }
+        } }, confirmButton = { KitchenTextButton(onClick = vm::acceptTerms, enabled = accepted && !state.busy) { Text(stringResource(R.string.accept)) } }, dismissButton = { KitchenTextButton(onClick = vm::logout, enabled = !state.busy) { Text(stringResource(R.string.sign_out)) } })
     document?.let { LegalReader(it, displayLanguage(state)) { document = null } }
 }
 
@@ -76,14 +76,14 @@ const val LEGAL_VERSION = "2026-10-03"
             OutlinedTextField(password, { password = it }, label = { Text(stringResource(R.string.password)) }, singleLine = true, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
             Field(confirmation, { confirmation = it }, R.string.confirm_delete_word)
             state.error?.let { if (it == 403) Text(stringResource(R.string.deletion_auth_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) else ErrorNotice(it, {}, vm::clearError) }
-            Button(onClick = { vm.deleteAccount(password); password = "" }, enabled = !state.busy && confirmation == "DELETE", modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.delete_account_confirm)) }
+            KitchenButton(onClick = { vm.deleteAccount(password); password = "" }, enabled = !state.busy && confirmation == "DELETE", modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error, contentColor = MaterialTheme.colorScheme.onError)) { Text(stringResource(R.string.delete_account_confirm)) }
         }
     }
     if (blocks) KitchenBottomSheet(onDismissRequest = { blocks = false }) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(KitchenGutter, 0.dp, KitchenGutter, 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(stringResource(R.string.blocked_chefs), style = MaterialTheme.typography.titleLarge)
             if (state.blocked.isEmpty()) SmallNote(stringResource(R.string.blocked_empty))
-            state.blocked.forEach { chef -> Row(verticalAlignment = Alignment.CenterVertically) { Text(chef.username, Modifier.weight(1f)); TextButton(onClick = { vm.block(chef.id, true) }, enabled = !state.busy) { Text(stringResource(R.string.unblock)) } } }
+            state.blocked.forEach { chef -> Row(verticalAlignment = Alignment.CenterVertically) { Text(chef.username, Modifier.weight(1f)); KitchenTextButton(onClick = { vm.block(chef.id, true) }, enabled = !state.busy) { Text(stringResource(R.string.unblock)) } } }
         }
     }
 }
@@ -98,7 +98,7 @@ const val LEGAL_VERSION = "2026-10-03"
             SmallNote(stringResource(R.string.report_note))
             Field(reason, { reason = it.take(1000) }, R.string.report_reason, single = false)
             state.error?.let { ErrorNotice(it, {}, vm::clearError) }
-            Button(onClick = { vm.report(recipeId, chefId, reason) { close(); android.widget.Toast.makeText(context, context.getString(R.string.report_sent), android.widget.Toast.LENGTH_SHORT).show() } }, enabled = !state.busy && reason.trim().length >= 5, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.report)) }
+            KitchenButton(onClick = { vm.report(recipeId, chefId, reason) { close(); android.widget.Toast.makeText(context, context.getString(R.string.report_sent), android.widget.Toast.LENGTH_SHORT).show() } }, enabled = !state.busy && reason.trim().length >= 5, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.report)) }
         }
     }
 }

@@ -1,10 +1,11 @@
 import { load } from 'cheerio';
 
 // Read real website metadata rather than asking the model to invent image URLs.
-export function recipePage(html: string, pageUrl: string) {
+export function recipePage(html: string, pageUrl: string): { imageUrl: string; text: string; structuredRecipe: Record<string, unknown> | null } {
   const $ = load(html);
   const candidates: string[] = [];
   let structuredText = '';
+  let structuredRecipe: Record<string, unknown> | null = null;
   function images(value: unknown): void {
     if (typeof value === 'string') candidates.push(value);
     else if (Array.isArray(value)) value.forEach(images);
@@ -18,6 +19,7 @@ export function recipePage(html: string, pageUrl: string) {
       images(item.image);
       // Structured recipe content avoids menus, ads and unrelated recommendations.
       if (!structuredText && Array.isArray(item.recipeIngredient) && item.recipeInstructions) {
+        structuredRecipe = item;
         structuredText = JSON.stringify({ title: item.name, servings: item.recipeYield, ingredients: item.recipeIngredient, steps: item.recipeInstructions });
       }
     }
@@ -36,5 +38,5 @@ export function recipePage(html: string, pageUrl: string) {
     } catch { /* Try the next image, or keep the illustrated fallback. */ }
   }
   $('script,style,nav,header,footer,noscript,iframe').remove();
-  return { imageUrl, text: (structuredText || $('article').text() || $('main').text() || $('body').text()).replace(/\s+/g, ' ').trim().slice(0, 16000) };
+  return { imageUrl, structuredRecipe, text: (structuredText || $('article').text() || $('main').text() || $('body').text()).replace(/\s+/g, ' ').trim().slice(0, 16000) };
 }

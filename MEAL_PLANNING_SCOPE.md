@@ -1,13 +1,13 @@
 # Recipe Buddy: connected meal planning, health support, and pantry
 
 Status: product scope draft for review, not an implemented or clinically validated capability.
-Updated: 2026-10-03.
+Updated: 2026-10-04.
 
 ## Confirmed direction
 
 Support quick cooking suggestions and meticulous weekly planning through the same system. Connect planned meals, pantry inventory, shopping, cooking occasions, food actually eaten, and optional friends posts. Health support and pantry accuracy are core release requirements.
 
-The intended audience includes individuals and households with adults and children. The intended markets are Europe and the United States. Europe must become an explicit supported-country list: an EU rule, a national dietary guideline, and guidance applicable in the UK are not interchangeable. Language, selected guidance country, product market, units, and calendar timezone are separate settings.
+The intended audience includes individuals and households with adults and children. France and the United States are the primary release markets, including Pro grocery basket preparation and confirmed checkout. Expand to the rest of Europe afterward, prioritizing countries by real integration feasibility. Other European countries are not a prerequisite for the first France/US release. Europe must become an explicit supported-country list: an EU rule, a national dietary guideline, and guidance applicable in the UK are not interchangeable. Language, selected guidance country, product market, units, currency, and calendar timezone are separate settings.
 
 Comprehensive means every supported situation has specified behavior, reviewed rules, sufficient data, uncertainty handling, and verification. Zero-error performance and universal medical suitability cannot be promised. Supported-country, age, and health-condition coverage must be published and maintained.
 
@@ -130,6 +130,38 @@ Combine deficits across selected planned meals after portion scaling, pantry all
 - Show ready, missing, and check-quantity statuses with drill-down; these reflect ingredient readiness, not medical suitability.
 - Define behaviour for partially purchased items, purchased excess, substitutions, returns, shared household editing, and offline updates.
 
+## Pro grocery basket preparation and confirmed checkout
+
+Confirmed interaction: prepare the selected grocery basket automatically, then require the user's final review and order confirmation. This is not permission to place unattended orders. Recipe Buddy Pro pays for supported basket preparation; ordinary shopping lists/manual shopping and core health checks remain available to everyone.
+
+### Selection, matching, and review
+
+Provide a separate 'Buy online' selection and Pro entry point on Shopping. Existing purchased/completed checkmarks must retain their meaning. Select the items and required amounts, retailer/store and service location, delivery or pickup, and available slot. Use real catalogue, stock, package, pricing, and checkout data from an authorized integration. Distinguish consumer-app shoppable-list handoff, actual product-cart creation, and order-status access in a provider/country capability manifest. Where only handoff is supported, clearly label that capability and perform final product review/confirmation at the retailer. A prepared/exported basket is not an order.
+
+Match ingredient requirements to actual products and package counts, preserving preferences such as brand, permitted product variants, budget, and quantity surplus. Show required ingredient quantity versus purchased package amount, unfulfilled items, product labels/evidence, prices or clearly identified estimates, fees, applicable minimum order, slot, and any retailer-required authorization range. For example, a 750 g rice requirement may need two 500 g packages; the remaining 250 g becomes surplus stock after receipt. Cost/effort preferences cannot override supported restrictions. Missing ingredient-label evidence or an unresolved product match requires review rather than a suitability claim.
+
+Allow removal/product changes and item-specific substitution preferences, then recheck resulting products using the same supported health rules. A retailer-proposed substitution does not inherit the original product's assessment. For items with unresolved health-relevant information, choose a reviewed alternative or a no-substitution/unfulfilled path where supported. Do not assume 'no substitution' requests can be enforced by every provider; show actual integration capabilities and the remaining need to check delivered products.
+
+### Final confirmation and order integrity
+
+The user reviews the current basket, fulfilment details, and retailer's total/authorization terms before the final order action. Provider-required sign-in, payment authentication, or checkout steps may follow; one final purchase decision does not guarantee one physical tap on every retailer. Use provider-supported account linking and payment/checkout flows; keep retail credentials and payment details out of ordinary Recipe Buddy storage/logs.
+
+Use a basket snapshot/version and freshness check. Price, product, slot, profile, quantity, or restriction changes invalidate the relevant review and must be surfaced before confirmation; do not silently approve material changes. Protect order creation against repeated taps, retries, timeouts, and concurrent household checkout. An uncertain response is 'confirmation pending/unknown' until reconciled with authoritative provider status, not permission to place another order. A redirect, open browser tab, or client success screen is not proof of purchase. Store provider/order identifiers and reconcile through supported signed callbacks or authenticated status retrieval; offer user reconciliation when the provider has no reliable order-status access.
+
+### Receipt, pantry, and planning integration
+
+Separate prepared basket, retailer handoff, confirmed order, fulfilment, received items, and cancelled/refunded items. Track ordered products as incoming where status is known, avoiding a duplicate suggestion to order the same needs again without presenting them as usable pantry stock.
+
+Only received actual products/amounts replenish usable pantry, through an idempotent receipt reconciliation. Handle partial fulfilment, weighted final amounts, changed packages, substitutions, damaged/missing items, and returns/refunds without inventing stock. Refund alone does not prove the goods were physically removed. Preserve package/product metadata and assess substitutes against current restrictions. A household shopper can confirm receipt manually when provider evidence is insufficient.
+
+Recalculate future readiness/shopping after receipt or an actual cancellation/shortfall, and offer Pro week rescue where appropriate. Plan changes do not automatically cancel a placed order, reverse its charge, or add a new order. Provide the actual available retailer tracking/cancellation/support actions; label unavailable capabilities. Pro expiration retains order history, receipt reconciliation, existing pantry, and access to retailer support, while new Pro basket preparation follows the entitlement policy.
+
+### Integration and verification requirements
+
+Deliver the initial supported retailer/provider integrations for France and the US as the primary markets, with explicit availability by retailer/store and service location; country support does not mean every retailer or postcode is covered. Expand to other European countries according to practical access/partner approval, catalogue/product evidence, permitted cart creation, checkout, substitution controls, sandbox, status/cancellation, provider fees, localization, and operational support. Use these criteria to document a ranked expansion backlog rather than promising Europe-wide ordering. Ease of implementation does not reduce the health, permission, or checkout verification requirements. Instacart's [shopping-list documentation](https://docs.instacart.com/developer_platform_api/guide/concepts/shopping_list) illustrates a retailer checkout handoff; it does not by itself establish Recipe Buddy's access to every commerce capability.
+
+Test selected versus purchased items, package rounding, blocked/ambiguous products, substitutions, stale pricing/slots, unauthorized Pro, interrupted checkout, duplicate requests, pending confirmation, provider failures, partial receipt, returns, manual receipt, unchanged pantry before arrival, changed plans after ordering, and receipt replay/concurrent household changes. Use sandbox/test orders where supported. Paid services, live purchases, and production release need their own actual authorization; this scope defines software behavior, not authorization to spend.
+
 ## Agenda and cooking follow-up
 
 Quick suggestions and weekly planning use the same eligibility and ranking. Users select the slots to fill, desired planning/shopping window, diners, recurring availability, and locked meals. Handle workday meals, eating out, repeated favourites, batch cooking, and leftover meals. Suggested plans are editable before acceptance.
@@ -137,6 +169,67 @@ Quick suggestions and weekly planning use the same eligibility and ranking. User
 Marking cooked requires the servings prepared and saves the cooking occasion together with automatic pantry consumption independently of completing the optional follow-up. The servings value is prefilled from the currently scaled recipe or planned meal. The follow-up can attach a photo, personal rating, private comment, actual ingredient changes/yield, and an explicit 'also ate this' record with editable date/meal. Subsequent amount edits reconcile the original pantry effects. Eating leftovers links back to the source batch. Distinguish an external meal description from a newly saved recipe.
 
 Use local calendar dates with explicit timezone behaviour for travel, backdated entries, and daylight-saving boundaries. Support multiple cooking/eating occasions on one day. Repeated taps and replayed offline operations must not duplicate cooking, consumption, stock deductions, or purchases.
+
+## Kitchen check-in, preparation agenda, and Pro week rescue
+
+### Kitchen check-in: available to everyone
+
+Provide one optional, short check-in that brings unresolved meal, pantry, leftover, and schedule information together. Prioritize a few relevant questions rather than asking users to inventory the entire kitchen. The entry point must be discoverable from the agenda/pantry, with optional user-controlled reminders; a current account needs no check-in. Avoid streak penalties or mandatory daily completion.
+
+- Confirm which planned meals were actually eaten, by whom, or replace them with quick external food entries, including snacks and drinks. Skipping a question leaves it unknown; a missed plan is not evidence of skipping food.
+- Confirm uncertain quantities or stale pantry entries, preserving exact versus approximate information. Provide direct add/correct/discard actions without inventing amounts.
+- Confirm leftovers and remaining servings from known cooking batches, without rededucting raw ingredients.
+- Update upcoming diners, available cooking time, work/workout/rest context, eating-out plans, and other user-selected practical changes.
+
+Prefill from existing records and request only missing information. Existing cooking, eating, purchase, and pantry events must not be duplicated by a check-in. Persist answers incrementally and preserve unfinished work across interruptions. Corrections flow into recommendations and shopping through the same underlying operations. Household planners see only information their role permits; private health or another adult's food diary is not exposed through the check-in. Clinical profile changes belong in the explicit profile flow, not inferred from these answers.
+
+### Preparation agenda: available to everyone
+
+Let users attach preparation tasks to meals or a batch: task description, active time, passive waiting time where known, planned time, dependencies, assigned household person where allowed, and optional reminder. Provide agenda/checklist views and edit, move, complete, dismiss, and undo actions. Surface practical preparation separately from eating and cooking records.
+
+Populate tasks from actual recipe instructions/metadata or user input. Missing timing, storage, thawing, or temperature details remain missing; generating tasks must not invent food-safety instructions. A task requiring a reviewed safety rule uses its appropriate country/age/health evidence and uncertainty handling. Preparation completion changes inventory only when it explicitly records actual ingredient use through the shared consumption mechanism. Recording final cooking must not deduct those already consumed ingredients again. Completing a prep task alone does not mark a meal eaten.
+
+Meal edits/moves/removal update linked task dates/dependencies with a reviewable result, preserving completed tasks and user-authored overrides. Shared tasks and opt-in reminders follow household permissions, locale/timezone changes, notification consent, and device sync. Notifications avoid private health details. Handle missed/overdue tasks as recoverable planning changes, not assumed preparation or food-safety clearance.
+
+### Rescue my week Pro: enhanced adaptive replanning
+
+All users retain ordinary manual meal moves/swaps, portion editing, correction, check-in, preparation tasks, and shopping recalculation. Pro adds automatic multi-day rescue proposals when the week changes, for example after missed cooking occasions, schedule changes, additional diners, or an explicit request. Use the existing server-verified Pro entitlement and retain accepted plans/tasks after membership expires. Health checks, safe correction, and access to existing records are common capabilities, not paid safeguards.
+
+The enhanced rescue considers purchased groceries and actual pantry quantities, batch leftovers, date/storage information with uncertainty, existing eating history, selected diners and supported health restrictions, preferences, locked meals, shopping window, practical availability, equipment, and existing preparation tasks. It treats already purchased items as on-hand only when their recorded status/quantity supports that; it never assumes a checked item has an exact amount. Past unlogged meals remain unknown.
+
+Offer up to three feasible alternatives with explicit objectives: use purchased food/leftovers, reduce active cooking effort, or reduce additional groceries. Explain tradeoffs and estimates from known data without claiming global optimality or inventing prices, effort, shelf life, or dietary intake. If fewer alternatives are valid, show the actual options and missing information. Ask a small relevant clarification where it can resolve uncertainty. Internet recipe discovery remains a separate Pro action; a rescue must not silently import external recipes or trigger unbounded paid discovery calls.
+
+Each proposal previews changed meals/dates/portions/diners, retained locked meals, ingredient allocations, additional/removed unpurchased shopping needs, and changed preparation tasks. Preserve completed purchases, manually added shopping items, completed cooking/eating events, and other household members' protected records. Support accept-all, selectively keep/replace changes, and cancel; revalidate any user-adjusted proposal before acceptance.
+
+Acceptance updates the future plan and associated allocations/generated shopping/preparation tasks consistently. Replanning itself does not physically consume pantry, reverse a purchase, publish a post, or create an eating record. Detect profile/pantry/plan/rule changes while previewing, then refresh or request review before applying stale changes. Use idempotent acceptance and reversible plan changes; undo reconciles only the rescue's remaining effects and preserves subsequent unrelated activity, with explicit conflict handling.
+
+Verify interrupted check-ins, repeated confirmations, private household data, known/unknown stock corrections, snacks/drinks, leftovers, preparation dependencies, timezone/reminder changes, partial ingredient use before cooking, stale proposals, locked meals, purchased ingredients, manual groceries, overlapping household edits, partial acceptance, cancellation/undo, inactive Pro, provider outages, and unchanged health restrictions across every rescue alternative.
+
+## Use what I have and Pro internet discovery
+
+Provide an explicit 'Use what I have' mode: users select available ingredients or pantry items to prioritize, then receive existing owned/currently authorized shared recipe matches. Distinguish ingredient presence from sufficient quantities, show extra shopping needs, and apply the same supported health checks as the general planner.
+
+Add a Pro 'Find new recipes online' action targeting three distinct importable internet recipes per request. Search actual sources using a configured, permitted discovery provider; an AI-generated title or URL is not an internet result. Retrieve and parse the candidate's actual recipe before recommending it, prioritizing structured Recipe data and retaining source URL, publisher/author, quantities/yield, instructions, provenance, and any unresolved fields. Respect provider/publisher reuse terms, access restrictions, and image rights; attribution alone is not authorization to reproduce content. Include only sources whose recipe can actually be imported under the chosen integration. Show a useful fewer-results state if fewer than three candidates meet requirements; never fill the remaining places with conflicted, unverifiable, invented, or non-importable recipes.
+
+Screen candidates against the selected diners' supported restrictions, product/preparation evidence, country guidance, preferences, recent actual meals, upcoming plans, available ingredients/quantities, practical time/equipment, and current daily context. Rank eligible candidates and explain the reasons without presenting unsupported medical suitability. Show source, supported time/servings, pantry coverage, missing ingredients, and any assessment limitations. Apply identical health safeguards to free and Pro features; Pro pays for expanded discovery, not weaker or exclusive safety checks.
+
+Selecting 'Import this recipe' automatically saves only the chosen, already parsed recipe privately to the account, opens it, and offers planning/cooking actions. Use a snapshot tied to the candidate and relevant profile/rule versions so the imported recipe is the one assessed; recheck when those versions or candidate freshness change. Routine valid imports need no extra editor/save step. Missing critical recipe data must produce an explicit review-needed state, not invented quantities or instructions. Deduplicate repeated selections by account/source/candidate and preserve attribution. Importing alone does not deduct pantry stock, record eating, create a public post, or silently add the dish to the agenda. Imported recipes then participate in ordinary planning, shopping, cooking, and automatic consumption. Imported recipes stay owned and usable after Pro expires, consistent with the integration's content rights.
+
+Reuse the existing server-verified Pro entitlement system for discovery/import access on web and Android, with existing purchase/restore behavior retained. A client-side lock is insufficient. Use bounded retrieval, explicit timeouts, configurable quotas, provider-cost controls, account-scoped personalized caching, and honest outage/setup states. Search providers should receive ingredient/context queries minimized to their purpose; keep raw diagnoses, identities, and the full diary on the server where possible. Handle source content as untrusted data and preserve safe URL-fetch/redirect protections. Content caches and personalized-result caches have separate privacy/expiry policies.
+
+Verification must cover: three real eligible candidates; fewer-than-three and no-match outcomes; actual successful private one-tap import; duplicated selection/retry; source access failures and changed recipes; profile changes between discovery and import; prohibited ingredients in compound ingredients; missing yield/quantities; revoked Pro and a retained previously imported recipe; provenance/rights handling; and denied or failed provider calls. Provider selection, allowed-source coverage, credentials, pricing/quotas, and actual import rights are concrete integration decisions, not assumed capabilities.
+
+## Notification system
+
+Add an included shared notification capability: a persistent in-app inbox, optional Android local reminders/remote push, and optional browser push where supported. Preserve existing cooking timer notifications. Calendar handoff may remain an alternative but is not a substitute for native app delivery. Implement only event integrations that actually exist, with stable hooks for later features.
+
+Categories include selected meal/preparation reminders, optional relevant kitchen check-ins, user-enabled uncertain pantry/leftover/date prompts, verified shopping/order status, authorized household assignments, opt-in friends activity/digests, and outcomes of explicitly requested rescue/discovery actions. Notifications neither execute paid requests/purchases nor confirm eating, preparation, stock use, or medical profile changes. Core notification controls and existing order/accepted-plan history remain available after Pro expires.
+
+Request permissions contextually; provide category controls, reminder cadence/timezone, quiet hours, snooze, preview choices, and clear per-device/browser OS permission status alongside synchronized account preferences. Optional social/engagement alerts require opt-in. Use privacy-minimized localized previews, current authorized deep links, accessible inbox/unread controls, and no diagnoses/child/private household details in generic lock-screen or provider payloads. A skipped/dismissed reminder is not evidence of an answered question or completed task.
+
+Use committed source events, persistent scheduling/outbox records, idempotent deduplication, bounded retry/fan-out, event expiry, grouping/caps, and relevance/access/preference checks at dispatch. Cancel/reschedule moved/completed/deleted task alerts and resolved check-in/stock prompts. Avoid duplicate local/remote delivery and unintended household-wide notifications. Define token/subscription rotation, authenticated registration, logout/deletion/access revocation, secure callback handling where applicable, and actual provider/scheduler/browser coverage. Delivery precision and foreground/background limitations must be verified rather than promised.
+
+Verification covers denied/revoked permission, foreground/background, process restart/reboot where supported, timezone/DST/quiet hours, multiple devices, repeated event/worker replay, stale tasks, private previews, account switching, deep-link authorization, provider outages, invalid tokens, Pro lapse, inbox accessibility, and live observed delivery on owner-controlled test devices. See [the complete notification prompt](feature-prompts/07_NOTIFICATIONS.md) for implementation, performance, security, and deployment acceptance criteria.
 
 ## Privacy and trustworthy operation
 
@@ -163,17 +256,22 @@ These are requirements, not evidence they have already passed:
 11. Child profiles cannot inherit an adult weight-loss goal, and caregiver/adult-health permissions prevent inappropriate access.
 12. Friend/household removal and health-data deletion revoke access and remove retained data according to the defined policy.
 13. Mobile and desktop flows remain usable with accessible controls, low-detail logging, household changes, outages, and recovery.
+14. A kitchen check-in reconciles uncertain records incrementally without duplicating cooking/eating/purchase events, treating skipped answers as unknown, or exposing another household member's private data.
+15. A preparation task can move with its meal, preserve completed work, and record actual ingredient use once; final cooking deducts only the remaining consumption. Missing safety/timing details are not invented.
+16. Pro week rescue produces reviewable feasible alternatives from purchased stock, leftovers, and changed availability, retains locked meals and health restrictions, updates only accepted future plan effects, and preserves manual shopping/completed purchases. Partial acceptance, stale-state revalidation, retries, and undo after unrelated changes remain consistent. Basic editing/check-in/preparation and existing accepted plans remain accessible without Pro.
+17. Pro basket preparation uses selected unpurchased items, actual products/packages, supported restriction checks, and a reviewed retailer checkout flow with a final purchase confirmation. Handoff and uncertain checkout are not reported as placed orders; retries do not duplicate orders. Pantry grows only from reconciled actual receipt, including partial fulfilment/substitutions, and receipt replay does not duplicate stock. Provider/location limitations and payment authentication are represented truthfully.
 
 Add monitored recommendation failures, correction rates, pantry discrepancies, logging effort, and recommendation acceptance to operational quality measures. Establish incident handling and the ability to disable a faulty health capability without disabling the private recipe box.
 
 ## Decisions still requiring a concrete specification
 
-- Exact European countries and order of validation, alongside the US; travel/product-market rules.
+- France and the US are the confirmed primary markets. Choose subsequent European countries and validation order using actual integration feasibility; define travel/product-market rules.
 - Country-by-age-by-condition capability matrix, especially young children, infant feeding, combined conditions, and clinician-prescribed plans.
 - Qualified reviewer roles, budget, source licensing, review schedule, and regulatory intended purpose. Disease-related intended use needs actual assessment before claims or release.
 - Whether precise nutrition/therapeutic target support is included and which data quality threshold makes it usable.
 - Household roles, who can manage each person's profile, and whether child accounts are ever permitted.
 - Pantry input methods at launch, package-date handling, quantity conversion coverage, and offline conflict policy.
 - Nutrition/label/product data providers and fallbacks, plus the actual supported ingredient catalogue.
+- Grocery-commerce providers and initial retailer/service-location coverage within France and the US, actual catalogue/checkout/status/substitution capabilities, access terms, fees, sandbox, support responsibilities, and ranked European expansion opportunities.
 
 Related research: [Health planning research](HEALTH_PLANNING_RESEARCH.md). Treat these recommendations as a scope draft, not medical instructions or a compliance certification.

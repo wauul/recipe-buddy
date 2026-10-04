@@ -40,6 +40,82 @@ model User {
   chefRoasts ChefRoast[]
   syncReceipts NativeSyncReceipt[]
   kitchenState NativeKitchenState[]
+  mealKitchens MealKitchen[]
+  mealMemberships MealMember[]
+  mealProfiles MealProfile[]
+  mealPosts MealPost[]
+  privateMealMedia MealMedia[]
+}
+
+model MealKitchen {
+  id String @id
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  version Int @default(0)
+  state Json
+  members MealMember[]
+  profiles MealProfile[]
+  posts MealPost[]
+  receipts MealReceipt[]
+  media MealMedia[]
+}
+model MealMedia {
+  kitchenId String
+  occasionId String
+  actorId String
+  photo Bytes
+  kitchen MealKitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  @@id([kitchenId, occasionId])
+}
+model MealMember {
+  kitchenId String
+  userId String
+  role String
+  kitchen MealKitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([kitchenId, userId])
+}
+model MealProfile {
+  id String @id
+  kitchenId String
+  managerId String
+  version Int @default(1)
+  data Json
+  kitchen MealKitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  manager User @relation(fields: [managerId], references: [id], onDelete: Cascade)
+  @@index([kitchenId])
+}
+model MealReceipt {
+  kitchenId String
+  operationId String
+  actorId String
+  digest String
+  response Json
+  createdAt DateTime @default(now())
+  kitchen MealKitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  @@id([kitchenId, operationId])
+}
+model MealPost {
+  id String @id
+  kitchenId String
+  authorId String
+  occasionId String
+  caption String
+  rating Int?
+  photo Bytes?
+  recipeId String?
+  createdAt DateTime @default(now())
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  kitchen MealKitchen @relation(fields: [kitchenId], references: [id], onDelete: Cascade)
+  reactions MealReaction[]
+  @@index([authorId, createdAt, id])
+}
+model MealReaction {
+  postId String
+  userId String
+  post MealPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  @@id([postId, userId])
 }
 
 model NativeSyncReceipt {
@@ -74,6 +150,7 @@ model Recipe {
   roastLine   String          @default("")
   translations Json          @default("{}")
   ingredients Json
+  sourceProvenance Json?
   steps       Json
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @default(now()) @updatedAt

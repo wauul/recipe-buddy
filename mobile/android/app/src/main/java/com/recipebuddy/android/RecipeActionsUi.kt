@@ -60,5 +60,5 @@ import androidx.compose.ui.unit.dp
         leadingContent = { Icon(icon, null, tint = if (destructive) color else MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else .38f)) },
         trailingContent = if (pro) { { ProLabel() } } else null,
         colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(enabled = enabled, role = Role.Button, onClick = action))
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).kitchenClickable(enabled = enabled, role = Role.Button, onClick = action))
 }

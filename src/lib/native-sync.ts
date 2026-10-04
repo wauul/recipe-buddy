@@ -16,7 +16,7 @@ export const syncInput = z.object({
 });
 export function allowedSync(path: string, method: string) {
   const id = '[a-zA-Z0-9_-]{1,64}';
-  return (path === 'recipes' && method === 'POST') ||
+  return (new RegExp(`^meals/activity/${id}/media$`).test(path) && method === 'DELETE') || (path === 'meals' && method === 'POST') || (path === 'meals/activity' && method === 'POST') || (new RegExp(`^meals/activity/${id}$`).test(path) && ['POST','DELETE'].includes(method)) || (path === 'recipes' && method === 'POST') ||
     (new RegExp(`^recipes/${id}$`).test(path) && ['PUT', 'DELETE'].includes(method)) ||
     (new RegExp(`^recipes/${id}/discussion$`).test(path) && ['POST', 'DELETE'].includes(method)) ||
     (new RegExp(`^recipes/${id}/reviews$`).test(path) && ['PUT', 'DELETE'].includes(method)) ||

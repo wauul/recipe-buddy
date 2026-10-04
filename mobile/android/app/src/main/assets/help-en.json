@@ -38,5 +38,25 @@
   {
     "question": "How do cooking days and chef roast mode work?",
     "answer": "Mark a recipe as cooked to count that day. The weekly activity strip counts distinct UTC days from Monday to Sunday. Turn playful recipe roasts off in Settings whenever you like."
+  },
+  {
+    "question": "How do connected cooking, pantry and eating records work?",
+    "answer": "Confirm the actual servings prepared to save cooking and known stock use together. Optional photo, personal rating and private comment can follow. Eating is a separate explicit record for a profile you manage. Corrections reconcile stock; undo restores only the recorded deductions. Leftover eating uses the cooked batch and does not consume raw ingredients again. Share only the fields you explicitly choose with friends."
+  },
+  {
+    "question": "What do kitchen check-in and preparation tasks change?",
+    "answer": "Check-in is optional. Skipped answers remain unknown. Each confirmation saves separately using the usual kitchen operations. Add snacks, drinks, quantities and practical context explicitly. Preparation tasks use your instructions, dependencies and known timing. Completing a task uses stock only when you record actual ingredient quantities. Linked final cooking credits that preparation use once. Calendar reminders are optional handoffs managed by your calendar app; review its timezone and notification settings."
+  },
+  {
+    "question": "Can Recipe Buddy place my grocery order?",
+    "answer": "A prepared list or retailer link is not an order. The US connector is an Instacart development shopping-list handoff and requires approved credentials; France checkout requires an approved retailer partner. No Recipe Buddy store or service location is verified yet. Exact products, prices, fees, slots and substitution controls are reviewed at the retailer. The app stores no retailer login or payment details. Confirm actual orders manually with the retailer reference, then record actual received products and quantities. Incoming goods are not pantry stock, and a refund alone removes no stock."
+  },
+  {
+    "question": "What does Rescue my week Pro do?",
+    "answer": "It previews future meal changes using saved recipes and known stock. You can accept selected changes or cancel. Locked meals and completed events remain protected. Stale previews need refresh. Undo preserves later unrelated activity and reports conflicts. It places no orders, consumes no stock, creates no eating records and silently imports no internet recipes. Unknown time, prices and health evidence remain unknown."
+  },
+  {
+    "question": "How do daily nutrition and therapeutic targets work?",
+    "answer": "Open Cooking & eating and expand Daily nutrition and targets. Copy composition for the actual consumed portion from its label or a named source, leaving unknown nutrients blank. Configure exact target bounds, source, issue and review dates. Children, pregnancy, breastfeeding and medical conditions require targets prescribed by a clinician, which you confirm explicitly; Recipe Buddy does not verify prescriptions or generate doses. Confirm a day only when all meals, snacks and drinks have been recorded. Changes invalidate that confirmation. Below/within/above compares one complete nutrient record with an active target, not a deficiency diagnosis or long-term adequacy assessment. Vitamins and minerals are not yet assessed; qualified clinical validation is pending."
   }
 ]
