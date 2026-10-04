@@ -410,5 +410,5 @@
     <string name="add_friend">Ajouter</string>
     <string name="sync_pending_logout">Des modifications attendent la synchronisation. Connectez-vous avant de vous déconnecter pour les conserver.</string>
     <string name="sync_keep_mine">Conserver ma version</string>
-    <string name="action_loading">En cours…</string>
+    <string name="action_loading">Ça mijote…</string>
 </resources>

@@ -85,13 +85,13 @@ val LocalKitchenMotion = staticCompositionLocalOf { true }
     }
 }
 
-// Immediate feedback for async actions, with a short minimum display to avoid
+// Feedback only while the user is waiting, with a short delay and minimum display to avoid
 // flashing. This never delays the operation or blocks touch/keyboard input.
-@Composable fun BuddyActionIndicator(busy: Boolean) {
+@Composable fun BuddyActionIndicator(waiting: Boolean) {
     var visible by remember { mutableStateOf(false) }
     var started by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(busy) {
-        if (busy) { if (!visible) started = SystemClock.uptimeMillis(); visible = true }
+    LaunchedEffect(waiting) {
+        if (waiting) { if (!visible) delay(180); if (!visible) started = SystemClock.uptimeMillis(); visible = true }
         else if (visible) { delay((400L - (SystemClock.uptimeMillis() - started)).coerceAtLeast(0)); visible = false }
     }
     if (visible) Popup(alignment = Alignment.BottomCenter,

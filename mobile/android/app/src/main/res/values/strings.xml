@@ -410,5 +410,5 @@
     <string name="add_friend">Add friend</string>
     <string name="sync_pending_logout">Some changes are waiting to sync. Connect before signing out to keep them.</string>
     <string name="sync_keep_mine">Keep my version</string>
-    <string name="action_loading">Working…</string>
+    <string name="action_loading">Stirring the pot…</string>
 </resources>

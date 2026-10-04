@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                             else key(state.account) { BuddyNavigation(state, vm); TermsGate(state, vm) }
                         }
                     }
-                    if (!splash) BuddyActionIndicator(state.busy)
+                    if (!splash) BuddyActionIndicator(state.waiting)
                 }
             }
         }

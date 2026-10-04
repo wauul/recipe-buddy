@@ -39,7 +39,7 @@ class NativeMotionTest {
         assertTrue(UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).takeScreenshot(File(dir, "$name.png")))
     }
     private fun render(language: String = "en", theme: String = "light", font: Float = 1f,
-        busy: Boolean = false, splash: Boolean = false, motion: Boolean = true) {
+        busy: Boolean = false, waiting: Boolean = busy, splash: Boolean = false, motion: Boolean = true) {
         val config = Configuration(activity.resources.configuration).apply { setLocale(Locale.forLanguageTag(language)); fontScale = font }
         val localized = ContextThemeWrapper(activity, 0).apply { applyOverrideConfiguration(config) }
         compose.runOnUiThread {
@@ -50,12 +50,13 @@ class NativeMotionTest {
             CompositionLocalProvider(LocalContext provides localized, LocalConfiguration provides config,
                 LocalResources provides localized.resources, LocalDensity provides Density(activity.resources.displayMetrics.density, font)) {
                 KitchenTheme(theme) { CompositionLocalProvider(LocalKitchenMotion provides motion) {
-                    if (splash) BuddySplash() else LoginScreen(BuddyState(busy = busy, language = language, theme = theme), vm)
-                    if (busy) BuddyActionIndicator(true)
+                    if (splash) BuddySplash() else LoginScreen(BuddyState(busy = busy, waiting = waiting, language = language, theme = theme), vm)
+                    BuddyActionIndicator(waiting)
                 } }
             }
         } }
         compose.waitForIdle()
+        if (waiting) compose.waitUntil(3_000) { compose.onAllNodesWithTag("action-loader").fetchSemanticsNodes().isNotEmpty() }
     }
     @Test fun signInSplashLoaderAndMotionAcrossAccessibleStates() {
         assertTrue(BuildConfig.APPLICATION_ID.endsWith(".motion"))
@@ -76,7 +77,8 @@ class NativeMotionTest {
         render(language = "fr", font = 1.5f)
         compose.onNodeWithText("Se connecter", substring = false).performScrollTo().assertIsDisplayed(); shot("05-login-large-text")
         render(splash = true); compose.onNodeWithTag("launch-splash").assertIsDisplayed(); shot("06-splash")
-        render(busy = true); compose.onNodeWithTag("action-loader").assertIsDisplayed(); shot("07-action-loader")
+        render(busy = true, waiting = false); compose.onNodeWithTag("action-loader").assertDoesNotExist()
+        render(busy = true); compose.onNodeWithText("Stirring the pot…").assertIsDisplayed(); compose.onNodeWithTag("action-loader").assertIsDisplayed(); shot("07-action-loader")
         render(busy = true, motion = false); compose.onNodeWithTag("action-loader").assertIsDisplayed(); shot("08-reduced-motion")
     }
 
@@ -120,5 +122,45 @@ class NativeMotionTest {
         compose.mainClock.advanceTimeBy(500)
         assertFalse("reduced-motion logo stays static", differs(still, compose.onNodeWithTag("animated-logo").captureToImage()))
         compose.mainClock.autoAdvance = true
+    }
+
+    @Test fun backgroundRefreshStaysQuietWithoutHidingAUserWait() {
+        assertTrue(BuildConfig.APPLICATION_ID.endsWith(".motion"))
+        val app = activity.application as BuddyApp
+        assertNull(app.api.session)
+        val responseGate = java.util.concurrent.CountDownLatch(1)
+        val requestStarted = java.util.concurrent.CountDownLatch(1)
+        val server = okhttp3.mockwebserver.MockWebServer()
+        server.dispatcher = object : okhttp3.mockwebserver.Dispatcher() {
+            override fun dispatch(request: okhttp3.mockwebserver.RecordedRequest): okhttp3.mockwebserver.MockResponse {
+                requestStarted.countDown()
+                responseGate.await(10, java.util.concurrent.TimeUnit.SECONDS)
+                return okhttp3.mockwebserver.MockResponse().setResponseCode(401).setBody("{}")
+            }
+        }
+        server.start()
+        try {
+            app.api.configure(server.url("/").toString())
+            compose.runOnUiThread { vm.refresh() }
+            compose.waitForIdle()
+            assertFalse(vm.state.value.waiting)
+            compose.onNodeWithTag("action-loader").assertDoesNotExist()
+            compose.runOnUiThread { vm.login("chef@example.test", "ReviewOnly2026") }
+            assertTrue(requestStarted.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            compose.waitUntil(5_000) { vm.state.value.waiting }
+            compose.runOnUiThread { vm.refresh() }
+            compose.waitForIdle()
+            assertTrue("background refresh must not clear a foreground wait", vm.state.value.waiting)
+            compose.waitUntil(3_000) { compose.onAllNodesWithTag("action-loader").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Stirring the pot…").assertIsDisplayed()
+            responseGate.countDown()
+            compose.waitUntil(5_000) { !vm.state.value.busy }
+            assertFalse(vm.state.value.waiting)
+        } finally {
+            responseGate.countDown()
+            server.shutdown()
+            app.api.configure(BuildConfig.BACKEND_URL)
+            compose.runOnUiThread { vm.clearError() }
+        }
     }
 }

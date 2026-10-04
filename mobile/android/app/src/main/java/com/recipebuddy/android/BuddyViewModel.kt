@@ -29,7 +29,7 @@ data class BuddyState(
     val active: Recipe? = null, val draft: Recipe = Recipe(), val photo: String? = null,
     val invite: Invite? = null, val invitePreview: Invite? = null,
     val pendingInvite: String? = null, val pendingImport: String? = null, val pendingRoute: String? = null,
-    val theme: String = "system", val language: String = "system", val busy: Boolean = false, val error: Int? = null,
+    val theme: String = "system", val language: String = "system", val busy: Boolean = false, val waiting: Boolean = false, val error: Int? = null,
     val nextCursor: String? = null, val query: String = "", val vibe: String = "", val saved: Int = 0,
     val matchCompleted: Boolean = false,
     val allRecipes: List<Recipe> = emptyList(), val offline: Boolean = false, val pendingChanges: Int = 0,
@@ -60,12 +60,14 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-    private fun run(action: suspend () -> Unit) {
+    // Keep operation locks independent from visible user-wait feedback. Background
+    // synchronization never changes waiting, even while a foreground action runs.
+    private fun run(waiting: Boolean = true, action: suspend () -> Unit) {
         val epoch = generation
         viewModelScope.launch {
           actions.withLock {
             if (epoch != generation) return@withLock
-            mutable.update { it.copy(busy = true, error = null) }
+            mutable.update { it.copy(busy = true, waiting = waiting, error = null) }
             try { action() } catch (e: CancellationException) { throw e }
             catch (e: Exception) {
                 if (epoch == generation) {
@@ -73,7 +75,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
                     mutable.update { it.copy(error = if(status == 402) null else status, proPrompt = it.proPrompt || status == 402) }
                     if (status == 401) expireAccount()
                 }
-            } finally { if (epoch == generation) mutable.update { it.copy(busy = false) } }
+            } finally { if (epoch == generation) mutable.update { it.copy(busy = false, waiting = false) } }
           }
         }
     }
@@ -146,7 +148,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         mutable.update { it.copy(account = api.session!!.userId, active = null, recipes = emptyList(), shared = emptyList(),
             shopping = emptyList(), downloads = emptyList(), timers = emptyList(), confirmed = emptyList(), matches = emptyList(), draft = Recipe()) }
         mutable.update { it.copy(community = null, communityLoaded = false, recipients = null, chefProfile = null, searchResults = emptyList(), searchCompleted = false, contentTranslations = emptyMap()) }
-        observeLocal(); try { loadHome() } catch (e: java.io.IOException) { if (e is ApiFailure && e.status == 401) throw e }
+        mutable.update { it.copy(waiting = false) }; observeLocal(); try { loadHome() } catch (e: java.io.IOException) { if (e is ApiFailure && e.status == 401) throw e }
     }
     fun refresh() { viewModelScope.launch {
         try { loadHome() } catch(error: ApiFailure) { if(error.status == 401) expireAccount() else if(state.value.me == null) mutable.update { it.copy(error = error.status) } }
@@ -165,7 +167,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
             if (local.entries(api.session?.userId ?: return, "me").isEmpty()) throw error
         }
     }
-    fun search(query: String, vibe: String) = run {
+    fun search(query: String, vibe: String) = run(waiting = false) {
         mutable.update { previous -> previous.copy(recipes = previous.allRecipes.filter { it.owned && (vibe.isBlank() || it.vibe == vibe) && (query.isBlank() || it.title.contains(query, true) || it.ingredients.any { i -> i.name.contains(query, true) }) }, nextCursor = null, query = query, vibe = vibe) }
     }
     fun more() = run {
@@ -173,11 +175,12 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         val page = buddyJson.decodeFromString<RecipePage>(api.request("recipes?cursor=${Uri.encode(cursor)}&q=${Uri.encode(state.value.query)}&vibe=${Uri.encode(state.value.vibe)}"))
         mutable.update { it.copy(recipes = (it.recipes + page.items).distinctBy { r -> r.id }, nextCursor = page.nextCursor) }
     }
-    fun chooseRecipe(open: (Recipe) -> Unit) = run { state.value.allRecipes.filter { it.owned }.randomOrNull()?.let(open) }
-    fun openRecipe(id: String) = run {
+    fun chooseRecipe(open: (Recipe) -> Unit) = run(waiting = false) { state.value.allRecipes.filter { it.owned }.randomOrNull()?.let(open) }
+    fun openRecipe(id: String) = run(waiting = false) {
         mutable.update { it.copy(active = null, community = null, communityLoaded = false, recipients = null) }
         val cached = state.value.allRecipes.firstOrNull { it.id == id } ?: state.value.downloads.firstOrNull { it.recipe.id == id }?.recipe
         if(cached != null) { mutable.update { it.copy(active = cached) }; return@run }
+        mutable.update { it.copy(waiting = true) }
         val recipe = buddyJson.decodeFromString<Recipe>(api.request("recipes/$id"))
         put("recipe", id, buddyJson.encodeToString(recipe)); mutable.update { it.copy(active = recipe) }
     }
@@ -185,7 +188,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     fun updateDraft(recipe: Recipe) { mutable.update { it.copy(draft = recipe) }; persistDraft(recipe) }
     private var draftJob: Job? = null
     private fun persistDraft(recipe: Recipe) { draftJob?.cancel(); draftJob = viewModelScope.launch { delay(200); put("draft", "current", buddyJson.encodeToString(recipe)) } }
-    fun save() = run {
+    fun save() = run(waiting = false) {
         val draft = state.value.draft
         val recipe = (if (draft.id.isEmpty()) draft.copy(id = stableRecipeId()) else draft).copy(roastLine = "", translations = buildJsonObject {
             put("en", buildJsonObject {}); put("fr", buildJsonObject {}); put("pending", true)
@@ -194,7 +197,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         draftJob?.cancel(); local.delete(api.session!!.userId, "draft", "current"); app.vault.write("pendingImport", null)
         mutable.update { it.copy(draft = Recipe(), pendingImport = null, saved = it.saved + 1) }
     }
-    fun delete(recipe: Recipe, done: () -> Unit = {}) = run {
+    fun delete(recipe: Recipe, done: () -> Unit = {}) = run(waiting = false) {
         kitchen.enqueue("recipes/${recipe.id}", "DELETE", kind = "recipe", id = recipe.id, localPayload = null, version = recipe.updatedAt.takeIf { it.isNotBlank() })
         local.delete(api.session!!.userId, "download", recipe.id); CookingWidget.deleted(app, recipe.id)
         mutable.update { it.copy(active = null) }; done()
@@ -223,7 +226,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         if (api.session != null) previewInvite()
     }
     fun previewInvite() = run { val token = state.value.pendingInvite ?: return@run; val invite = buddyJson.decodeFromString<Invite>(api.request("invites/$token")); mutable.update { it.copy(invitePreview = invite) } }
-    fun acceptInvite() = run { val token = state.value.pendingInvite ?: return@run; api.request("invites/$token", "POST"); app.vault.write("pendingInvite", null); mutable.update { it.copy(pendingInvite = null, invitePreview = null) }; loadHome() }
+    fun acceptInvite() = run { val token = state.value.pendingInvite ?: return@run; api.request("invites/$token", "POST"); app.vault.write("pendingInvite", null); mutable.update { it.copy(pendingInvite = null, invitePreview = null) }; mutable.update { it.copy(waiting = false) }; loadHome() }
     fun createInvite() = run { val invite = buddyJson.decodeFromString<Invite>(api.request("invites", "POST")); put("invite", "current", buddyJson.encodeToString(invite)); mutable.update { it.copy(invite = invite) } }
     fun ensureInvite() = run {
         val cached = state.value.invite ?: local.entries(api.session!!.userId, "invite").firstOrNull()?.let { buddyJson.decodeFromString<Invite>(it.payload) }
@@ -256,13 +259,13 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         chefSearchJob?.cancel(); chefSearchRevision++
         mutable.update { it.copy(chefResults = emptyList(), chefSearchDone = false, chefSearching = false, chefSearchError = null) }
     }
-    fun inviteChef(person: FriendPerson) = run { kitchen.enqueue("friends", "POST", buildJsonObject { put("chefId", person.id) }.toString(), "friend-request", person.id, "true"); mutable.update { it.copy(chefResults = it.chefResults.filter { row -> row.id != person.id }) } }
-    fun friendship(id: String, accept: Boolean) = run {
+    fun inviteChef(person: FriendPerson) = run(waiting = false) { kitchen.enqueue("friends", "POST", buildJsonObject { put("chefId", person.id) }.toString(), "friend-request", person.id, "true"); mutable.update { it.copy(chefResults = it.chefResults.filter { row -> row.id != person.id }) } }
+    fun friendship(id: String, accept: Boolean) = run(waiting = false) {
         val rows = state.value.friends.mapNotNull { if(it.id == id) { if(accept) it.copy(status = "accepted") else null } else it }
         kitchen.enqueue("friends/$id", if(accept) "PATCH" else "DELETE", kind = "friends", id = "current", localPayload = buddyJson.encodeToString(rows))
     }
-    fun emailInvite(email: String) = run { kitchen.enqueue("friends", "POST", buildJsonObject { put("email", email) }.toString(), "friend-request", UUID.randomUUID().toString(), "true") }
-    fun shareRecipe(recipe: Recipe, friendId: String, grant: Boolean, done: () -> Unit = {}) = run { queueShare(recipe, friendId, grant); done() }
+    fun emailInvite(email: String) = run(waiting = false) { kitchen.enqueue("friends", "POST", buildJsonObject { put("email", email) }.toString(), "friend-request", UUID.randomUUID().toString(), "true") }
+    fun shareRecipe(recipe: Recipe, friendId: String, grant: Boolean, done: () -> Unit = {}) = run(waiting = false) { queueShare(recipe, friendId, grant); done() }
     fun recipients(recipe: Recipe) = run {
         val rows = buddyJson.decodeFromString<List<RecipeRecipient>>(kitchen.read("recipes/${recipe.id}/shares"))
         if(state.value.active?.id == recipe.id) mutable.update { it.copy(recipients = rows) }
@@ -273,7 +276,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         kitchen.enqueue("recipes/${recipe.id}/shares", if(grant) "POST" else "DELETE", buildJsonObject { put("recipientId", friendId) }.toString(), "response", "recipes/${recipe.id}/shares", buddyJson.encodeToString(next))
         mutable.update { it.copy(recipients = next) }
     }
-    fun toggleShare(recipe: Recipe, friendId: String, grant: Boolean, done: () -> Unit) = run { queueShare(recipe, friendId, grant); done() }
+    fun toggleShare(recipe: Recipe, friendId: String, grant: Boolean, done: () -> Unit) = run(waiting = false) { queueShare(recipe, friendId, grant); done() }
     private suspend fun loadCommunity(id: String) {
         val data = buddyJson.decodeFromString<Community>(kitchen.read("recipes/$id/community"))
         if (state.value.active?.id == id) mutable.update { it.copy(community = data, communityLoaded = true) }
@@ -285,7 +288,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         catch(e: ApiFailure) { if(e.status == 401) expireAccount() else if(e.status == 403 || e.status == 404) refresh() }
         catch(_: java.io.IOException) { } // Keep the last account-scoped snapshot while offline.
     } }
-    fun contribution(recipe: Recipe, payload: JsonObject, remove: Boolean = false, done: () -> Unit) = run {
+    fun contribution(recipe: Recipe, payload: JsonObject, remove: Boolean = false, done: () -> Unit) = run(waiting = false) {
         val data = state.value.community ?: Community(recipe.id, Discussion(recipe.sharedChefId.ifBlank { state.value.account!! }), Reviews(recipe.sharedChefId.ifBlank { state.value.account!! }))
         val id = if(remove) payload.getValue("id").jsonPrimitive.content else stableRecipeId()
         fun text(key: String) = payload[key]?.jsonPrimitive?.content ?: ""
@@ -295,7 +298,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         kitchen.enqueue("recipes/${recipe.id}/discussion", if(remove) "DELETE" else "POST", payload.toString(), "response", "recipes/${recipe.id}/community", buddyJson.encodeToString(next), if(remove) null else id)
         mutable.update { it.copy(community = next, communityLoaded = true) }; done()
     }
-    fun review(recipe: Recipe, rating: Int, text: String, remove: Boolean = false, done: () -> Unit) = run {
+    fun review(recipe: Recipe, rating: Int, text: String, remove: Boolean = false, done: () -> Unit) = run(waiting = false) {
         val data = state.value.community ?: Community(recipe.id, Discussion(recipe.sharedChefId.ifBlank { state.value.account!! }), Reviews(recipe.sharedChefId.ifBlank { state.value.account!! }))
         val own = data.reviews.reviews.filter { it.authorId != state.value.account }
         val next = data.copy(reviews = data.reviews.copy(reviews = if(remove) own else own + ApronReview(stableRecipeId(), state.value.account!!, state.value.me?.username ?: "", rating, text, java.time.Instant.now().toString())))
@@ -308,7 +311,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun globalSearch(query: String) {
         mutable.update { it.copy(searchCompleted = false, searchResults = emptyList()) }
-        run { val rows = state.value.allRecipes.filter { it.title.contains(query.trim(), true) || it.ingredients.any { i -> i.name.contains(query.trim(), true) } }; mutable.update { it.copy(searchResults = rows, searchCompleted = true) } }
+        run(waiting = false) { val rows = state.value.allRecipes.filter { it.title.contains(query.trim(), true) || it.ingredients.any { i -> i.name.contains(query.trim(), true) } }; mutable.update { it.copy(searchResults = rows, searchCompleted = true) } }
     }
     fun resetGlobalSearch() { mutable.update { it.copy(searchResults = emptyList(), searchCompleted = false) } }
     fun recipePersonality(recipe: Recipe, kind: String) = run {
@@ -317,7 +320,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         api.request("recipes/${recipe.id}/$kind", "POST")
         val fresh = buddyJson.decodeFromString<Recipe>(api.request("recipes/${recipe.id}"))
         if (state.value.active?.id == recipe.id) mutable.update { it.copy(active = fresh) }
-        CookingWidget.updateRecipe(app, fresh); loadHome()
+        CookingWidget.updateRecipe(app, fresh); mutable.update { it.copy(waiting = false) }; loadHome()
     }
     suspend fun refreshRecipe(id: String) {
         try { kitchen.refreshRecipe(id) }
@@ -339,14 +342,14 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
             mutable.update { it.copy(contentTranslations = it.contentTranslations + batch.zip(response.translations).associate { (text, value) -> "$language|$text" to value }) }
         }
     }
-    fun settings(name: String, roast: Boolean) = run { val me = state.value.me ?: return@run; kitchen.enqueue("settings", "PUT", buildJsonObject { put("username", name); put("roastEnabled", roast) }.toString(), "me", "current", buddyJson.encodeToString(me.copy(username = name, roastEnabled = roast))) }
-    fun acceptTerms() = run { api.request("terms", "POST", buildJsonObject { put("version", LEGAL_VERSION); put("accepted", true) }.toString()); loadHome() }
+    fun settings(name: String, roast: Boolean) = run(waiting = false) { val me = state.value.me ?: return@run; kitchen.enqueue("settings", "PUT", buildJsonObject { put("username", name); put("roastEnabled", roast) }.toString(), "me", "current", buddyJson.encodeToString(me.copy(username = name, roastEnabled = roast))) }
+    fun acceptTerms() = run { api.request("terms", "POST", buildJsonObject { put("version", LEGAL_VERSION); put("accepted", true) }.toString()); mutable.update { it.copy(waiting = false) }; loadHome() }
     fun deleteAccount(password: String) = run {
         api.request("account", "DELETE", buildJsonObject { put("confirmation", "DELETE"); if (password.isNotBlank()) put("password", password) }.toString())
         listOf("pendingInvite", "pendingImport", "pendingRoute", "browser").forEach { app.vault.write(it, null) }
         clearAccount()
     }
-    fun block(id: String, unblock: Boolean = false) = run {
+    fun block(id: String, unblock: Boolean = false) = run(waiting = false) {
         val current = state.value
         val person = current.friends.firstOrNull { it.friend.id == id }?.friend ?: current.blocked.firstOrNull { it.id == id } ?: FriendPerson(id, current.chefProfile?.takeIf { it.id == id }?.username ?: "")
         val blocked = if(unblock) current.blocked.filterNot { it.id == id } else (current.blocked + person).distinctBy { it.id }
@@ -357,7 +360,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         }
         mutable.update { it.copy(active = null, chefProfile = null, blocked = blocked) }
     }
-    fun report(recipeId: String?, chefId: String?, reason: String, done: () -> Unit) = run { kitchen.enqueue("reports", "POST", buildJsonObject { if(recipeId != null) put("recipeId", recipeId); if(chefId != null) put("chefId", chefId); put("reason", reason) }.toString(), "report", UUID.randomUUID().toString(), "true"); done() }
+    fun report(recipeId: String?, chefId: String?, reason: String, done: () -> Unit) = run(waiting = false) { kitchen.enqueue("reports", "POST", buildJsonObject { if(recipeId != null) put("recipeId", recipeId); if(chefId != null) put("chefId", chefId); put("reason", reason) }.toString(), "report", UUID.randomUUID().toString(), "true"); done() }
     fun preference(name: String, value: String) { viewModelScope.launch { app.preferences.edit { it[stringPreferencesKey(name)] = value } } }
     fun photo(encoded: String) { scanId = UUID.randomUUID().toString(); mutable.update { it.copy(photo = encoded, suggestions = emptyList()) } }
     fun removePhoto() { mutable.update { it.copy(photo = null) } }
@@ -369,10 +372,10 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     fun confirmSuggestions() { ingredients(state.value.confirmed + state.value.suggestions.map { Ingredient(it.label, it.quantity, it.unit) }); mutable.update { it.copy(suggestions = emptyList()) } }
     fun suggestion(index: Int, value: Suggestion?) { mutable.update { it.copy(suggestions = it.suggestions.mapIndexedNotNull { i, s -> if (i == index) value else s }) } }
     fun ingredients(list: List<Ingredient>) { mutable.update { it.copy(confirmed = list, matches = emptyList(), matchCompleted = false) }; localWrite("ingredients", "confirmed", buddyJson.encodeToString(list)) }
-    fun match() = run { val matches = localRecipeMatches(state.value.allRecipes, state.value.confirmed); mutable.update { it.copy(matches = matches, matchCompleted = true) } }
+    fun match() = run(waiting = false) { val matches = localRecipeMatches(state.value.allRecipes, state.value.confirmed); mutable.update { it.copy(matches = matches, matchCompleted = true) } }
     fun addShopping(item: ShoppingItem) { localWrite("shopping", item.id, buddyJson.encodeToString(item)) }
     fun deleteShopping(item: ShoppingItem) { localWrite("shopping", item.id, null) }
-    fun shoppingFrom(ids: List<String>) = run {
+    fun shoppingFrom(ids: List<String>) = run(waiting = false) {
         state.value.allRecipes.filter { it.id in ids }.flatMap { it.ingredients }.groupBy { it.name.trim().lowercase() }.values.forEach { group -> addShopping(ShoppingItem(UUID.randomUUID().toString(), group.first().name, group.map { "${it.quantity} ${it.unit}".trim() }.distinct().filter { it.isNotBlank() }.joinToString(" + "))) }
     }
     fun missingToShopping(items: List<Ingredient>) { items.forEach { addShopping(ShoppingItem(UUID.randomUUID().toString(), it.name, "${it.quantity} ${it.unit}".trim())) } }
@@ -396,10 +399,10 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
             }
         } }
     }
-    fun cooked(recipe: Recipe) = run { kitchen.enqueue("recipes/${recipe.id}/cook", "POST", kind = "cooked", id = recipe.id, localPayload = "true"); mutable.update { it.copy(me = it.me?.copy(cookedToday = (it.me.cookedToday + recipe.id).distinct())) } }
+    fun cooked(recipe: Recipe) = run(waiting = false) { kitchen.enqueue("recipes/${recipe.id}/cook", "POST", kind = "cooked", id = recipe.id, localPayload = "true"); mutable.update { it.copy(me = it.me?.copy(cookedToday = (it.me.cookedToday + recipe.id).distinct())) } }
     fun showPro() { mutable.update { it.copy(proPrompt = true) } }
     fun dismissPro() { mutable.update { it.copy(proPrompt = false) } }
-    fun resolveSync(id: String, keepCopy: Boolean) = run { kitchen.resolve(id, keepCopy) }
+    fun resolveSync(id: String, keepCopy: Boolean) = run(waiting = false) { kitchen.resolve(id, keepCopy) }
     fun declineInvite() { app.vault.write("pendingInvite", null); mutable.update { it.copy(pendingInvite = null, invitePreview = null) } }
     fun clearError() { mutable.update { it.copy(error = null) } }
     fun logout() = run { if(state.value.pendingChanges > 0) throw ApiFailure(409); try { api.logout() } finally { clearAccount() } }
