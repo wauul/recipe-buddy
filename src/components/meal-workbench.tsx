@@ -22,6 +22,7 @@ import { MealEaten } from "./meal-eaten";
 import { MealCommerce } from "./meal-commerce";
 import { MealRescue } from "./meal-rescue";
 import { MealCheckIn } from "./meal-check-in";
+import { CheckInReminder } from "./check-in-reminder";
 import { MealPreparation } from "./meal-preparation";
 import { MealContext } from "./meal-context";
 type Snapshot = Awaited<ReturnType<typeof readMeals>>;
@@ -402,6 +403,7 @@ export function MealWorkbench({
       }}
     >
       <div className="meal-workbench">
+        {snapshot&&<CheckInReminder controls={false} actorId={snapshot.actorId} kitchenId={snapshot.kitchenId} checkIn={snapshot.checkIn} mutate={mutate}/>}
         <header className="meal-heading">
           <div>
             <h1>
@@ -580,6 +582,10 @@ export function MealWorkbench({
                   ),
                   checkin: (
                     <MealCheckIn
+                      key={`${snapshot.actorId}:${snapshot.kitchenId}`}
+                      checkIn={snapshot.checkIn}
+                      diners={snapshot.diners}
+                      reload={reload}
                       state={snapshot.state}
                       profiles={snapshot.profiles.map(
                         (p) => p.data as unknown as Profile,
@@ -751,6 +757,10 @@ export function MealWorkbench({
             )}
             {tab === "pantry" && (
               <>
+                <button className="meal-action-row" onClick={()=>setTask("checkin")}>
+                  {t("Kitchen check-in")} · {snapshot.checkIn?.total ?? 0} {locale==="fr"?"à vérifier":"to review"}
+                </button>
+                {task==="checkin"&&<MealTaskSheet title={t("Kitchen check-in")} onClose={()=>setTask("")}><MealCheckIn key={`${snapshot.actorId}:${snapshot.kitchenId}`} state={snapshot.state} profiles={snapshot.profiles.map(p=>p.data as unknown as Profile)} actorId={snapshot.actorId} kitchenId={snapshot.kitchenId} checkIn={snapshot.checkIn} diners={snapshot.diners} reload={reload} mutate={mutate} busy={busy}/></MealTaskSheet>}
                 <button
                   className="button primary"
                   onClick={() => {

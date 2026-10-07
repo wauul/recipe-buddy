@@ -144,6 +144,7 @@ export type Occasion = {
   planId?: string;
 };
 export type Eaten = {
+  timezone?: string;
   recipeId?: string;
   nutritionEvidence?: RecordedNutrition;
   planId?: string;
@@ -174,6 +175,8 @@ export type Purchase = {
   batchId: string;
 };
 export type Kitchen = {
+  checkInReminders?: {actorId:string;enabled:boolean;time:string;quietStart:string;quietEnd:string;timezone:string}[];
+  checkInConfirmations?: import("./meal-check-in").CheckInConfirmation[];
   dailyCoverage?: {personId:string;date:string;confirmed:boolean;signature:string}[];
   baskets?: GroceryBasket[];
   rescues?: {id:string;actorId:string;changes:{before:Plan;after:Plan}[];undone:boolean}[];
@@ -186,6 +189,9 @@ export type Kitchen = {
     dayType: string;
     appetite: string;
     mealSize: string;
+    diners?: string[];
+    eatingOut?: boolean;
+    timezone?: string;
   }[];
   pantry: Batch[];
   plans: Plan[];

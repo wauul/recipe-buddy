@@ -90,3 +90,8 @@ Apply `20261003000000_native` only to the intended isolated/staging database bef
 Equivalent cookie-authenticated web deletion/terms endpoints are `/api/account` and `/api/account/terms`, with strict same-origin checks. Public privacy, terms and external deletion entry points are `/privacy`, `/terms`, `/delete-account`. Maintenance is a separate secret-authenticated server endpoint; see PUBLICATION.md.
 
 The publication-controls migration is additive and has only been applied to the isolated local database. Deploy it before these routes; existing native sessions receive an old authenticatedAt and must reauthenticate for passwordless deletion.
+
+
+## Kitchen check-in (0.1.7)
+
+`GET /api/native/v1/meals/check-in?kitchenId=...&offset=0` returns a compact authorized snapshot with policy, maxPerVisit, local today/timezone, guarded questions, total/nextOffset, own saved confirmations/corrections and reminder settings. Use existing `meals` POST commands with stable operationId and `_checkIn` source guard. A 409 requires a fresh question and explicit review; never rebase a stale stock delta by replacing the source hash. New commands: `edit-eaten` (atomic single-record correction) and `check-in-reminder` (actor-scoped opt-in/time/quiet settings). All fields are additive. See `feature-prompts/reports/01_KITCHEN_CHECK_IN.md` for limits, rights, errors, evidence and platform restrictions.

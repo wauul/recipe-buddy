@@ -6,7 +6,7 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 overrides:
-  sharp: 0.35.4
+  sharp: 0.35.5
   postcss: 8.5.28
   effect: 3.22.2
   deepmerge-ts: 8.0.2

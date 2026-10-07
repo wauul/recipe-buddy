@@ -124,7 +124,16 @@ class OfflineKitchen(private val app: BuddyApp) {
     }
     private suspend fun fetch(path: String, account: String): String {
         val payload = try { app.api.request(path) } catch(error: ApiFailure) {
-            if(path.startsWith("meals") && error.status in listOf(403,404)) writes.withLock { if(still(account)) dao.delete(account,"response",path) }
+            if(path.startsWith("meals") && error.status in listOf(403,404)) writes.withLock { if(still(account)) {
+                dao.delete(account,"response",path)
+                val revoked=android.net.Uri.parse("https://local/"+path).getQueryParameter("kitchenId")
+                val entry=dao.entry(account,"meal-check-in","current")
+                if(revoked!=null&&entry!=null){
+                    val drafts=buddyJson.parseToJsonElement(entry.payload).jsonObject
+                    dao.put(entry.copy(payload=JsonObject(drafts-revoked).toString()))
+                    CheckInReminderScheduler.cancel(app,account,revoked)
+                }
+            } }
             throw error
         }
         writes.withLock { if (still(account) && dao.entries(account, "outbox").none { buddyJson.decodeFromString<PendingChange>(it.payload).let { it.kind == "response" && it.localId == path } }) dao.put(LocalEntry(account, "response", path, payload)) }

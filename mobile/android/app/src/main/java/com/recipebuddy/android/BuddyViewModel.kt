@@ -65,7 +65,25 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
     fun loadMeals() = run { val path=mealPath();val cached = kitchen.read(path); mutable.update { it.copy(meals = buddyJson.parseToJsonElement(cached).jsonObject) } }
     fun refreshMeals() = run { val path=mealPath();kitchen.refresh(path); mutable.update { it.copy(meals = buddyJson.parseToJsonElement(kitchen.cached(path)!!).jsonObject) } }
     private var checkInRevision=0
-    fun saveMealCheckIn(value:JsonObject){checkInRevision++;mutable.update{it.copy(mealCheckIn=value)};viewModelScope.launch{put("meal-check-in","current",value.toString())}}
+    fun saveMealCheckIn(value:JsonObject){
+        val account=api.session?.userId?:return
+        val epoch=generation
+        checkInRevision++;mutable.update{it.copy(mealCheckIn=value)}
+        viewModelScope.launch{localLock.withLock{if(epoch==generation&&api.session?.userId==account)local.put(LocalEntry(account,"meal-check-in","current",value.toString()))}}
+    }
+    fun moreCheckIn(offset:Int)=run {
+        val id=state.value.meals?.mealValue("kitchenId")?:return@run
+        val response=buddyJson.parseToJsonElement(api.request("meals/check-in?kitchenId=${android.net.Uri.encode(id)}&offset=$offset")).jsonObject
+        mutable.update{it.copy(meals=it.meals?.let{root->JsonObject(root+mapOf("checkIn" to response["checkIn"]!!))})}
+    }
+    fun submitCheckIn(action: String, data: JsonObject, operationId: String) = run {
+        val root=state.value.meals?:return@run
+        val payload=buildJsonObject { put("operationId",operationId);put("action",action);put("data",data);put("kitchenId",root["kitchenId"]!!) }
+        kitchen.enqueue("meals","POST",payload.toString(),"meal-change",operationId,payload.toString())
+        kitchen.synchronize()
+        val path=mealPath();kitchen.refresh(path)
+        mutable.update{it.copy(meals=buddyJson.parseToJsonElement(kitchen.cached(path)!!).jsonObject)}
+    }
     private var mealDraftWrites = 0
     private var mealDraftRevision = 0
     fun saveMealDraft(value: JsonObject) {
@@ -514,6 +532,7 @@ class BuddyViewModel(application: Application) : AndroidViewModel(application) {
         mutable.value = BuddyState(theme = state.value.theme, language = state.value.language, error = 401)
     }
     private suspend fun clearAccount() {
+        CheckInReminderScheduler.clear(app)
         clearGoogleCredential(app)
         generation++; resetChefSearch(); localJobs.forEach { it.cancel() }; draftJob?.cancel()
         val account = api.session?.userId

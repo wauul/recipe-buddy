@@ -136,6 +136,12 @@ fun MealsScreen(
                             style = MaterialTheme.typography.bodySmall,
                         )
                 }
+            if(section=="agenda") item {
+                KitchenTextButton({sheet="checkin"}) {
+                    Icon(Icons.Default.FactCheck,null,Modifier.size(20.dp));Spacer(Modifier.width(8.dp))
+                    Text(mealText("Kitchen check-in","Point cuisine")+" · "+((root?.get("checkIn") as? JsonObject)?.mealValue("total")?:"0"))
+                }
+            }
             if (root == null) {
                 item {
                     LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -357,7 +363,7 @@ fun MealsScreen(
                     KitchenTextButton({ sheet = "checkin" }) {
                         Icon(Icons.Default.FactCheck, null, Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text(mealText("Check stock", "Vérifier le stock"))
+                        Text(mealText("Kitchen check-in", "Point cuisine")+" · "+((root?.get("checkIn") as? JsonObject)?.mealValue("total")?:"0"))
                     }
                 }
                 val batches = kitchen?.list("pantry") ?: emptyList()
@@ -579,7 +585,7 @@ fun MealsScreen(
                         "ideas" -> mealText("Ideas", "Idées")
                         "leftovers" -> mealText("Leftovers", "Restes")
                         "week-preview" -> mealText("Week", "Semaine")
-                        "checkin" -> "Stock"
+                        "checkin" -> mealText("Kitchen check-in", "Point cuisine")
                         "rescue" -> mealText("Replan", "Réorganiser")
                         "add" -> mealText("Add a meal", "Ajouter un repas")
                         "recipe" -> mealText("Add a meal", "Ajouter un repas")

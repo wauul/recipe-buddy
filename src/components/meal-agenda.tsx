@@ -110,7 +110,7 @@ export function MealAgenda({
                         "Nutrition quotidienne",
                       ),
                       rescue: text("Replan", "Réorganiser"),
-                      checkin: "Stock",
+                      checkin: text("Kitchen check-in", "Point cuisine"),
                       eaten: text("Eaten", "Mangé"),
                     }[sheet] ?? "");
   const action = (label: string, icon: ReactNode, onClick: () => void) => (
@@ -268,7 +268,7 @@ export function MealAgenda({
           ["context", text("My day", "Ma journée"), Sun],
           ["prepare", text("Prep", "Préparer"), Clock],
           ["rescue", text("Replan", "Réorganiser"), RefreshCw],
-          ["checkin", text("Stock", "Stock"), ClipboardCheck],
+          ["checkin", text("Check-in", "Point cuisine") + ` · ${snapshot.checkIn?.total ?? 0}`, ClipboardCheck],
         ].map(([key, label, Glyph]) => {
           const Icon = Glyph as typeof Check;
           return (

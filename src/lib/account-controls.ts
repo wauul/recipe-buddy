@@ -35,6 +35,8 @@ export async function deleteAccount(userId: string, input: unknown, authenticate
       const profiles=await tx.mealProfile.findMany({where:{kitchenId:kitchen.id,managerId:userId}}),ids=profiles.map(p=>p.id);
         const occasions=state.occasions.filter(o=>o.actorId===userId).map(o=>o.id),leftovers=state.leftovers.filter(l=>occasions.includes(l.occasionId)).map(l=>l.id);
         state.contexts=(state.contexts??[]).filter(c=>c.actorId!==userId);
+        state.checkInConfirmations=(state.checkInConfirmations??[]).filter(c=>c.actorId!==userId);
+        state.checkInReminders=(state.checkInReminders??[]).filter(c=>c.actorId!==userId);
         state.rescues=(state.rescues??[]).filter(r=>r.actorId!==userId);
         for(const b of state.baskets??[])if(b.actorId===userId){b.actorId="";b.location="";b.providerOrderId="";b.notes="";}
         for(const t of state.preparation??[])if(t.actorId===userId){t.actorId="";t.description="Preparation";t.assignee=current.ownerId;}

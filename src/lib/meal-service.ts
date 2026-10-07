@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { CheckInError, checkInGuard, checkInSnapshot, checkInVersion, validateCheckInSource } from "./meal-check-in";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import sharp from "sharp";
@@ -55,6 +56,8 @@ export const mealOperation = z.object({
     "undo-cook",
     "follow-up",
     "eat",
+    "edit-eaten",
+    "check-in-reminder",
     "remove-eaten",
     "leftover",
     "remove-leftover",
@@ -100,6 +103,15 @@ async function kitchenFor(user: string, kitchenId?: string) {
 async function profilesFor(kitchenId: string) {
   return db.mealProfile.findMany({ where: { kitchenId } });
 }
+export async function readCheckIn(user:string,kitchenId?:string,offset=0) {
+  const row=await kitchenFor(user,kitchenId);
+  return db.$transaction(async tx=>{
+    const current=await tx.mealKitchen.findFirst({where:{id:row.id,members:{some:{userId:user}}},include:{members:true}});
+    if(!current)throw new HttpError(403,"No longer authorized. Refresh your kitchen.");
+    const profiles=await tx.mealProfile.findMany({where:{kitchenId:row.id,managerId:user},select:{id:true,data:true}});
+    return {kitchenId:row.id,version:current.version,checkIn:process.env.KITCHEN_CHECK_IN_ENABLED==="false"?null:checkInSnapshot(current.state as unknown as Kitchen,user,current.members.find(m=>m.userId===user)!.role,profiles.map(p=>({id:p.id,name:(p.data as unknown as Profile).name})),new Date(),offset)};
+  },{isolationLevel:Prisma.TransactionIsolationLevel.RepeatableRead});
+}
 export async function readMeals(
   user: string,
   kitchenId?: string,
@@ -142,6 +154,8 @@ export async function readMeals(
   // Private occasion comments/photos and food diary stay with the actor/profile manager.
   const safe = {
     ...state,
+    checkInReminders:(state.checkInReminders??[]).filter(r=>r.actorId===user),
+    checkInConfirmations: (state.checkInConfirmations ?? []).filter(c=>c.actorId===user),
     dailyCoverage: (state.dailyCoverage??[]).filter(c=>own.some(p=>p.id===c.personId)),
     occasions: state.occasions.filter((o) => o.actorId === user),
     eaten: state.eaten.filter((e) => own.some((p) => p.id === e.personId)),
@@ -167,6 +181,7 @@ export async function readMeals(
       .map((f) => ({ id: f.friend.id, username: f.friend.username })),
     kitchenId: row.id,
     version: row.version,
+    checkIn: process.env.KITCHEN_CHECK_IN_ENABLED === "false" ? null : checkInSnapshot(state,user,row.members.find(m=>m.userId===user)!.role,own.map(p=>({id:p.id,name:(p.data as unknown as Profile).name}))),
     state: safe,
     profiles: own,
     diners: profiles.map((p) => ({
@@ -260,6 +275,8 @@ export async function applyMeal(user: string, input: Operation) {
           "profile",
           "delete-profile",
           "eat",
+          "edit-eaten",
+          "check-in-reminder",
           "remove-eaten",
           "follow-up",
           "context",
@@ -279,6 +296,8 @@ export async function applyMeal(user: string, input: Operation) {
           "profile",
           "delete-profile",
           "eat",
+          "edit-eaten",
+          "check-in-reminder",
           "remove-eaten",
           "follow-up",
           "context",
@@ -288,6 +307,23 @@ export async function applyMeal(user: string, input: Operation) {
       )
         throw new HttpError(403, "Planner permission required.");
       let result: unknown = { ok: true };
+      if(input.action==="check-in-reminder") {
+        const time=z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+        const value=z.object({enabled:z.boolean(),time,quietStart:time,quietEnd:time,timezone:z.string().max(80)}).parse(data);
+        try{new Intl.DateTimeFormat("en",{timeZone:value.timezone});}catch{throw new HttpError(400,"Invalid timezone.");}
+        state.checkInReminders=[...(state.checkInReminders??[]).filter(r=>r.actorId!==user),{actorId:user,...value}];
+      }
+      const checkIn = data._checkIn === undefined ? null : checkInGuard.parse(data._checkIn);
+      const priorCheckInAmount=checkIn?.kind==="pantry"?state.pantry.find(b=>b.id===checkIn.sourceId)?.quantity:checkIn?.kind==="leftover"?state.leftovers.find(b=>b.id===checkIn.sourceId)?.remaining:undefined;
+      if (checkIn) {
+        if(process.env.KITCHEN_CHECK_IN_ENABLED === "false") throw new HttpError(503,"Kitchen check-in is temporarily unavailable. Your answers are retained.");
+        if(checkIn.personId && !(await tx.mealProfile.findFirst({where:{id:checkIn.personId,kitchenId:row.id,managerId:user}}))) throw new HttpError(403,"No longer authorized. Refresh your kitchen.");
+        if(checkIn.kind==="eaten") {
+          const entry=state.eaten.find(e=>e.id===checkIn.sourceId);
+          if(!entry || !(await tx.mealProfile.findFirst({where:{id:entry.personId,kitchenId:row.id,managerId:user}}))) throw new HttpError(403,"No longer authorized. Refresh your kitchen.");
+        }
+        try{validateCheckInSource(state,user,checkIn,input.action,data);}catch(e){if(e instanceof CheckInError)throw new HttpError(e.status,e.message);throw e;}
+      }
       if(input.action==="eaten-nutrition") {
         const entry=state.eaten.find(e=>e.id===boundedId.parse(data.id));
         if(!entry || !(await tx.mealProfile.findFirst({where:{id:entry.personId,kitchenId:row.id,managerId:user}})))throw new HttpError(404,"Private food record unavailable.");
@@ -826,7 +862,7 @@ export async function applyMeal(user: string, input: Operation) {
           }
         }
       }
-      if (input.action === "eat") {
+      if (input.action === "eat" || input.action === "edit-eaten") {
         const value = z
           .object({
             id: z.string().uuid(),
@@ -840,8 +876,11 @@ export async function applyMeal(user: string, input: Operation) {
             planId: boundedId.optional(),
             recipeId: boundedId.optional(),
             approximate: z.boolean().default(true),
+            timezone: z.string().max(80).optional(),
           })
           .parse(data);
+        value.timezone ??= state.timezone;
+        try{new Intl.DateTimeFormat("en",{timeZone:value.timezone});}catch{throw new HttpError(400,"Invalid timezone.");}
         if (value.recipeId) {
           const recipe = await authorizedRecipe(user, value.recipeId);
           value.title = recipe.title;
@@ -852,7 +891,14 @@ export async function applyMeal(user: string, input: Operation) {
           }))
         )
           throw new HttpError(403, "Profile manager permission required.");
-        if (state.eaten.some((e) => e.id === value.id))
+        const previous = state.eaten.find(e=>e.id===value.id);
+        if (input.action === "edit-eaten") {
+          if(!previous || previous.personId!==value.personId) throw new HttpError(403,"Eating record unavailable.");
+          if(!checkIn && input.baseVersion===undefined) throw new HttpError(409,"Reload before correcting this eating record.");
+          const oldLeftover=state.leftovers.find(l=>l.id===previous.leftoverId);
+          if(oldLeftover && previous.amount) oldLeftover.remaining+=previous.amount;
+          state.eaten=state.eaten.filter(e=>e.id!==value.id);
+        } else if (previous)
           throw new HttpError(409, "Eating record already exists.");
         if (value.planId) {
           if (!state.plans.some(p => p.id === value.planId)) throw new HttpError(404, "Planned meal unavailable.");
@@ -984,6 +1030,8 @@ export async function applyMeal(user: string, input: Operation) {
         });
         if (!profile) throw new HttpError(404, "Profile unavailable.");
         await tx.mealProfile.delete({ where: { id: profile.id } });
+        const deletedEating=new Set(state.eaten.filter(e=>e.personId===profile.id).map(e=>e.id));
+        state.checkInConfirmations=(state.checkInConfirmations??[]).filter(c=>!c.id.endsWith(`:${profile.id}`)&&!deletedEating.has(c.recordId));
         state.eaten = state.eaten.filter((e) => e.personId !== profile.id);
         state.dailyCoverage=(state.dailyCoverage??[]).filter(c=>c.personId!==profile.id);
         state.plans.forEach(
@@ -1014,6 +1062,8 @@ export async function applyMeal(user: string, input: Operation) {
             dayType: z.enum(["work", "rest", "gym", "flexible"]),
             appetite: z.enum(["unknown", "small", "usual", "large"]),
             mealSize: z.enum(["unknown", "light", "usual", "substantial"]),
+            diners: z.array(boundedId).max(20).optional(),
+            eatingOut: z.boolean().optional(),
           })
           .parse(data);
         const today = new Intl.DateTimeFormat("en-CA", {
@@ -1024,12 +1074,14 @@ export async function applyMeal(user: string, input: Operation) {
             400,
             "Daily context has expired. Choose today or a future day.",
           );
+        if(value.diners && (await tx.mealProfile.count({where:{kitchenId:row.id,id:{in:value.diners}}}))!==new Set(value.diners).size) throw new HttpError(400,"Choose current household diners.");
+        const priorContext = state.contexts?.find(c=>c.actorId===user&&c.date===value.date);
         state.contexts = (state.contexts ?? [])
           .filter(
             (c) =>
               c.date >= today && !(c.actorId === user && c.date === value.date),
           )
-          .concat({ actorId: user, ...value });
+          .concat({ ...priorContext, actorId: user, ...value, timezone:state.timezone });
       }
       if (input.action === "member" || input.action === "remove-member") {
         if (role !== "owner")
@@ -1081,6 +1133,8 @@ export async function applyMeal(user: string, input: Operation) {
             where: { kitchenId: row.id, managerId: value.userId },
           });
           const ids = profiles.map((p) => p.id);
+          state.checkInConfirmations=(state.checkInConfirmations??[]).filter(c=>c.actorId!==value.userId);
+          state.checkInReminders=(state.checkInReminders??[]).filter(c=>c.actorId!==value.userId);
           state.eaten = state.eaten.filter((e) => !ids.includes(e.personId));
           state.dailyCoverage=(state.dailyCoverage??[]).filter(c=>!ids.includes(c.personId));
           state.plans.forEach(
@@ -1093,6 +1147,11 @@ export async function applyMeal(user: string, input: Operation) {
             where: { kitchenId: row.id, userId: value.userId },
           });
         }
+      }
+      if(checkIn) {
+        const id=`${checkIn.kind}:${checkIn.sourceId}:${checkIn.personId??""}`;
+        const title=String(data.title??state.pantry.find(b=>b.id===data.id)?.name??checkIn.sourceId).slice(0,160);
+        state.checkInConfirmations=[...(state.checkInConfirmations??[]).filter(c=>!(c.actorId===user&&c.id===id)),{actorId:user,id,sourceVersion:checkInVersion(state,user,checkIn),at:new Date().toISOString(),operationId:input.operationId,action:input.action,recordId:String(data.id??data.date),title,...(checkIn.kind==="pantry"?{before:priorCheckInAmount,after:state.pantry.find(b=>b.id===checkIn.sourceId)?.quantity,unit:state.pantry.find(b=>b.id===checkIn.sourceId)?.unit}:checkIn.kind==="leftover"?{before:priorCheckInAmount,after:state.leftovers.find(b=>b.id===checkIn.sourceId)?.remaining,unit:"servings"}:{})}].slice(-500);
       }
       if (
         state.pantry.length > 2000 ||

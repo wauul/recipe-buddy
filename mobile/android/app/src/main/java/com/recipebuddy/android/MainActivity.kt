@@ -149,7 +149,10 @@ class MainActivity : ComponentActivity() {
         val pending = state.pendingRoute?.split('|')
         if (pending?.size == 3) {
             vm.consumeDestination()
-            if (pending[0] == state.account) { if (pending[2] == "true") nav.navigate(CookRoute(pending[1])) { launchSingleTop = true } else nav.navigate(DetailRoute(pending[1])) { launchSingleTop = true } }
+            if (pending[0] == state.account) {
+                if(pending[1].startsWith("checkin:")){vm.selectMealKitchen(pending[1].removePrefix("checkin:"));nav.navigate(AgendaRoute){launchSingleTop=true}}
+                else if (pending[2] == "true") nav.navigate(CookRoute(pending[1])) { launchSingleTop = true } else nav.navigate(DetailRoute(pending[1])) { launchSingleTop = true }
+            }
         }
     }
     fun open(recipe: Recipe) { nav.navigate(DetailRoute(recipe.id)) }

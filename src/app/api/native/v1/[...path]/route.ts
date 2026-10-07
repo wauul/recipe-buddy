@@ -39,6 +39,7 @@ import { voiceCommandInput, interpretVoice } from '@/lib/native-voice-command';
 import { findChefs } from '@/lib/native-chef-search';
 import { enrichRecipeLater } from '@/lib/recipe-enrichment';
 import * as meals from '@/app/api/meals/route';
+import * as checkIn from '@/app/api/meals/check-in/route';
 import * as mealHandoff from '@/app/api/meals/handoff/route';
 import * as mealRescue from '@/app/api/meals/rescue/route';
 import * as mealSuggestions from '@/app/api/meals/suggestions/route';
@@ -66,6 +67,7 @@ async function handle(request: Request, context: { params: Promise<{ path: strin
     return await nativeContext.run({ userId: session.userId, request }, async () => {
       const [root, id, action] = params.path, method = request.method;
       if(root==='meals') {
+        if(id==='check-in'&&method==='GET')return checkIn.GET(request);
         if(id==='occasions' && params.path[3]==='media' && method==='GET')return privateMealMedia.GET(request,{params:Promise.resolve({id:params.path[2]})});
         if(id==='product' && method==='POST')return mealProduct.POST(request);
         if(id==='discovery' && method==='POST')return params.path[2]==='import' ? mealDiscoveryImport.POST(request) : mealDiscovery.POST(request);
