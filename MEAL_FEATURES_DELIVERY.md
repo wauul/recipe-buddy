@@ -1,5 +1,7 @@
 # Connected meals local delivery
 
+**Release update, verified 7 October 2026:** the user authorized shipping the completed work and deferred the remaining scope. The matching backend is deployed, source is pushed to GitHub `main`, Android **0.1.4 (5)** is available on the existing Play internal-testing track, and its production-backend debug APK was installed in place on the Samsung. See [the release record](mobile/RELEASE_0_1_4.md) for actual deployment/migration/build evidence and phone verification limits. The local-review status below records the original handoff and is superseded by that release record; the clinical, provider and software limitations remain applicable.
+
 4 October 2026. Core cooking/meal-planning workflows and the added daily nutrition/target workflow are implemented across the existing website and native Kotlin/Compose app. This is a local review delivery. The assignment is not fully release-complete: paid/provider paths, clinical capabilities and the remaining verification/software limits below are individually identified.
 
 ## Builds and review
