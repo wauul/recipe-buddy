@@ -664,6 +664,32 @@ async function main() {
     snap=await req("meals",a);assert.equal(snap.state.pantry.find((b:any)=>b.id===item).quantity,500);
     await change("stock",{id:item,delta:-100,reason:"discard"});assert.equal((await req("meals",a)).state.pantry.find((b:any)=>b.id===item).quantity,400);
   });
+  await group("measured stock corrections retain batch identity, confidence, replay and undo", async () => {
+    const before = (await req("meals", a)).state.pantry.find((batch: any) => batch.id === "rice");
+    const correction = op("stock", { id: before.id, delta: 10, reason: "correction", quantityEstimated: true });
+    const first = await req("meals", a, "POST", correction);
+    assert.deepEqual(await req("meals", a, "POST", correction), first);
+    let snapshot = await req("meals", a);
+    let measured = snapshot.state.pantry.find((batch: any) => batch.id === before.id);
+    assert.equal(measured.quantity, before.quantity + 10);
+    assert.equal(measured.quantityEstimated, true);
+    assert.equal(measured.name, before.name);
+    assert.equal(measured.unit, before.unit);
+    const history = snapshot.state.history.find((entry: any) => entry.id === correction.operationId);
+    assert.ok(history);
+    await change("undo-stock", { id: history.id });
+    assert.equal((await req("meals", a)).state.pantry.find((batch: any) => batch.id === before.id).quantityEstimated === true, before.quantityEstimated === true);
+    await change("stock", { id: before.id, delta: 0, reason: "correction", quantityEstimated: false });
+    snapshot = await req("meals", a);
+    measured = snapshot.state.pantry.find((batch: any) => batch.id === before.id);
+    assert.equal(measured.quantity, before.quantity);
+    assert.equal(measured.quantityEstimated, false);
+    await change("stock", { id: before.id, delta: 0, reason: "correction", quantityEstimated: true });
+    const exact = op("stock", { id: before.id, delta: 0, reason: "correction", quantityEstimated: false });
+    await req("meals", a, "POST", exact);
+    await change("undo-stock", { id: exact.operationId });
+    assert.equal((await req("meals", a)).state.pantry.find((batch: any) => batch.id === before.id).quantityEstimated, true);
+  });
   await mkdir("test-results/meals", { recursive: true });
   await writeFile(
     "test-results/meals/integration.json",

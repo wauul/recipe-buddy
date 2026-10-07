@@ -1,27 +1,117 @@
 package com.recipebuddy.android
+
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.*
-import java.time.*
-import java.util.UUID
-@Composable fun MealCheckInControls(state:BuddyState,vm:BuddyViewModel){
- val root=state.meals?:return;val kitchen=root["state"]!!.jsonObject;val profiles=root.mealRows("profiles").map{it["data"]!!.jsonObject};val today=LocalDate.now(ZoneId.of(kitchen.mealValue("timezone")));val key="check-in:"+root.mealValue("kitchenId")
- val draft=state.mealCheckIn[key]?.jsonObject?:JsonObject(emptyMap());fun set(field:String,value:String){vm.saveMealCheckIn(JsonObject(state.mealCheckIn+mapOf(key to JsonObject(draft+mapOf("entryId" to JsonPrimitive(draft.mealValue("entryId").ifBlank{UUID.randomUUID().toString()}),field to JsonPrimitive(value))))))}
- var open by rememberSaveable{mutableStateOf(false)};var add by rememberSaveable{mutableStateOf(false)}
- Column{KitchenTextButton(onClick={open=!open}){Text(mealText("Kitchen check-in","Point cuisine"))};if(open){
- Text(mealText("Optional. Skipped questions remain unknown. Each answer saves separately.","Facultatif. Les questions ignorées restent inconnues. Chaque réponse est enregistrée séparément."))
- val eaten=kitchen.mealRows("eaten");LaunchedEffect(eaten,draft.mealValue("entryId")){if(draft.mealValue("entryId").isNotBlank()&&eaten.any{it.mealValue("id")==draft.mealValue("entryId")})vm.saveMealCheckIn(JsonObject(state.mealCheckIn-mapOf(key to draft).keys))};val pending=kitchen.mealRows("plans").filter{it.mealValue("date")<=today.toString()&&it.mealValue("date")>=today.minusDays(7).toString()}.flatMap{p->profiles.filter{d->p["diners"]!!.jsonArray.any{it.jsonPrimitive.content==d.mealValue("id")}&&!eaten.any{e->e.mealValue("planId")==p.mealValue("id")&&e.mealValue("personId")==d.mealValue("id")}}.map{d->p to d}}.take(3)
- pending.forEach{(p,d)->Text(p.mealValue("date")+" · "+p.mealValue("title")+" · "+d.mealValue("name"));KitchenOutlinedButton(enabled=!state.busy,onClick={vm.mealChange("eat",buildJsonObject{put("id",UUID.randomUUID().toString());put("planId",p.mealValue("id"));put("personId",d.mealValue("id"));put("title",p.mealValue("title"));put("date",p.mealValue("date"));put("slot",p.mealValue("slot"));put("amount",JsonNull);put("approximate",true)})}){Text(mealText("Confirm this meal was eaten","Confirmer ce repas consommé"))};KitchenTextButton(onClick={add=true;vm.saveMealCheckIn(JsonObject(state.mealCheckIn+mapOf(key to buildJsonObject{put("personId",d.mealValue("id"));put("planId",p.mealValue("id"));put("date",p.mealValue("date"));put("slot",p.mealValue("slot"));put("title","")})))}){Text(mealText("Record something else instead","Noter autre chose à la place"))}}
- KitchenTextButton(onClick={add=!add}){Text(mealText("Add an actual meal, snack or drink","Ajouter un repas, une collation ou une boisson"))};if(add){
- MealChoice(mealText("Person","Personne"),listOf("" to mealText("Choose a person","Choisir une personne"))+profiles.map{it.mealValue("id") to it.mealValue("name")},draft.mealValue("personId"),{set("personId",it)})
- MealField(mealText("Food or drink","Aliment ou boisson"),draft.mealValue("title"),{set("title",it)});MealField(mealText("Local date","Date locale"),draft.mealValue("date",today.toString()),{set("date",it)})
- MealChoice(mealText("Meal slot","Repas"),listOf("breakfast" to mealText("Breakfast","Petit-déjeuner"),"lunch" to mealText("Lunch","Déjeuner"),"dinner" to mealText("Dinner","Dîner"),"snack" to mealText("Snack / drink","Collation / boisson")),draft.mealValue("slot","snack"),{set("slot",it)})
- KitchenButton(enabled=!state.busy&&draft.mealValue("personId").isNotBlank()&&draft.mealValue("title").isNotBlank(),onClick={vm.mealChange("eat",buildJsonObject{put("id",draft.mealValue("entryId").ifBlank{UUID.randomUUID().toString()});draft["planId"]?.takeIf{it.jsonPrimitive.content.isNotBlank()}?.let{put("planId",it)};put("personId",draft.mealValue("personId"));put("title",draft.mealValue("title"));put("date",draft.mealValue("date",today.toString()));put("slot",draft.mealValue("slot","snack"));put("amount",JsonNull);put("approximate",true)});add=false}){Text(mealText("Save actual food entry","Enregistrer l’aliment consommé"))}
- }
- kitchen.mealRows("pantry").filter{it["quantity"]==JsonNull||it["quantityEstimated"]?.jsonPrimitive?.booleanOrNull==true}.take(2).forEach{batch->var quantity by rememberSaveable(batch.mealValue("id")){mutableStateOf("")};MealField(batch.mealValue("name")+" · "+mealText("Quantity unknown","Quantité inconnue"),quantity,{quantity=it});KitchenOutlinedButton(enabled=!state.busy&&quantity.toDoubleOrNull()?.let{it>=0}==true,onClick={vm.mealChange("pantry",JsonObject(batch+mapOf("quantity" to JsonPrimitive(quantity.toDouble()),"quantityEstimated" to JsonPrimitive(false))))}){Text(mealText("Confirm exact quantity","Confirmer la quantité exacte"))};KitchenOutlinedButton(enabled=!state.busy&&quantity.toDoubleOrNull()?.let{it>=0}==true,onClick={vm.mealChange("pantry",JsonObject(batch+mapOf("quantity" to JsonPrimitive(quantity.toDouble()),"quantityEstimated" to JsonPrimitive(true))))}){Text(mealText("Save estimate · review required","Enregistrer une estimation · à vérifier"))}}
- Text(mealText("Use Pantry and Leftovers for other corrections, Daily context for practical changes, and Profiles for explicit health changes.","Utilisez Stock et Restes pour les autres corrections, le Contexte pour l’organisation et Profils pour les changements de santé explicites."))
- if(pending.isEmpty())Text(mealText("No planned meals need confirmation.","Aucun repas prévu à confirmer."))
- }}
+
+@Composable
+fun MealCheckInControls(state: BuddyState, vm: BuddyViewModel) {
+    val batches = state.meals?.get("state")?.jsonObject?.mealRows("pantry") ?: emptyList()
+    var selected by rememberSaveable { mutableStateOf("") }
+    var quantity by rememberSaveable { mutableStateOf("") }
+    var estimated by rememberSaveable { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        if (batches.isEmpty()) Text(mealText("Empty stock", "Stock vide"))
+        batches
+            .sortedBy {
+                if (
+                    it["quantity"] == JsonNull ||
+                        it["quantityEstimated"]?.jsonPrimitive?.booleanOrNull == true
+                )
+                    0
+                else 1
+            }
+            .forEach { batch ->
+                val id = batch.mealValue("id")
+                KitchenTextButton(
+                    onClick = {
+                        selected = if (selected == id) "" else id
+                        quantity = batch.mealValue("quantity")
+                        estimated = batch["quantityEstimated"]?.jsonPrimitive?.booleanOrNull == true
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.Kitchen, null, Modifier.size(22.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(batch.mealValue("name"), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            batch.mealValue("quantity", mealText("Unknown", "Inconnu")) +
+                                " " +
+                                batch.mealValue("unit") +
+                                (if (
+                                    batch["quantityEstimated"]?.jsonPrimitive?.booleanOrNull == true
+                                )
+                                    " · " + mealText("Estimated", "Estimé")
+                                else ""),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null)
+                }
+                if (selected == id) {
+                    MealField(
+                        mealText("Quantity", "Quantité") + " · " + batch.mealValue("unit"),
+                        quantity,
+                        { quantity = it },
+                        KeyboardType.Decimal,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MealVisualChoice(
+                            mealText("Exact", "Exact"),
+                            Icons.Default.Check,
+                            !estimated,
+                        ) {
+                            estimated = false
+                        }
+                        MealVisualChoice(
+                            mealText("Estimate", "Estimation"),
+                            Icons.Default.Adjust,
+                            estimated,
+                        ) {
+                            estimated = true
+                        }
+                    }
+                    KitchenButton(
+                        enabled =
+                            !state.busy &&
+                                quantity.toDoubleOrNull()?.let { it.isFinite() && it >= 0 } == true,
+                        onClick = {
+                            val previous = batch["quantity"]?.jsonPrimitive?.doubleOrNull
+                            vm.mealChange(
+                                if (previous == null) "pantry" else "stock",
+                                if (previous == null)
+                                    JsonObject(
+                                        batch +
+                                            mapOf(
+                                                "quantity" to JsonPrimitive(quantity.toDouble()),
+                                                "quantityEstimated" to JsonPrimitive(estimated),
+                                            )
+                                    )
+                                else
+                                    buildJsonObject {
+                                        put("id", id)
+                                        put("delta", quantity.toDouble() - previous)
+                                        put("reason", "correction")
+                                        put("quantityEstimated", estimated)
+                                    },
+                                true,
+                            )
+                        },
+                    ) {
+                        Icon(Icons.Default.Check, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(mealText("Save", "Enregistrer"))
+                    }
+                }
+            }
+    }
 }

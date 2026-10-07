@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.*
 @Composable fun MealHouseholdControls(state:BuddyState,vm:BuddyViewModel){
- var open by rememberSaveable{mutableStateOf(false)};var friend by rememberSaveable{mutableStateOf("")};var role by rememberSaveable{mutableStateOf("planner")};val scope=rememberCoroutineScope();val context=LocalContext.current;var exportError by remember{mutableStateOf(false)}
+ var open by rememberSaveable{mutableStateOf(true)};var friend by rememberSaveable{mutableStateOf("")};var role by rememberSaveable{mutableStateOf("planner")};val scope=rememberCoroutineScope();val context=LocalContext.current;var exportError by remember{mutableStateOf(false)}
  Column {
-  KitchenTextButton(onClick={open=!open}){Text(mealText("Household & private export","Foyer et export privé"))}
+
   if(open){
    state.meals?.get("kitchens")?.jsonArray?.forEach{raw->val k=raw.jsonObject;KitchenOutlinedButton(onClick={vm.selectMealKitchen(k["id"]!!.jsonPrimitive.content)},enabled=!state.busy){Text(k["owner"]!!.jsonObject["username"]!!.jsonPrimitive.content)}}
    state.meals?.get("members")?.jsonArray?.forEach{raw->val m=raw.jsonObject;Text(m["user"]!!.jsonObject["username"]!!.jsonPrimitive.content+" · "+m["role"]!!.jsonPrimitive.content);if(m["role"]!!.jsonPrimitive.content!="owner")KitchenTextButton(onClick={vm.mealChange("remove-member",buildJsonObject{put("userId",m["userId"]!!)},true)}){Text(mealText("Remove household access","Retirer l’accès au foyer"))}}

@@ -468,6 +468,7 @@ export async function applyMeal(user: string, input: Operation) {
             id: boundedId,
             delta: z.number().finite().min(-1e7).max(1e7),
             reason: z.enum(["use", "discard", "correction", "purchase"]),
+            quantityEstimated: z.boolean().optional(),
           })
           .parse(data);
         const batch = state.pantry.find((b) => b.id === value.id);
@@ -475,8 +476,15 @@ export async function applyMeal(user: string, input: Operation) {
           throw new HttpError(409, "Confirm a precise batch quantity first.");
         if (batch.quantity + value.delta < 0)
           throw new HttpError(409, "Insufficient stock.");
+        const previousPrecision = batch.quantityEstimated === true;
         batch.quantity += value.delta;
+        if (value.quantityEstimated !== undefined) batch.quantityEstimated = value.quantityEstimated;
         history([{ batchId: batch.id, quantity: -value.delta }]);
+        if (value.quantityEstimated !== undefined) {
+          state.history[state.history.length - 1].precision = {
+            batchId: batch.id, before: previousPrecision, after: value.quantityEstimated,
+          };
+        }
       }
       if (input.action === "undo-stock") {
         const entry = state.history.find(
@@ -497,6 +505,14 @@ export async function applyMeal(user: string, input: Operation) {
             );
         }
         restore(state, entry.effects);
+        if (entry.precision) {
+          const precision = entry.precision;
+          const laterMeasurement = state.history.slice(state.history.indexOf(entry) + 1)
+            .some((h) => !h.reversed && h.precision?.batchId === precision.batchId);
+          const batch = state.pantry.find((b) => b.id === precision.batchId);
+          if (batch && !laterMeasurement && (batch.quantityEstimated === true) === precision.after)
+            batch.quantityEstimated = precision.before;
+        }
         entry.reversed = true;
       }
       if (input.action === "plan") {

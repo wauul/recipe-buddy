@@ -4229,3 +4229,146 @@ body:has(.auth-page) .cookie-banner {
 .meal-workbench button,.meal-workbench summary { min-height:44px; }
 .meal-workbench input[type=number] { font-variant-numeric:tabular-nums; }
 @media(max-width:600px) { .meal-heading { flex-direction:column; } .meal-tabs { gap:8px; } .meal-tabs .button { font-size:14px; } .meal-week,.meal-fields { grid-template-columns:1fr; } }
+
+/* The meal calendar uses the Kitchen Index palette and type, with tasks on a second surface. */
+.meal-workbench { max-width: 920px; margin-inline: auto; }
+.meal-workbench .meal-heading { align-items: center; margin-bottom: 32px; }
+.meal-workbench .meal-heading h1 { margin: 0; }
+.meal-heading .text-button,.meal-day-footer .text-button,.meal-selected-day > div > .text-button { display: inline-flex; align-items: center; gap: 8px; }
+.meal-agenda { max-width: 760px; margin-inline: auto; }
+.meal-calendar-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.meal-calendar-heading h2 { font-size:1.6rem; text-transform:capitalize; margin:0; }
+.meal-calendar-heading > div { display:flex; align-items:center; }
+.meal-icon-button { display:inline-flex; justify-content:center; align-items:center; width:48px; height:48px; flex-shrink:0; border:0; border-radius:50%; background:transparent; }
+.meal-icon-button:hover { background:var(--surface-soft); }
+.meal-week-strip { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; padding:0 0 28px; border-bottom:1px solid var(--line); }
+.meal-week-strip button { display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0; min-height:86px; padding:12px 0; background:transparent; border:1px solid transparent; border-radius:16px; }
+.meal-week-strip button:hover { background:var(--surface-soft); }
+.meal-week-strip button[aria-pressed=true] { background:var(--accent); color:var(--on-accent); }
+.meal-week-strip button span { font-size:13px; }
+.meal-week-strip button strong { font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; }
+.meal-week-strip i { width:4px; height:4px; border-radius:50%; background:transparent; }
+.meal-week-strip i.has-meals { background:currentColor; }
+.meal-selected-day { padding-top:28px; }
+.meal-selected-day > div:first-child { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+.meal-selected-day h2 { font-size:1.4rem; margin:0; text-transform:capitalize; }
+.meal-day-list { display:grid; gap:12px; }
+.meal-agenda-event { width:100%; display:flex; align-items:center; gap:16px; text-align:left; padding:18px; background:var(--surface); border:1px solid var(--line); border-radius:16px; }
+.meal-agenda-event:hover { border-color:var(--control-line); }
+.meal-event-symbol { display:grid; place-items:center; width:48px; height:48px; flex-shrink:0; color:var(--muted); }
+.meal-agenda-event > span:nth-child(2) { flex:1; min-width:0; display:grid; gap:4px; }
+.meal-agenda-event strong { font-size:17px; font-weight:600; overflow-wrap:anywhere; }
+.meal-agenda-event small { font-size:13px; color:var(--muted); }
+.meal-agenda-empty { padding:44px 12px; color:var(--muted); text-align:center; }
+.meal-agenda-empty svg { margin:0 auto 12px; }
+.meal-agenda-empty h3 { font-size:18px; margin:0 0 6px; color:var(--ink); }
+.meal-agenda-empty p { margin:0; font-size:15px; }
+.meal-day-footer { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:24px; padding-bottom:16px; }
+.meal-journal-link { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:16px 0; background:transparent; border:0; border-top:1px solid var(--line); font-size:14px; }
+.meal-journal-link svg:last-child { margin-left:auto; }
+.meal-task-sheet { width:min(100% - 32px,560px); max-height:min(88dvh,880px); margin:auto; padding:0; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:24px; box-shadow:var(--shadow); overflow-y:auto; overscroll-behavior:contain; }
+.meal-task-sheet::backdrop { background:var(--overlay); }
+.meal-task-sheet > header { position:sticky; top:0; z-index:1; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 16px 12px 24px; background:var(--surface); border-bottom:1px solid var(--line); }
+.meal-task-sheet h2 { font-size:22px; margin:0; overflow-wrap:anywhere; }
+.meal-sheet-body { padding:20px 24px 24px; }
+.meal-sheet-body .meal-form { margin:0; padding:0; border:0; }
+.meal-sheet-body label { display:flex; flex-direction:column; gap:8px; }
+.meal-sheet-body input,.meal-sheet-body select { min-height:48px; max-width:100%; }
+.meal-sheet-body input[type=checkbox] { min-height:20px; width:20px; height:20px; }
+.meal-sheet-body .check-row,.meal-sheet-body label:has(>input[type=checkbox]) { flex-direction:row; align-items:center; gap:12px; }
+.meal-sheet-body .meal-fields { grid-template-columns:1fr; }
+.meal-sheet-body .meal-card { border:0; padding:0; border-radius:0; background:transparent; }
+.meal-action-row { display:flex; width:100%; text-align:left; align-items:center; gap:16px; padding:14px 0; min-height:56px; background:transparent; border:0; text-decoration:none; }
+.meal-action-row > span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.meal-action-row svg { flex-shrink:0; }
+.meal-action-row small { display:block; font-size:13px; color:var(--muted); margin-top:4px; }
+.meal-action-row:hover { color:var(--ink); }
+.meal-simple-form { display:grid; gap:20px; }
+.meal-simple-form h3 { margin:0; font-size:20px; }
+.meal-choice-chips { display:flex; flex-wrap:wrap; gap:8px; padding:0; margin:0; border:0; }
+.meal-choice-chips legend { margin-bottom:10px; font-size:14px; font-weight:600; }
+.meal-choice-chips button { border:1px solid var(--control-line); border-radius:24px; padding:8px 14px; background:transparent; min-height:48px; }
+.meal-choice-chips button[aria-pressed=true] { border-color:var(--ink); background:var(--accent-soft); color:var(--ink); box-shadow:inset 0 0 0 1px var(--accent); }
+.meal-stepper { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.meal-stepper > div { display:flex; align-items:center; gap:12px; }
+.meal-stepper button { width:48px; height:48px; border:1px solid var(--line); background:transparent; border-radius:50%; font-size:22px; }
+.meal-stepper output { min-width:30px; text-align:center; font-variant-numeric:tabular-nums; }
+.meal-chosen-recipe { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.meal-recipe-picker > label { margin-bottom:16px; }
+.meal-workbench .meal-row { border-bottom:1px solid var(--line); }
+.meal-workbench .meal-row h3 { font-family:var(--font-body),sans-serif; font-size:17px; font-weight:600; }
+@media(max-width:600px) {
+ .meal-workbench .meal-heading { flex-direction:row; margin-bottom:20px; gap:12px; }
+ .meal-heading h1 { font-size:28px; }
+ .meal-week-strip { gap:2px; }
+ .meal-week-strip button { border-radius:12px; min-height:78px; }
+ .meal-calendar-heading h2 { font-size:22px; }
+ .meal-calendar-heading .meal-icon-button { width:44px; }
+ .meal-selected-day > div:first-child { flex-wrap:wrap; }
+ .meal-agenda-event { padding:14px 12px; gap:10px; }
+ .meal-event-symbol { width:36px; }
+ .meal-task-sheet { position:fixed; inset:auto 0 0; width:100%; max-width:100%; max-height:92dvh; margin:0; border-radius:24px 24px 0 0; padding-bottom:env(safe-area-inset-bottom); }
+ .meal-sheet-body { padding:16px 20px 24px; }
+ .meal-task-sheet > header { padding-left:20px; }
+}
+
+/* Visible meal navigation and direct actions, without nested menus. */
+.meal-visible-nav,.meal-visible-actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.meal-visible-nav button,.meal-visible-actions button{min-height:48px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.meal-visible-nav button[aria-current="page"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.meal-visible-actions{padding-top:16px;border-top:1px solid var(--line)}
+@media(max-width:480px){.meal-visible-nav{gap:6px}.meal-visible-nav button{font-size:13px;padding-inline:10px}.meal-visible-actions button{flex:1 1 calc(50% - 8px);text-align:left}}
+
+.meal-visual-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.meal-visual-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:72px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-size:12px;cursor:pointer}
+.meal-visual-actions button svg{color:var(--accent)}
+.meal-visual-actions button:hover{background:var(--accent-soft)}
+.meal-visual-options{display:flex;flex-wrap:wrap;gap:8px;border:0;padding:0;margin:0}
+.meal-visual-options legend{font-weight:600;margin-bottom:8px;font-size:.875rem}
+.meal-visual-options button{display:flex;flex:1;min-width:72px;min-height:76px;align-items:center;justify-content:center;flex-direction:column;gap:8px;border:1px solid var(--control-line);border-radius:16px;background:transparent;color:var(--muted);padding:10px 8px}
+.meal-visual-options button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--ink);color:var(--ink)}
+.meal-visual-options button span{font-size:.8rem}
+.meal-tool-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meal-tool-row>label{flex:1;min-width:120px}
+.meal-replan-choice{display:flex;align-items:center;gap:12px;min-height:48px}
+.meal-replan-choice>span{display:flex;flex-direction:column;gap:4px}
+.meal-visual-actions button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.meal-event-symbol img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.meal-day-footer .primary{margin-left:auto}
+
+.meal-visible-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.meal-visible-nav button{display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;border-radius:10px;font-size:13px}
+.meal-agenda-empty{padding:24px 12px}
+.meal-agenda-event{min-height:80px}
+.meal-nutrient-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.meal-nutrient-grid dd span { display:block; color:var(--muted); font-size:.8rem; }
+.meal-nutrient-grid dd strong { font-size:1.25rem; }
+.meal-choice-chips button { display:inline-flex; align-items:center; gap:6px; }
+.meal-selected-day-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.meal-journal-count { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:48px; min-height:48px; background:transparent; border:0; color:var(--ink); }
+@media(max-width:600px) { .meal-agenda-empty { min-height:110px; padding:16px; } }
+
+/* A consistent rhythm separates decisions without adding instructions. */
+.meal-simple-form { gap:28px; }
+.meal-sheet-body { padding:24px 24px 32px; }
+.meal-sheet-body > section > .meal-card { margin-top:28px; padding-top:24px; border-top:1px solid var(--line); }
+.meal-sheet-body .meal-row { padding-block:20px; }
+.meal-choice-chips { column-gap:10px; row-gap:12px; }
+.meal-visual-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.meal-visual-options legend { margin-bottom:12px; }
+.meal-visual-options button { min-height:88px; padding:16px 12px; }
+.meal-visual-options button span { font-size:.875rem; }
+.meal-sheet-body .meal-visual-options,.meal-sheet-body .meal-choice-chips { margin:0; min-width:0; }
+.meal-task-sheet { box-sizing:border-box; }
+.meal-sheet-body .meal-simple-form + .button { margin-top:28px; width:100%; }
+.meal-visual-actions { gap:16px 12px; margin-top:24px; }
+.meal-visual-actions button { min-height:80px; gap:10px; }
+.meal-nutrient-grid { gap:24px 20px; margin-block:24px; }
+.meal-tool-row { gap:16px; }
+.meal-stepper { min-height:56px; }
+@media(max-width:600px) {
+ .meal-sheet-body { padding:24px 20px 32px; }
+ .meal-task-sheet > header { padding:16px 20px; }
+ .meal-agenda-event { padding:20px 16px; gap:16px; }
+ .meal-day-list { gap:16px; }
+}

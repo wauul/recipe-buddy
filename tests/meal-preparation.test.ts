@@ -1,10 +1,18 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {batchSchema,consume,emptyKitchen,planSchema,remainingAfterPreparation,restore,shopping,type Preparation} from "../src/lib/meal-engine";
-import {movePreparation,validateDependencies} from "../src/lib/meal-preparation";
+import {movePreparation,validateDependencies,preparationInput} from "../src/lib/meal-preparation";
 import {packagesRequired} from "../src/lib/meal-commerce";
 import {rescueProposals,undoAcceptedRescue,editedRescueProposal} from "../src/lib/meal-rescue";
 const task=(id:string):Preparation=>({id,actorId:"a",description:"Prepare rice",date:"2026-10-25",time:"08:30",timezone:"Europe/Paris",activeMinutes:null,passiveMinutes:null,dependencies:[],assignee:"a",reminder:false,status:"planned",override:false,reviewNeeded:false,ingredients:[],effects:[],unresolved:[]});
+test("zero-minute preparation persists while negative durations remain invalid",()=>{
+ const input={...task("00000000-0000-4000-8000-000000000001"),activeMinutes:0,passiveMinutes:0};
+ assert.equal(preparationInput.parse(input).activeMinutes,0);
+ assert.equal(preparationInput.parse(input).passiveMinutes,0);
+ assert.equal(preparationInput.safeParse({...input,activeMinutes:-1}).success,false);
+ assert.equal(preparationInput.safeParse({...input,passiveMinutes:-1}).success,false);
+ assert.equal(preparationInput.parse({...input,activeMinutes:null}).activeMinutes,null);
+});
 test("partial preparation consumes once, final cooking credits actual use, undo preserves unrelated stock",()=>{
  const s=emptyKitchen();s.pantry=[batchSchema.parse({id:"rice",name:"rice",quantity:1000,unit:"g"})];const t=task("t");t.planId="p";t.status="completed";t.ingredients=[{name:"riz",quantity:"0.1",unit:"kg"}];Object.assign(t,consume(s.pantry,t.ingredients,1));s.preparation=[t];
  const ingredients=[{name:"rice",quantity:"300",unit:"g"}];const remaining=remainingAfterPreparation(ingredients,0.5,[t]);assert.deepEqual(remaining,[{name:"rice",quantity:"50",unit:"g"}]);

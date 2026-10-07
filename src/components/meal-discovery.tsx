@@ -28,19 +28,20 @@ export function MealDiscovery({
   ingredients: string[];
   servings: number;
 }) {
-  const { t,locale } = useTranslation(),
+  const { t, locale } = useTranslation(),
     router = useRouter();
   const [candidates, setCandidates] = useState<Candidate[]>([]),
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState("");
-  const [reviewSources,setReviewSources]=useState<{url:string;publisher:string;reason:string}[]>([]);
+  const [reviewSources, setReviewSources] = useState<
+    { url: string; publisher: string; reason: string }[]
+  >([]);
   return (
-    <details>
-      <summary>{t("Find new recipes online · Pro")}</summary>
+    <section>
       <p>
-        {t(
-          "Search shares only selected ingredient names and country with the provider. Health profiles and your diary stay on our server.",
-        )}
+        {locale === "fr"
+          ? "Seuls ingrédients et pays sont transmis au fournisseur."
+          : "Search shares ingredient names and country only."}
       </p>
       <button
         className="button secondary"
@@ -51,7 +52,11 @@ export function MealDiscovery({
             const r = await request<{
               candidates: Candidate[];
               reason: string;
-              reviewSources:{url:string;publisher:string;reason:string}[];
+              reviewSources: {
+                url: string;
+                publisher: string;
+                reason: string;
+              }[];
             }>("/api/meals/discovery", "POST", {
               kitchenId,
               diners,
@@ -59,7 +64,7 @@ export function MealDiscovery({
               servings,
             });
             setCandidates(r.candidates);
-            setReviewSources(r.reviewSources??[]);
+            setReviewSources(r.reviewSources ?? []);
             setStatus(r.reason);
           } catch (e) {
             setStatus(e instanceof Error ? e.message : "Try again.");
@@ -68,10 +73,36 @@ export function MealDiscovery({
           }
         }}
       >
-        {t(busy ? "Loading…" : "Find new recipes online")}
+        {busy
+          ? t("Loading…")
+          : locale === "fr"
+            ? "Explorer · Pro"
+            : "Explore · Pro"}
       </button>
       <p role="status">{t(status)}</p>
-      {reviewSources.map(s=><article className="meal-row" key={s.url}><strong>{locale==="fr"?"Recette incomplète · vérification manuelle":"Incomplete recipe · manual review"}</strong><p>{locale==="fr"?"Quantités, portions ou instructions manquantes. Vérifiez la source puis saisissez les informations manquantes dans une nouvelle recette. Aucun import ni admissibilité approuvé.":s.reason}</p><a href={s.url} target="_blank" rel="noopener noreferrer">{s.publisher}</a> · <Link href="/recipes/new">{locale==="fr"?"Créer une recette après vérification":"Create a recipe after review"}</Link></article>)}
+      {reviewSources.map((s) => (
+        <article className="meal-row" key={s.url}>
+          <strong>
+            {locale === "fr"
+              ? "Recette incomplète · vérification manuelle"
+              : "Incomplete recipe · manual review"}
+          </strong>
+          <p>
+            {locale === "fr"
+              ? "Quantités, portions ou instructions manquantes. Vérifiez la source puis saisissez les informations manquantes dans une nouvelle recette. Aucun import ni admissibilité approuvé."
+              : s.reason}
+          </p>
+          <a href={s.url} target="_blank" rel="noopener noreferrer">
+            {s.publisher}
+          </a>{" "}
+          ·{" "}
+          <Link href="/recipes/new">
+            {locale === "fr"
+              ? "Créer une recette après vérification"
+              : "Create a recipe after review"}
+          </Link>
+        </article>
+      ))}
       {candidates.map((c) => (
         <article className="meal-row" key={c.token}>
           <h3>{c.title}</h3>
@@ -112,6 +143,6 @@ export function MealDiscovery({
           </button>
         </article>
       ))}
-    </details>
+    </section>
   );
 }

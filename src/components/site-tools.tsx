@@ -42,7 +42,7 @@ export function SiteTools() {
     }
     const update = () => {
       const max = document.documentElement.scrollHeight - innerHeight;
-      if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
+      if (bar.current) bar.current.style.transform = `scaleX(${max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0})`;
       setTop(scrollY > 500);
     };
     update();

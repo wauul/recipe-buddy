@@ -11,9 +11,9 @@ export default async function Agenda() {
         { shares: { some: sharedRecipeWhere(user.id) } },
       ],
     },
-    select: { id: true, title: true, servings: true, steps: true },
+    select: { id: true, title: true, servings: true, steps: true, imageUrl: true },
     take: 200,
     orderBy: { title: "asc" },
   });
-  return <MealWorkbench recipes={recipes} />;
+  return <MealWorkbench recipes={recipes.map(r=>({...r,imageUrl:r.imageUrl ?? undefined}))} />;
 }

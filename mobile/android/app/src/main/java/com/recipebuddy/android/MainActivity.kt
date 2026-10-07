@@ -214,7 +214,7 @@ class MainActivity : ComponentActivity() {
                 composable<PantryRoute> { MealsScreen(state,vm,"pantry") { nav.navigate(IngredientsRoute) } }
                 composable<ActivityRoute> { MealActivityScreen(state,vm) }
                 composable<IngredientsRoute> { IngredientsScreen(state, vm, ::open, { root(ShoppingRoute) }) }
-                composable<ShoppingRoute> { Column { KitchenTextButton(onClick={nav.navigate(AgendaRoute)}){Text(mealText("Connected meal shopping","Courses du planning"))};ShoppingScreen(state, vm) } }
+                composable<ShoppingRoute> { MealShoppingDestination(state, vm) }
                 composable<FriendsRoute> { Column { KitchenTextButton(onClick={nav.navigate(ActivityRoute)}){Text(mealText("Friends activity","Activité des amis"))};FriendsScreen(state, vm, ::open, { nav.navigate(InviteRoute) }, { nav.navigate(ChefKitchenRoute(it)) }) } }
                 composable<InviteRoute> { InvitationScreen(state, vm) }
                 composable<SettingsRoute> { SettingsScreen(state, vm) { nav.navigate(HelpRoute) } }

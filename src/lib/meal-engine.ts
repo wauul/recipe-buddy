@@ -203,6 +203,7 @@ export type Kitchen = {
     actorId: string;
     action: string;
     effects: Effect[];
+    precision?: { batchId: string; before: boolean; after: boolean };
     reversed: boolean;
     date: string;
   }[];
