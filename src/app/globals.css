@@ -4374,6 +4374,40 @@ body:has(.auth-page) .cookie-banner {
 }
 
 /* Hide mobile scroll indicators without changing scrolling or overflow. */
+.meal-prep-status { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:14px; }
+.meal-prep-actions { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px; }
+.meal-prep-action { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:76px; padding:12px 4px; border:0; border-radius:12px; background:transparent; color:var(--ink); font:inherit; font-size:13px; cursor:pointer; }
+.meal-prep-action:hover { background:var(--accent-soft); }
+.meal-prep-action:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.meal-prep-done { background:var(--accent-soft); color:var(--accent); }
+.meal-prep-stock { grid-column:1/-1; order:2; display:grid; gap:20px; margin-top:12px; padding:20px 0; border-top:1px solid var(--line); }
+.meal-prep-stock-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.meal-prep-quantity { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+.meal-prep-quantity > strong,.meal-prep-quantity > label:first-child { flex:1; min-width:100px; overflow-wrap:anywhere; }
+.meal-sheet-body .meal-prep-amount { flex-direction:row; align-items:center; gap:8px; }
+.meal-prep-amount input { width:80px; min-width:0; }
+.meal-prep-edit-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.meal-prep-edit-heading .meal-action-row { width:auto; }
+.meal-prep-actions:has(.meal-prep-stock) { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.meal-prep-actions:has(>button:only-child) { display:flex; }
+.meal-nutrition-day { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:24px; color:var(--muted); font-size:13px; }
+.meal-nutrition-tiles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:20px 0; }
+.meal-nutrition-tiles > div { padding:20px 16px; border-radius:16px; background:var(--accent-soft); }
+.meal-nutrition-tiles dt { font-size:14px; color:var(--muted); }
+.meal-nutrition-tiles dd { margin:12px 0 0; }
+.meal-nutrition-value { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.meal-nutrition-value strong { font-size:26px; line-height:1.2; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.meal-nutrition-value > span,.meal-nutrition-tiles small { font-size:13px; color:var(--muted); }
+.meal-nutrition-tiles small { display:block; margin-top:6px; }
+.meal-nutrition-bound { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:12px; font-size:12px; }
+.meal-nutrition-coverage { display:flex; align-items:center; gap:12px; min-height:52px; padding:12px 0; background:transparent; border:0; color:var(--muted); font:inherit; text-align:left; cursor:pointer; }
+.meal-nutrition-coverage[aria-pressed=true] { color:var(--accent); }
+.meal-nutrition-coverage svg { flex-shrink:0; }
+.meal-daily-summary > .meal-tool-row { margin:24px 0; }
+.meal-eaten-selected { display:flex; align-items:center; gap:16px; padding:16px 0; }
+.meal-eaten-selected strong { flex:1; overflow-wrap:anywhere; }
+.meal-eaten-recipes .meal-action-row { border-bottom:1px solid var(--line); min-height:72px; }
+.meal-prep-amount input[aria-invalid=true] { border-color:var(--error); }
 @media (max-width: 767px) {
   html, body, body * {
     scrollbar-width: none;

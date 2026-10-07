@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import type { Kitchen, Preparation } from "@/lib/meal-engine";
+import { useEffect, useRef, useState } from "react";
+import { measure, type Kitchen, type Preparation } from "@/lib/meal-engine";
 import { useTranslation } from "./language-provider";
 import {
   Scissors,
@@ -9,6 +9,12 @@ import {
   Clock3,
   LockKeyhole,
   Check,
+  Pencil,
+  X,
+  Undo2,
+  Package,
+  Plus,
+  ChevronLeft,
 } from "lucide-react";
 export function MealPreparation({
   recipes,
@@ -42,6 +48,27 @@ export function MealPreparation({
     [assignee, setAssignee] = useState(actorId),
     [dependencies, setDependencies] = useState<string[]>([]),
     [override, setOverride] = useState(false);
+  const form = useRef<HTMLDivElement>(null);
+  const draft = {
+    description,
+    planId,
+    date,
+    time,
+    active,
+    passive,
+    assignee,
+    dependencies,
+    override,
+  };
+  const previousDraft = useRef<typeof draft | null>(null);
+  useEffect(() => {
+    if (editing) {
+      form.current?.scrollIntoView({ block: "start", behavior: "instant" });
+      form.current
+        ?.querySelector<HTMLInputElement>("input")
+        ?.focus({ preventScroll: true });
+    }
+  }, [editing]);
   const tasks = state.preparation ?? [];
   const dependencyChoices = tasks.filter(
     (x) =>
@@ -52,7 +79,36 @@ export function MealPreparation({
   );
   return (
     <section>
-      <div className="meal-simple-form">
+      <div className="meal-simple-form" ref={form}>
+        {editing && (
+          <div className="meal-prep-edit-heading">
+            <button
+              type="button"
+              className="meal-action-row"
+              disabled={busy}
+              onClick={() => {
+                const old = previousDraft.current;
+                if (old) {
+                  setDescription(old.description);
+                  setPlanId(old.planId);
+                  setDate(old.date);
+                  setTime(old.time);
+                  setActive(old.active);
+                  setPassive(old.passive);
+                  setAssignee(old.assignee);
+                  setDependencies(old.dependencies);
+                  setOverride(old.override);
+                }
+                setEditing(null);
+                previousDraft.current = null;
+              }}
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+              {text("Cancel", "Annuler")}
+            </button>
+            <strong>{text("Edit task", "Modifier la tâche")}</strong>
+          </div>
+        )}
         <label>
           {text("Task", "Tâche")}
           <input
@@ -261,6 +317,7 @@ export function MealPreparation({
         {text("Save", "Enregistrer")}
       </button>
       {tasks
+        .filter(() => !editing)
         .filter((task) => task.date === date || task.id === editing?.id)
         .slice()
         .sort((a, b) =>
@@ -269,55 +326,73 @@ export function MealPreparation({
         .map((task) => (
           <article className="meal-card" key={task.id}>
             <strong>{task.description}</strong>
-            <p>
-              {task.date} {task.time} · {t(task.status)}
+            <p className="meal-prep-status">
+              {task.status === "completed" ? (
+                <Check size={16} aria-hidden="true" />
+              ) : task.status === "dismissed" ? (
+                <X size={16} aria-hidden="true" />
+              ) : (
+                <Clock3 size={16} aria-hidden="true" />
+              )}
+              {task.time || ""} {t(task.status)}
             </p>
             {task.reviewNeeded && (
               <p role="status">
                 {t("Meal changed. Review this preparation task.")}
               </p>
             )}
-            {task.status !== "completed" && (
-              <button
-                className="button secondary"
-                disabled={busy}
-                onClick={() => {
-                  setEditing(task);
-                  setDescription(task.description);
-                  setPlanId(task.planId ?? "");
-                  setDate(task.date);
-                  setTime(task.time ?? "");
-                  setActive(String(task.activeMinutes ?? 0));
-                  setPassive(String(task.passiveMinutes ?? 0));
-                  setAssignee(task.assignee);
-                  setDependencies(task.dependencies);
-                  setOverride(task.override);
-                }}
-              >
-                {text("Edit", "Modifier")}
-              </button>
-            )}
-            {task.status === "planned" && (
-              <PreparationComplete task={task} mutate={mutate} busy={busy} />
-            )}
-            {task.status !== "planned" && (
-              <button
-                className="button secondary"
-                disabled={busy || !!task.cookedId}
-                onClick={() => mutate("undo-preparation", { id: task.id })}
-              >
-                {text("Undo", "Annuler")}
-              </button>
-            )}
-            {task.status === "planned" && (
-              <button
-                className="button secondary"
-                disabled={busy}
-                onClick={() => mutate("dismiss-preparation", { id: task.id })}
-              >
-                {t("Dismiss")}
-              </button>
-            )}
+            <div className="meal-prep-actions">
+              {task.status === "planned" && (
+                <button
+                  className="meal-prep-action"
+                  disabled={busy}
+                  onClick={() => {
+                    previousDraft.current = draft;
+                    setEditing(task);
+                    setDescription(task.description);
+                    setPlanId(task.planId ?? "");
+                    setDate(task.date);
+                    setTime(task.time ?? "");
+                    setActive(String(task.activeMinutes ?? 0));
+                    setPassive(String(task.passiveMinutes ?? 0));
+                    setAssignee(task.assignee);
+                    setDependencies(task.dependencies);
+                    setOverride(task.override);
+                  }}
+                >
+                  <Pencil size={20} aria-hidden="true" />
+                  {text("Edit", "Modifier")}
+                </button>
+              )}
+              {task.status === "planned" && (
+                <PreparationComplete
+                  task={task}
+                  pantry={state.pantry}
+                  mutate={mutate}
+                  busy={busy}
+                />
+              )}
+              {task.status !== "planned" && (
+                <button
+                  className="meal-prep-action"
+                  disabled={busy || !!task.cookedId}
+                  onClick={() => mutate("undo-preparation", { id: task.id })}
+                >
+                  <Undo2 size={20} aria-hidden="true" />
+                  {text("Undo", "Annuler")}
+                </button>
+              )}
+              {task.status === "planned" && (
+                <button
+                  className="meal-prep-action"
+                  disabled={busy}
+                  onClick={() => mutate("dismiss-preparation", { id: task.id })}
+                >
+                  <X size={20} aria-hidden="true" />
+                  {t("Dismiss")}
+                </button>
+              )}
+            </div>
             {task.time && task.status === "planned" && (
               <button
                 className="button secondary"
@@ -350,82 +425,250 @@ export function MealPreparation({
 }
 function PreparationComplete({
   task,
+  pantry,
   mutate,
   busy,
 }: {
   task: Preparation;
+  pantry: Kitchen["pantry"];
   mutate: (a: string, d: unknown) => Promise<boolean>;
   busy: boolean;
 }) {
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
+  const text = (en: string, fr: string) => (locale === "fr" ? fr : en);
+  const [open, setOpen] = useState(false);
   const [ingredients, setIngredients] = useState<
-    { name: string; quantity: string; unit: string }[]
+    {
+      id: string;
+      name: string;
+      quantity: string;
+      unit: string;
+      custom?: boolean;
+      unitEditable?: boolean;
+    }[]
   >([]);
+  const stockPanel = useRef<HTMLDivElement>(null);
+  const previousCount = useRef(0);
+  useEffect(() => {
+    if (open) {
+      stockPanel.current?.scrollIntoView({
+        block: "nearest",
+        behavior: "instant",
+      });
+      if (ingredients.length > previousCount.current) {
+        const rows = stockPanel.current?.querySelectorAll(
+          ".meal-prep-quantity",
+        );
+        rows?.[rows.length - 1]
+          ?.querySelector<HTMLInputElement>("input")
+          ?.focus();
+      }
+    }
+    previousCount.current = ingredients.length;
+  }, [open, ingredients.length]);
+  const eligible = pantry.filter((batch) => batch.quantity !== 0);
+  const choices = eligible.filter(
+    (batch, index, all) =>
+      all.findIndex((b) => b.name === batch.name && b.unit === batch.unit) ===
+      index,
+  );
+  const valid =
+    ingredients.length > 0 &&
+    ingredients.every(
+      (row) => row.name.trim() && measure(row.quantity, row.unit),
+    );
+  const complete = async () => {
+    if (
+      await mutate("complete-preparation", {
+        id: task.id,
+        ingredients: open
+          ? ingredients.map(({ name, quantity, unit }) => ({
+              name,
+              quantity,
+              unit,
+            }))
+          : [],
+      })
+    ) {
+      setOpen(false);
+      setIngredients([]);
+    }
+  };
+  const change = (
+    id: string,
+    key: "name" | "quantity" | "unit",
+    value: string,
+  ) =>
+    setIngredients((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, [key]: value } : row)),
+    );
   return (
-    <div className="meal-simple-form">
-      {ingredients.map((row, i) => (
-        <div className="meal-fields" key={i}>
-          {(["name", "quantity", "unit"] as const).map((key) => (
-            <label key={key}>
-              {t(
-                key === "name"
-                  ? "Ingredient"
-                  : key === "quantity"
-                    ? "Actual quantity"
-                    : "Unit",
+    <>
+      <button
+        type="button"
+        className="meal-prep-action"
+        aria-expanded={open}
+        disabled={busy}
+        onClick={() => setOpen(true)}
+      >
+        <Package size={20} aria-hidden="true" />
+        {text("Stock used", "Stock utilisé")}
+      </button>
+      {!open && (
+        <button
+          type="button"
+          className="meal-prep-action meal-prep-done"
+          disabled={busy || (open && !valid)}
+          onClick={complete}
+        >
+          <Check size={20} aria-hidden="true" />
+          {text("Done", "Terminé")}
+        </button>
+      )}
+      {open && (
+        <div className="meal-prep-stock" ref={stockPanel}>
+          <div className="meal-prep-stock-heading">
+            <strong>{text("Stock used", "Stock utilisé")}</strong>
+            <button
+              type="button"
+              className="meal-icon-button"
+              disabled={busy}
+              aria-label={text(
+                "Cancel stock changes",
+                "Annuler le stock utilisé",
               )}
-              <input
-                value={row[key]}
-                onChange={(e) =>
-                  setIngredients(
-                    ingredients.map((old, j) =>
-                      i === j ? { ...old, [key]: e.target.value } : old,
-                    ),
+              onClick={() => {
+                setIngredients([]);
+                setOpen(false);
+              }}
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
+          <div
+            className="meal-choice-chips"
+            role="group"
+            aria-label={text("Ingredients", "Ingrédients")}
+          >
+            {choices.map((batch) => (
+              <button
+                key={batch.id}
+                type="button"
+                disabled={busy}
+                aria-pressed={ingredients.some((row) => row.id === batch.id)}
+                onClick={() =>
+                  setIngredients((rows) =>
+                    rows.some((row) => row.id === batch.id)
+                      ? rows.filter((row) => row.id !== batch.id)
+                      : [
+                          ...rows,
+                          {
+                            id: batch.id,
+                            name: batch.name,
+                            quantity: "",
+                            unit: batch.unit,
+                            unitEditable: !measure(1, batch.unit),
+                          },
+                        ],
                   )
                 }
-              />
-            </label>
+              >
+                <Package size={16} aria-hidden="true" />
+                {batch.name}
+              </button>
+            ))}
+          </div>
+          {ingredients.map((row) => (
+            <div className="meal-prep-quantity" key={row.id}>
+              {row.custom ? (
+                <label>
+                  {text("Ingredient", "Ingrédient")}
+                  <input
+                    value={row.name}
+                    disabled={busy}
+                    maxLength={120}
+                    onChange={(e) => change(row.id, "name", e.target.value)}
+                  />
+                </label>
+              ) : (
+                <strong>{row.name}</strong>
+              )}
+              <label className="meal-prep-amount">
+                <span className="sr-only">
+                  {text("Quantity used", "Quantité utilisée")} · {row.name}
+                </span>
+                <input
+                  inputMode="decimal"
+                  aria-invalid={
+                    !!row.quantity && !measure(row.quantity, row.unit)
+                  }
+                  placeholder="0"
+                  value={row.quantity}
+                  maxLength={40}
+                  disabled={busy}
+                  onChange={(e) => change(row.id, "quantity", e.target.value)}
+                />
+                {row.custom || row.unitEditable ? (
+                  <input
+                    value={row.unit}
+                    maxLength={40}
+                    disabled={busy}
+                    aria-label={text("Unit", "Unité")}
+                    onChange={(e) => change(row.id, "unit", e.target.value)}
+                  />
+                ) : (
+                  <span>{row.unit}</span>
+                )}
+              </label>
+              <button
+                type="button"
+                className="meal-icon-button"
+                disabled={busy}
+                aria-label={text("Remove", "Retirer") + " · " + row.name}
+                onClick={() =>
+                  setIngredients((rows) =>
+                    rows.filter((old) => old.id !== row.id),
+                  )
+                }
+              >
+                <X size={18} aria-hidden="true" />
+              </button>
+            </div>
           ))}
           <button
-            className="button secondary"
+            type="button"
+            className="meal-action-row"
+            disabled={busy || ingredients.length >= 100}
             onClick={() =>
-              setIngredients(ingredients.filter((_, j) => j !== i))
+              setIngredients((rows) => [
+                ...rows,
+                {
+                  id: crypto.randomUUID(),
+                  name: "",
+                  quantity: "",
+                  unit: "g",
+                  custom: true,
+                },
+              ])
             }
           >
-            {t("Remove")}
+            <Plus size={18} aria-hidden="true" />
+            {text("Other ingredient", "Autre ingrédient")}
+          </button>
+          <button
+            type="button"
+            className="button primary"
+            disabled={busy || !valid}
+            onClick={complete}
+          >
+            <Check size={18} aria-hidden="true" />
+            {text("Done", "Terminé")}
           </button>
         </div>
-      ))}
-      <button
-        className="button secondary"
-        onClick={() =>
-          setIngredients([
-            ...ingredients,
-            { name: "", quantity: "", unit: "g" },
-          ])
-        }
-      >
-        {locale === "fr" ? "Stock utilisé" : "Stock used"}
-      </button>
-      <button
-        className="button secondary"
-        disabled={
-          busy || ingredients.some((i) => !!i.name.trim() && !i.quantity.trim())
-        }
-        onClick={() =>
-          mutate("complete-preparation", {
-            id: task.id,
-            ingredients: ingredients.filter((i) => !!i.name.trim()),
-          })
-        }
-      >
-        <Check size={18} aria-hidden="true" />
-        {locale === "fr" ? "Terminé" : "Done"}
-      </button>
-    </div>
+      )}
+    </>
   );
 }
-
 function PreparationMinutes({
   label,
   value,

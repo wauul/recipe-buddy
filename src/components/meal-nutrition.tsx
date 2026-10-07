@@ -2,7 +2,14 @@
 import type { readMeals } from "@/lib/meal-service";
 import { useTranslation } from "./language-provider";
 import { useState } from "react";
-import { Utensils, Pencil, Info } from "lucide-react";
+import {
+  Utensils,
+  Pencil,
+  Info,
+  Check,
+  Circle,
+  AlertTriangle,
+} from "lucide-react";
 import {
   targetNutrients,
   type NutritionTarget,
@@ -61,7 +68,7 @@ export function MealDailyNutrition({
       "within-target": text("Within target", "Dans l’objectif"),
     })[key] ?? key;
   return (
-    <section>
+    <section className="meal-daily-summary">
       <div className="meal-choice-chips">
         {snapshot.profiles.map((p) => (
           <button
@@ -87,31 +94,80 @@ export function MealDailyNutrition({
         .filter((day) => day.personId === viewPerson)
         .map((day) => (
           <article className="meal-card" key={day.personId + day.date}>
-            <strong>
-              {day.name} · {day.date}
-            </strong>
-            <p>
-              {day.dayConfirmed
-                ? text("Confirmed", "Confirmée")
-                : text("Incomplete", "Incomplète")}
-            </p>
-            <dl className="meal-nutrient-grid">
+            <div className="meal-nutrition-day">
+              <span>
+                {new Intl.DateTimeFormat(locale, {
+                  day: "numeric",
+                  month: "short",
+                  timeZone: "UTC",
+                }).format(new Date(day.date + "T12:00Z"))}
+              </span>
+              <span className="meal-nutrition-missing">
+                {day.rows.some((row) => row.value === null)
+                  ? text("— Missing data", "— Données manquantes")
+                  : ""}
+              </span>
+            </div>
+            <dl className="meal-nutrition-tiles">
               {day.rows.map((row) => (
                 <div key={row.nutrient}>
-                  <dt>{label(row.nutrient)}</dt>
+                  <dt>{label(row.nutrient).split(" · ")[0]}</dt>
                   <dd>
-                    <strong>{row.value ?? text("Unknown", "Inconnu")}</strong>
+                    <div className="meal-nutrition-value">
+                      <strong
+                        aria-label={
+                          row.value === null
+                            ? text("Unknown", "Inconnu")
+                            : undefined
+                        }
+                      >
+                        {row.value ?? "—"}
+                      </strong>
+                      <span>
+                        {row.nutrient === "energyKcal" ? "kcal" : "g"}
+                      </span>
+                    </div>
                     {row.value === null && row.knownSubtotal !== null && (
                       <small>
-                        {text("Subtotal", "Sous-total")}{" "}
-                        {row.knownSubtotal ?? text("Unknown", "Inconnu")}
+                        {row.knownSubtotal} {text("recorded", "enregistré")}
                       </small>
                     )}
-                    <span>
-                      {status(row.status)}{" "}
-                      {row.target &&
-                        `(${row.target.minimum ?? "—"} – ${row.target.maximum ?? "—"})`}
-                    </span>
+                    {row.target && (
+                      <span
+                        className="meal-nutrition-bound"
+                        title={status(row.status)}
+                      >
+                        {row.status === "within-target" ? (
+                          <Check size={16} aria-label={status(row.status)} />
+                        ) : [
+                            "below-target",
+                            "above-target",
+                            "review-required",
+                          ].includes(row.status) ? (
+                          <AlertTriangle
+                            size={16}
+                            aria-label={status(row.status)}
+                          />
+                        ) : null}
+                        <span>
+                          <span className="sr-only">
+                            {text("Target", "Objectif")}{" "}
+                          </span>
+                          {row.target.minimum === null
+                            ? `≤ ${row.target.maximum}`
+                            : row.target.maximum === null
+                              ? `≥ ${row.target.minimum}`
+                              : `${row.target.minimum} – ${row.target.maximum}`}
+                        </span>
+                        {row.status === "below-target"
+                          ? text("Low", "Bas")
+                          : row.status === "above-target"
+                            ? text("High", "Haut")
+                            : row.status === "review-required"
+                              ? text("Review", "Réviser")
+                              : ""}
+                      </span>
+                    )}
                   </dd>
                 </div>
               ))}
@@ -133,7 +189,8 @@ export function MealDailyNutrition({
                   </p>
                 ))}
             <button
-              className="button secondary"
+              className="meal-nutrition-coverage"
+              aria-pressed={day.dayConfirmed}
               disabled={busy}
               onClick={() =>
                 void mutate("daily-coverage", {
@@ -143,11 +200,19 @@ export function MealDailyNutrition({
                 })
               }
             >
+              {day.dayConfirmed ? (
+                <Check size={20} aria-hidden="true" />
+              ) : (
+                <Circle size={20} aria-hidden="true" />
+              )}
               {day.dayConfirmed
-                ? text("Mark day incomplete", "Marquer la journée incomplète")
+                ? text(
+                    "All food & drinks logged",
+                    "Repas et boissons enregistrés",
+                  )
                 : text(
-                    "Confirm all food and drinks recorded",
-                    "Confirmer tous les aliments et boissons enregistrés",
+                    "All food & drinks logged",
+                    "Repas et boissons enregistrés",
                   )}
             </button>
           </article>
@@ -172,7 +237,7 @@ export function MealDailyNutrition({
           onClick={() => setNotes(!notes)}
         >
           <Info size={18} />
-          {text("Sources & limits", "Sources et limites")}
+          {text("Info", "Infos")}
         </button>
       </div>
       {notes && (
@@ -189,8 +254,8 @@ export function MealDailyNutrition({
         <section className="meal-simple-form">
           <p>
             {text(
-              "Enter exact bounds, units, source and review date. Children, pregnancy, breastfeeding and medical conditions require prescribed targets. Recipe Buddy does not generate prescriptions or insulin doses.",
-              "Saisissez les limites exactes, unités, source et date de révision. Enfants, grossesse, allaitement et pathologies exigent des objectifs prescrits. Recipe Buddy ne génère ni prescription ni dose d’insuline.",
+              "Use exact targets. Children, pregnancy and medical conditions require clinician-prescribed targets.",
+              "Utilisez les objectifs exacts. Enfants, grossesse et pathologies nécessitent des objectifs prescrits.",
             )}
           </p>
           <fieldset className="meal-choice-chips">
@@ -451,22 +516,19 @@ function RecordedPortion({
         <>
           <p>
             {text(
-              "Copy values for the actual portion eaten from its label or a named composition source. These are user-entered values. Leave unknown nutrients blank. Do not copy per-100 g values without scaling them to the consumed portion.",
-              "Recopiez les valeurs de la portion réellement consommée depuis son étiquette ou une source nommée. Données saisies par l’utilisateur. Laissez les nutriments inconnus vides. Ajustez les valeurs pour 100 g à la portion consommée.",
+              "Values for the portion eaten. Scale label values to that portion; leave unknowns blank.",
+              "Valeurs pour la portion consommée. Ajustez l’étiquette à cette portion ; laissez les inconnues vides.",
             )}
           </p>
           <label>
-            {text("Actual consumed portion", "Portion réellement consommée")}
+            {text("Portion eaten", "Portion consommée")}
             <input
               value={portion}
               onChange={(e) => setPortion(e.target.value)}
             />
           </label>
           <label>
-            {text(
-              "Label or composition source",
-              "Étiquette ou source de composition",
-            )}
+            {text("Source", "Source")}
             <input value={source} onChange={(e) => setSource(e.target.value)} />
           </label>
           <div className="meal-fields">

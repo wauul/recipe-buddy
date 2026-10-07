@@ -690,6 +690,31 @@ async function main() {
     await change("undo-stock", { id: exact.operationId });
     assert.equal((await req("meals", a)).state.pantry.find((batch: any) => batch.id === before.id).quantityEstimated, true);
   });
+  await group("recipe-backed eating checks owned/shared access, revocation and no cooking or stock deduction", async () => {
+    const before = await req("meals", a);
+    const personId = before.profiles[0].id;
+    const own = op("eat", {id: randomUUID(), personId, date:"2026-10-07", slot:"lunch", title:"Client title", recipeId:recipe.id, amount:null});
+    await req("meals", a, "POST", own);
+    await req("meals", a, "POST", own);
+    let snapshot = await req("meals", a);
+    const record = snapshot.state.eaten.find((entry:any) => entry.id === own.data.id);
+    assert.equal(record.title, recipe.title);
+    assert.equal(record.recipeId, recipe.id);
+    assert.equal(record.amount, null);
+    assert.equal(snapshot.state.eaten.filter((entry:any) => entry.id === own.data.id).length, 1);
+    assert.deepEqual(snapshot.state.pantry, before.state.pantry);
+    assert.equal(snapshot.state.occasions.length, before.state.occasions.length);
+    const friendship = await db.friendship.create({data:{userAId:pair[0],userBId:pair[1],requesterId:b.userId,acceptedAt:new Date()}});
+    const shared = await db.recipe.create({data:{userId:b.userId,title:"Friend's lentil soup",servings:2,ingredients:[{name:"lentils",quantity:"100",unit:"g"}],steps:["Cook lentils."]}});
+    await db.recipeShare.create({data:{recipeId:shared.id,recipientId:a.userId,friendshipId:friendship.id}});
+    await change("eat", {id:randomUUID(),personId,date:"2026-10-07",slot:"dinner",title:shared.title,recipeId:shared.id,amount:1});
+    await db.recipeShare.deleteMany({where:{recipeId:shared.id,recipientId:a.userId}});
+    await req("meals", a, "POST", op("eat",{id:randomUUID(),personId,date:"2026-10-07",slot:"dinner",title:shared.title,recipeId:shared.id,amount:1}),404);
+    await db.recipeShare.create({data:{recipeId:shared.id,recipientId:a.userId,friendshipId:friendship.id}});
+    snapshot = await req("meals", a);
+    assert.deepEqual(snapshot.state.pantry, before.state.pantry);
+    assert.equal(snapshot.state.occasions.length, before.state.occasions.length);
+  });
   await mkdir("test-results/meals", { recursive: true });
   await writeFile(
     "test-results/meals/integration.json",

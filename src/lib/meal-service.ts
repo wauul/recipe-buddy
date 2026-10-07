@@ -838,9 +838,14 @@ export async function applyMeal(user: string, input: Operation) {
             occasionId: boundedId.optional(),
             leftoverId: boundedId.optional(),
             planId: boundedId.optional(),
+            recipeId: boundedId.optional(),
             approximate: z.boolean().default(true),
           })
           .parse(data);
+        if (value.recipeId) {
+          const recipe = await authorizedRecipe(user, value.recipeId);
+          value.title = recipe.title;
+        }
         if (
           !(await tx.mealProfile.findFirst({
             where: { id: value.personId, kitchenId: row.id, managerId: user },

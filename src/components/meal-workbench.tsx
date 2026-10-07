@@ -32,6 +32,7 @@ type Recipe = {
   imageUrl?: string;
   steps?: unknown;
   recipeVersion?: string;
+  source?: "mine" | "friends";
 };
 function today() {
   return new Intl.DateTimeFormat("en-CA").format(new Date());
@@ -558,6 +559,7 @@ export function MealWorkbench({
                   eaten: (
                     <MealEaten
                       key={activeDay}
+                      recipes={recipes}
                       date={activeDay}
                       plans={snapshot.state.plans}
                       profiles={snapshot.profiles.map((p) => ({
@@ -1458,6 +1460,7 @@ export function MealWorkbench({
                   >
                     <MealEaten
                       key={activeDay}
+                      recipes={recipes}
                       date={activeDay}
                       plans={snapshot.state.plans}
                       profiles={snapshot.profiles.map((p) => ({

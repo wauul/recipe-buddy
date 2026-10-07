@@ -144,6 +144,7 @@ export type Occasion = {
   planId?: string;
 };
 export type Eaten = {
+  recipeId?: string;
   nutritionEvidence?: RecordedNutrition;
   planId?: string;
   id: string;
