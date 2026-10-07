@@ -134,11 +134,11 @@ class MealAgendaRedesignTest {
         )
         compose.onNodeWithContentDescription("Close").performClick()
         compose.onNodeWithText("Eaten").performScrollTo().performClick()
-        compose.onAllNodes(hasSetTextAction()).assertCountEquals(1)
-        val snackTitle = "UI review snack " + System.currentTimeMillis()
-        compose.onNode(hasSetTextAction() and hasText("Food")).performTextReplacement(snackTitle)
-        compose.onNodeWithText("Nutrition test").performClick()
-        UiDevice.getInstance(InstrumentationRegistry.getInstrumentation()).pressBack()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        val ownRecipe = vm.state.value.allRecipes.first { it.owned }
+        val snackTitle = ownRecipe.title
+        compose.onAllNodesWithText(snackTitle).onLast().performScrollTo().performClick()
+        compose.onAllNodesWithText("Nutrition test").onLast().performClick()
         shot("22-simple-eaten-unknown")
         compose.onNodeWithText("Save").performScrollTo().performClick()
         settle()
@@ -207,6 +207,122 @@ class MealAgendaRedesignTest {
     }
 
     @Test
+    fun recipePickerPreparationActionsAndCleanNutrition() {
+        compose.onAllNodesWithText("Agenda", useUnmergedTree = true).onLast().performClick()
+        visible("Today")
+        val before = vm.state.value.meals!!["state"]!!.jsonObject
+        val beforeEaten = before.mealRows("eaten").map { it.mealValue("id") }
+        val pantryBefore = before["pantry"]
+        val occasionsBefore = before["occasions"]
+        compose.onNodeWithText("Eaten").performScrollTo().performClick()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        shot("33-native-own-recipe-picker")
+        compose.onAllNodesWithText("Friends", useUnmergedTree = true).onLast().performClick()
+        val friendRecipe = vm.state.value.allRecipes.first { !it.owned }
+        compose
+            .onAllNodesWithText(friendRecipe.title)
+            .onLast()
+            .performScrollTo()
+            .assertIsDisplayed()
+        shot("34-native-friend-recipe-picker")
+        compose.onAllNodesWithText(friendRecipe.title).onLast().performClick()
+        compose.onAllNodesWithText("Nutrition test").onLast().performClick()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        compose.onNodeWithText("Unknown").assertExists()
+        shot("35-native-selected-eaten")
+        compose.onNodeWithText("Save").performScrollTo().performClick()
+        settle()
+        compose.waitUntil(45000) {
+            vm.state.value.meals!!["state"]!!.jsonObject.mealRows("eaten").any {
+                it.mealValue("id") !in beforeEaten
+            }
+        }
+        val after = vm.state.value.meals!!["state"]!!.jsonObject
+        val record = after.mealRows("eaten").first { it.mealValue("id") !in beforeEaten }
+        Assert.assertEquals(friendRecipe.id, record.mealValue("recipeId"))
+        Assert.assertEquals(friendRecipe.title, record.mealValue("title"))
+        Assert.assertEquals(JsonNull, record["amount"])
+        Assert.assertEquals(pantryBefore, after["pantry"])
+        Assert.assertEquals(occasionsBefore, after["occasions"])
+        visible("Today")
+        compose.onNodeWithText("Nutrition").performScrollTo().performClick()
+        compose.onAllNodesWithText("Nutrition test").onLast().performClick()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        compose.onNodeWithText("Energy").assertExists()
+        shot("36-native-clean-nutrition")
+        if (
+            vm.state.value.meals!!
+                .mealRows("dailyNutrition")
+                .first {
+                    it.mealValue("personId") == record.mealValue("personId") &&
+                        it.mealValue("date") == LocalDate.now().toString()
+                }["dayConfirmed"]
+                ?.jsonPrimitive
+                ?.booleanOrNull != true
+        )
+            compose
+                .onNodeWithContentDescription("All food & drinks logged")
+                .performScrollTo()
+                .performClick()
+        settle()
+        Assert.assertTrue(
+            vm.state.value.meals!!
+                .mealRows("dailyNutrition")
+                .first {
+                    it.mealValue("personId") == record.mealValue("personId") &&
+                        it.mealValue("date") == LocalDate.now().toString()
+                }["dayConfirmed"]!!
+                .jsonPrimitive
+                .boolean
+        )
+        compose.onNodeWithContentDescription("Close").performClick()
+        compose.onNodeWithText("Prep").performScrollTo().performClick()
+        val taskName = "Prep actions " + System.currentTimeMillis()
+        compose.onNode(hasSetTextAction() and hasText("Task")).performTextReplacement(taskName)
+        compose.onNode(hasSetTextAction() and hasText("Task")).performImeAction()
+        compose.onNodeWithText("Save").performScrollTo().performClick()
+        settle()
+        val task =
+            vm.state.value.meals!!["state"]!!.jsonObject.mealRows("preparation").first {
+                it.mealValue("description") == taskName
+            }
+        compose
+            .onNode(hasSetTextAction() and hasText("Task"))
+            .performTextReplacement("Keep my draft")
+        compose.onNode(hasSetTextAction() and hasText("Task")).performImeAction()
+        compose.onAllNodesWithText("Edit").onLast().performScrollTo().performClick()
+        compose.onNodeWithText("Cancel").performScrollTo().performClick()
+        compose.onNode(hasSetTextAction() and hasText("Task")).assertTextContains("Keep my draft")
+        compose.onNode(hasSetTextAction() and hasText("Task")).performImeAction()
+        compose.onAllNodesWithText("Stock used").onLast().performScrollTo().performClick()
+        compose.onAllNodesWithText("rice").onLast().performScrollTo().performClick()
+        compose.onNode(hasSetTextAction() and hasText("Quantity used")).performTextReplacement("5")
+        compose.onNode(hasSetTextAction() and hasText("Quantity used")).performImeAction()
+        shot("37-native-pantry-stock-used")
+        compose.onAllNodesWithText("Done").onLast().performScrollTo().performClick()
+        settle()
+        fun currentTask() =
+            vm.state.value.meals!!["state"]!!.jsonObject.mealRows("preparation").first {
+                it.mealValue("id") == task.mealValue("id")
+            }
+        Assert.assertEquals("completed", currentTask().mealValue("status"))
+        compose.onAllNodesWithText("Undo").onLast().performScrollTo().performClick()
+        settle()
+        Assert.assertEquals("planned", currentTask().mealValue("status"))
+        Assert.assertEquals(pantryBefore, vm.state.value.meals!!["state"]!!.jsonObject["pantry"])
+        compose.onAllNodesWithText("Dismiss").onLast().performScrollTo().performClick()
+        settle()
+        Assert.assertEquals("dismissed", currentTask().mealValue("status"))
+        compose.onAllNodesWithText("Undo").onLast().performScrollTo().performClick()
+        settle()
+        compose.onAllNodesWithText("Done").onLast().performScrollTo().performClick()
+        settle()
+        Assert.assertEquals("completed", currentTask().mealValue("status"))
+        Assert.assertEquals(pantryBefore, vm.state.value.meals!!["state"]!!.jsonObject["pantry"])
+        shot("38-native-prepare-completed")
+    }
+
+    @Test
     fun largeTextAgendaAndShortComposer() {
         compose.onAllNodesWithText("Agenda", useUnmergedTree = true).onLast().performClick()
         visible("Today")
@@ -227,6 +343,36 @@ class MealAgendaRedesignTest {
         settle()
         visible("Aujourd’hui")
         shot("19-large-text-agenda-french-dark")
+    }
+
+    @Test
+    fun nutritionBoundsAndFrenchDarkRecipePicker() {
+        compose.onAllNodesWithText("Agenda", useUnmergedTree = true).onLast().performClick()
+        visible("Today")
+        compose.onNodeWithContentDescription("Previous week").performClick()
+        compose.onNode(hasContentDescription("Saturday 3 October", substring = true)).performClick()
+        settle()
+        compose.onNodeWithText("Nutrition").performScrollTo().performClick()
+        compose.onAllNodesWithText("Nutrition test").onLast().performClick()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        compose.onNodeWithText("1800 – 2200").assertExists()
+        compose.onNodeWithText("2000 recorded").assertExists()
+        shot("39-native-exact-bounds-large")
+        compose.onNodeWithContentDescription("Close").performClick()
+        compose.runOnUiThread {
+            vm.preference("language", "fr")
+            vm.preference("theme", "dark")
+        }
+        settle()
+        compose.onNodeWithText("Nutrition").performScrollTo().performClick()
+        compose.onAllNodesWithText("Nutrition test").onLast().performClick()
+        compose.onNodeWithText("1800 – 2200").assertExists()
+        shot("40-native-nutrition-french-dark-large")
+        compose.onNodeWithContentDescription("Fermer").performClick()
+        compose.onNodeWithText("Mangé").performScrollTo().performClick()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        compose.onNodeWithText("Mes recettes").assertExists()
+        shot("41-native-recipes-french-dark-large")
     }
 
     @Test

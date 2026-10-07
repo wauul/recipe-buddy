@@ -14,8 +14,8 @@ android {
         applicationId = "com.recipebuddy.android"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "0.1.5"
+        versionCode = 7
+        versionName = "0.1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "BACKEND_URL", "\"${providers.gradleProperty("backendUrl").getOrElse("https://recipe-buddy-wauul.vercel.app")}\"")
         manifestPlaceholders["appLinkHost"] = providers.gradleProperty("appLinkHost").getOrElse("recipe-buddy-wauul.vercel.app")

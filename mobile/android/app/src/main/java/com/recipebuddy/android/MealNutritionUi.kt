@@ -1,9 +1,13 @@
 package com.recipebuddy.android
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -71,113 +75,171 @@ private fun MealDailyNutritionControls(state: BuddyState, vm: BuddyViewModel, da
         },
     )
     var showNotes by rememberSaveable { mutableStateOf(false) }
-    KitchenTextButton({ showNotes = !showNotes }) {
-        Text(mealText("Sources & limits", "Sources et limites"))
-    }
-    if (showNotes)
-        Text(
-            mealText(
-                "A single day cannot diagnose deficiency or long-term adequacy. Unknown composition stays unknown. Vitamins and minerals are not assessed. Clinical validation pending. Prescribed targets are user-entered and not verified by Recipe Buddy.",
-                "Une journée ne diagnostique ni carence ni équilibre à long terme. Composition inconnue reste inconnue. Vitamines et minéraux non évalués. Validation clinique en attente. Objectifs prescrits saisis par l’utilisateur, non vérifiés par Recipe Buddy.",
-            )
-        )
     if (days.none { it.mealValue("personId") == viewPerson })
         Text(mealText("No intake recorded", "Aucun apport enregistré"))
-    root
-        .mealRows("dailyNutrition")
-        .filter { it.mealValue("date") == date && it.mealValue("personId") == viewPerson }
+    days
+        .filter { it.mealValue("personId") == viewPerson }
         .forEach { day ->
-            Text(
-                day.mealValue("name") + " · " + day.mealValue("date"),
-                style = MaterialTheme.typography.titleSmall,
-            )
             val dayConfirmed = day["dayConfirmed"]?.jsonPrimitive?.booleanOrNull == true
-            Text(
-                if (dayConfirmed) mealText("Day confirmed", "Journée confirmée")
-                else mealText("Incomplete", "Incomplète")
-            )
-            day.mealRows("rows").chunked(2).forEach { pair ->
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            val nutrientRows = day.mealRows("rows")
+            if (nutrientRows.any { it["value"] == JsonNull })
+                Text(
+                    mealText("— Missing data", "— Données manquantes"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            nutrientRows.chunked(2).forEach { pair ->
+                Row(
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
                     pair.forEach { row ->
-                        val status =
-                            when (row.mealValue("status")) {
-                                "below-target" -> mealText("Below target", "Sous l’objectif")
-                                "above-target" ->
-                                    mealText("Above target", "Au-dessus de l’objectif")
-                                "within-target" -> mealText("Within target", "Dans l’objectif")
-                                "review-required" -> mealText("Needs review", "À réviser")
-                                "incomplete" -> mealText("Incomplete", "Incomplet")
-                                else -> mealText("No target", "Aucun objectif")
-                            }
-                        Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
-                            Text(
-                                labels.find { it.first == row.mealValue("nutrient") }?.second ?: "",
-                                style = MaterialTheme.typography.labelLarge,
-                            )
-                            Text(
-                                row.mealValue("value", mealText("Unknown", "Inconnu")),
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                            Text(
-                                status,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            if (row["value"] == JsonNull && row["knownSubtotal"] != JsonNull)
+                        Surface(
+                            Modifier.weight(1f).fillMaxHeight(),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(16.dp),
+                        ) {
+                            Column(
+                                Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
                                 Text(
-                                    mealText("Subtotal: ", "Sous-total : ") +
-                                        row.mealValue("knownSubtotal", "—"),
-                                    style = MaterialTheme.typography.bodySmall,
+                                    labels
+                                        .find { it.first == row.mealValue("nutrient") }
+                                        ?.second
+                                        ?.substringBefore(" · ") ?: "",
+                                    style = MaterialTheme.typography.labelLarge,
                                 )
-                            if (showNotes)
-                                (row["target"] as? JsonObject)?.let { target ->
+                                Row(
+                                    verticalAlignment = Alignment.Bottom,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
                                     Text(
-                                        target.mealValue("minimum", "—") +
-                                            " – " +
-                                            target.mealValue("maximum", "—") +
-                                            " · " +
-                                            target.mealValue("source") +
-                                            " · " +
-                                            target.mealValue("reviewDate"),
+                                        row.mealValue("value", "—"),
+                                        Modifier.weight(1f, fill = false),
+                                        style = MaterialTheme.typography.headlineSmall,
+                                    )
+                                    Text(
+                                        if (row.mealValue("nutrient") == "energyKcal") "kcal"
+                                        else "g",
                                         style = MaterialTheme.typography.bodySmall,
                                     )
                                 }
+                                if (
+                                    row["value"] == JsonNull &&
+                                        row["knownSubtotal"] != null &&
+                                        row["knownSubtotal"] != JsonNull
+                                )
+                                    Text(
+                                        row.mealValue("knownSubtotal") +
+                                            " " +
+                                            mealText("recorded", "enregistré"),
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                (row["target"] as? JsonObject)?.let { target ->
+                                    val bounds =
+                                        when {
+                                            target["minimum"] == JsonNull ->
+                                                "≤ " + target.mealValue("maximum")
+                                            target["maximum"] == JsonNull ->
+                                                "≥ " + target.mealValue("minimum")
+                                            else ->
+                                                target.mealValue("minimum") +
+                                                    " – " +
+                                                    target.mealValue("maximum")
+                                        }
+                                    val status = row.mealValue("status")
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(bounds, style = MaterialTheme.typography.bodySmall)
+                                        when (status) {
+                                            "within-target" ->
+                                                Icon(
+                                                    Icons.Default.Check,
+                                                    mealText("Within target", "Dans l’objectif"),
+                                                    Modifier.size(18.dp),
+                                                )
+                                            "below-target",
+                                            "above-target",
+                                            "review-required" ->
+                                                Row(
+                                                    horizontalArrangement =
+                                                        Arrangement.spacedBy(6.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.WarningAmber,
+                                                        null,
+                                                        Modifier.size(18.dp),
+                                                    )
+                                                    Text(
+                                                        when (status) {
+                                                            "below-target" -> mealText("Low", "Bas")
+                                                            "above-target" ->
+                                                                mealText("High", "Haut")
+                                                            else -> mealText("Review", "Réviser")
+                                                        },
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                    )
+                                                }
+                                        }
+                                    }
+                                    if (showNotes)
+                                        Text(
+                                            target.mealValue("source") +
+                                                " · " +
+                                                target.mealValue("reviewDate"),
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                }
+                            }
                         }
                     }
                 }
             }
-            KitchenOutlinedButton(
-                enabled = !state.busy,
-                onClick = {
-                    vm.mealChange(
-                        "daily-coverage",
-                        buildJsonObject {
-                            put("personId", day.mealValue("personId"))
-                            put("date", day.mealValue("date"))
-                            put("confirmed", !dayConfirmed)
-                        },
-                    )
-                },
-            ) {
-                Text(
-                    if (dayConfirmed)
-                        mealText("Mark day incomplete", "Marquer la journée incomplète")
-                    else
-                        mealText(
-                            "Confirm all food and drinks recorded",
-                            "Confirmer tous les aliments et boissons enregistrés",
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                val coverage = mealText("All food & drinks logged", "Repas et boissons enregistrés")
+                Checkbox(
+                    dayConfirmed,
+                    { checked ->
+                        vm.mealChange(
+                            "daily-coverage",
+                            buildJsonObject {
+                                put("personId", day.mealValue("personId"))
+                                put("date", date)
+                                put("confirmed", checked)
+                            },
                         )
+                    },
+                    enabled = !state.busy,
+                    modifier = Modifier.semantics { contentDescription = coverage },
                 )
+                Text(coverage, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
             }
         }
-    KitchenTextButton(
-        onClick = {
-            person = viewPerson
-            edit = !edit
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        KitchenTextButton(
+            onClick = {
+                person = viewPerson
+                edit = !edit
+            }
+        ) {
+            Icon(Icons.Default.Edit, null)
+            Spacer(Modifier.width(8.dp))
+            Text(mealText("Targets", "Objectifs"))
         }
-    ) {
-        Text(mealText("Targets", "Objectifs"))
+        KitchenTextButton(onClick = { showNotes = !showNotes }) {
+            Icon(Icons.Default.Info, null)
+            Spacer(Modifier.width(8.dp))
+            Text(mealText("Info", "Infos"))
+        }
     }
+    if (showNotes)
+        Text(
+            mealText(
+                "Unknown composition stays unknown. A single day cannot diagnose deficiency or long-term adequacy. Vitamins and minerals are not assessed. Clinical validation pending. Prescribed targets are user-entered and not verified by Recipe Buddy.",
+                "Composition inconnue reste inconnue. Une journée ne diagnostique ni carence ni équilibre à long terme. Vitamines et minéraux non évalués. Validation clinique en attente. Objectifs prescrits saisis par l’utilisateur, non vérifiés par Recipe Buddy.",
+            )
+        )
     if (edit) {
         Text(
             mealText(
@@ -333,20 +395,16 @@ private fun MealRecordedPortion(
     if (open) {
         Text(
             mealText(
-                "Copy values for the actual consumed portion from its label or a named composition source. Leave unknown nutrients blank. Scale per-100 g values to the consumed portion. User-entered values are not independently verified.",
+                "Values for the portion eaten. Scale label values to that portion; leave unknowns blank.",
                 "Recopiez les valeurs de la portion consommée depuis son étiquette ou une source nommée. Laissez les nutriments inconnus vides. Ajustez les valeurs pour 100 g à la portion consommée. Données saisies non vérifiées indépendamment.",
             )
         )
         MealField(
-            mealText("Actual consumed portion", "Portion réellement consommée"),
+            mealText("Portion eaten", "Portion réellement consommée"),
             portion,
             { portion = it },
         )
-        MealField(
-            mealText("Label or composition source", "Étiquette ou source de composition"),
-            source,
-            { source = it },
-        )
+        MealField(mealText("Source", "Étiquette ou source de composition"), source, { source = it })
         labels.forEachIndexed { i, label ->
             MealField(
                 label.second,

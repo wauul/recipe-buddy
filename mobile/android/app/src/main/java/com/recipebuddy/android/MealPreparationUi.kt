@@ -3,6 +3,8 @@ package com.recipebuddy.android
 import android.content.Intent
 import android.provider.CalendarContract
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -10,15 +12,18 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.time.*
 import java.util.UUID
 import kotlinx.serialization.json.*
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 fun MealPreparationControls(state: BuddyState, vm: BuddyViewModel, date: String) {
     val root = state.meals ?: return
     val kitchen = root["state"]!!.jsonObject
@@ -37,6 +42,15 @@ fun MealPreparationControls(state: BuddyState, vm: BuddyViewModel, date: String)
     var assignee by rememberSaveable { mutableStateOf(root.mealValue("actorId")) }
     var override by rememberSaveable { mutableStateOf(false) }
     var savingVersion by rememberSaveable { mutableStateOf("") }
+    var previousDraft by rememberSaveable { mutableStateOf("") }
+    val taskFocus = remember { FocusRequester() }
+    val taskView = remember { BringIntoViewRequester() }
+    LaunchedEffect(previousDraft.isNotBlank()) {
+        if (previousDraft.isNotBlank()) {
+            taskView.bringIntoView()
+            taskFocus.requestFocus()
+        }
+    }
     LaunchedEffect(root.mealValue("version")) {
         if (
             savingVersion.isNotBlank() &&
@@ -46,6 +60,7 @@ fun MealPreparationControls(state: BuddyState, vm: BuddyViewModel, date: String)
                 }
         ) {
             savingVersion = ""
+            previousDraft = ""
             editing = UUID.randomUUID().toString()
             description = ""
             planId = ""
@@ -59,7 +74,39 @@ fun MealPreparationControls(state: BuddyState, vm: BuddyViewModel, date: String)
     }
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
         run {
-            MealField(mealText("Task", "Tâche"), description, { description = it })
+            if (previousDraft.isNotBlank())
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    KitchenTextButton(
+                        enabled = !state.busy,
+                        onClick = {
+                            val old = buddyJson.parseToJsonElement(previousDraft).jsonObject
+                            editing = old.mealValue("id")
+                            description = old.mealValue("description")
+                            taskDate = old.mealValue("date")
+                            time = old.mealValue("time")
+                            active = old.mealValue("active")
+                            passive = old.mealValue("passive")
+                            planId = old.mealValue("planId")
+                            assignee = old.mealValue("assignee")
+                            dependencies =
+                                old["dependencies"]!!.jsonArray.map { it.jsonPrimitive.content }
+                            override = old["override"]!!.jsonPrimitive.boolean
+                            previousDraft = ""
+                        },
+                    ) {
+                        Text(mealText("Cancel", "Annuler"))
+                    }
+                    Text(
+                        mealText("Edit task", "Modifier la tâche"),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                }
+            MealField(
+                mealText("Task", "Tâche"),
+                description,
+                { description = it },
+                modifier = Modifier.bringIntoViewRequester(taskView).focusRequester(taskFocus),
+            )
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -263,175 +310,345 @@ fun MealPreparationControls(state: BuddyState, vm: BuddyViewModel, date: String)
                 Text(mealText("Save", "Enregistrer"))
             }
             tasks
+                .filter { previousDraft.isBlank() }
                 .filter { it.mealValue("date") == taskDate || it.mealValue("id") == editing }
                 .sortedBy { it.mealValue("date") + it.mealValue("time") }
                 .forEach { task ->
-                    Text(
-                        task.mealValue("description"),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        task.mealValue("date") +
-                            " " +
-                            task.mealValue("time") +
-                            " · " +
-                            when (task.mealValue("status")) {
-                                "completed" -> mealText("Completed", "Terminée")
-                                "dismissed" -> mealText("Dismissed", "Écartée")
-                                else -> mealText("Planned", "Prévue")
-                            }
-                    )
-                    if (task["reviewNeeded"]?.jsonPrimitive?.booleanOrNull == true)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            mealText(
-                                "Meal changed. Review this task.",
-                                "Repas modifié. Vérifiez cette tâche.",
-                            )
+                            task.mealValue("description"),
+                            style = MaterialTheme.typography.titleMedium,
                         )
-                    if (task.mealValue("status") != "completed")
-                        KitchenTextButton(
-                            onClick = {
-                                editing = task.mealValue("id")
-                                description = task.mealValue("description")
-                                taskDate = task.mealValue("date")
-                                time = task.mealValue("time")
-                                active =
-                                    (task.mealValue("activeMinutes").toIntOrNull() ?: 0).toString()
-                                passive =
-                                    (task.mealValue("passiveMinutes").toIntOrNull() ?: 0).toString()
-                                planId = task.mealValue("planId")
-                                assignee = task.mealValue("assignee")
-                                dependencies =
-                                    task["dependencies"]!!.jsonArray.map {
-                                        it.jsonPrimitive.content
-                                    }
-                                override = task["override"]!!.jsonPrimitive.boolean
-                            }
-                        ) {
-                            Text(mealText("Edit", "Modifier"))
-                        }
-                    if (task.mealValue("status") == "planned") {
-                        MealPreparationComplete(task, state, vm)
-                        KitchenTextButton(
-                            enabled = !state.busy,
-                            onClick = {
-                                vm.mealChange(
-                                    "dismiss-preparation",
-                                    buildJsonObject { put("id", task.mealValue("id")) },
-                                )
-                            },
-                        ) {
-                            Text(mealText("Dismiss", "Écarter"))
-                        }
-                        if (task.mealValue("time").isNotBlank())
-                            KitchenTextButton(
-                                onClick = {
-                                    runCatching {
-                                        val start =
-                                            LocalDateTime.parse(
-                                                    task.mealValue("date") +
-                                                        "T" +
-                                                        task.mealValue("time")
-                                                )
-                                                .atZone(ZoneId.of(task.mealValue("timezone")))
-                                                .toInstant()
-                                                .toEpochMilli()
-                                        context.startActivity(
-                                            Intent(Intent.ACTION_INSERT)
-                                                .setData(CalendarContract.Events.CONTENT_URI)
-                                                .putExtra(
-                                                    CalendarContract.Events.TITLE,
-                                                    reminderTitle,
-                                                )
-                                                .putExtra(
-                                                    CalendarContract.EXTRA_EVENT_BEGIN_TIME,
-                                                    start,
-                                                )
-                                                .putExtra(
-                                                    CalendarContract.EXTRA_EVENT_END_TIME,
-                                                    start + 15 * 60000,
-                                                )
-                                                .putExtra(
-                                                    CalendarContract.Events.EVENT_TIMEZONE,
-                                                    task.mealValue("timezone"),
-                                                )
-                                        )
-                                    }
+                        Text(
+                            task.mealValue("time") +
+                                " · " +
+                                when (task.mealValue("status")) {
+                                    "completed" -> mealText("Completed", "Terminée")
+                                    "dismissed" -> mealText("Dismissed", "Écartée")
+                                    else -> mealText("Planned", "Prévue")
                                 }
-                            ) {
-                                Text(mealText("Reminder", "Rappel"))
-                            }
-                    } else
-                        KitchenTextButton(
-                            enabled = !state.busy && task.mealValue("cookedId").isBlank(),
-                            onClick = {
-                                vm.mealChange(
-                                    "undo-preparation",
-                                    buildJsonObject { put("id", task.mealValue("id")) },
+                        )
+                        if (task["reviewNeeded"]?.jsonPrimitive?.booleanOrNull == true)
+                            Text(
+                                mealText(
+                                    "Meal changed. Review this task.",
+                                    "Repas modifié. Vérifiez cette tâche.",
                                 )
-                            },
-                        ) {
-                            Text(mealText("Undo", "Annuler"))
-                        }
-                    HorizontalDivider()
+                            )
+                        if (task.mealValue("status") == "planned")
+                            KitchenTextButton(
+                                enabled = !state.busy,
+                                onClick = {
+                                    previousDraft =
+                                        buildJsonObject {
+                                                put("id", editing)
+                                                put("description", description)
+                                                put("date", taskDate)
+                                                put("time", time)
+                                                put("active", active)
+                                                put("passive", passive)
+                                                put("planId", planId)
+                                                put("assignee", assignee)
+                                                put("override", override)
+                                                put(
+                                                    "dependencies",
+                                                    JsonArray(dependencies.map(::JsonPrimitive)),
+                                                )
+                                            }
+                                            .toString()
+                                    editing = task.mealValue("id")
+                                    description = task.mealValue("description")
+                                    taskDate = task.mealValue("date")
+                                    time = task.mealValue("time")
+                                    active =
+                                        (task.mealValue("activeMinutes").toIntOrNull() ?: 0)
+                                            .toString()
+                                    passive =
+                                        (task.mealValue("passiveMinutes").toIntOrNull() ?: 0)
+                                            .toString()
+                                    planId = task.mealValue("planId")
+                                    assignee = task.mealValue("assignee")
+                                    dependencies =
+                                        task["dependencies"]!!.jsonArray.map {
+                                            it.jsonPrimitive.content
+                                        }
+                                    override = task["override"]!!.jsonPrimitive.boolean
+                                },
+                            ) {
+                                Icon(Icons.Default.Edit, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(mealText("Edit", "Modifier"))
+                            }
+                        if (task.mealValue("status") == "planned") {
+                            MealPreparationComplete(task, state, vm)
+                            KitchenTextButton(
+                                enabled = !state.busy,
+                                onClick = {
+                                    vm.mealChange(
+                                        "dismiss-preparation",
+                                        buildJsonObject { put("id", task.mealValue("id")) },
+                                    )
+                                },
+                            ) {
+                                Icon(Icons.Default.Close, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(mealText("Dismiss", "Écarter"))
+                            }
+                            if (task.mealValue("time").isNotBlank())
+                                KitchenTextButton(
+                                    onClick = {
+                                        runCatching {
+                                            val start =
+                                                LocalDateTime.parse(
+                                                        task.mealValue("date") +
+                                                            "T" +
+                                                            task.mealValue("time")
+                                                    )
+                                                    .atZone(ZoneId.of(task.mealValue("timezone")))
+                                                    .toInstant()
+                                                    .toEpochMilli()
+                                            context.startActivity(
+                                                Intent(Intent.ACTION_INSERT)
+                                                    .setData(CalendarContract.Events.CONTENT_URI)
+                                                    .putExtra(
+                                                        CalendarContract.Events.TITLE,
+                                                        reminderTitle,
+                                                    )
+                                                    .putExtra(
+                                                        CalendarContract.EXTRA_EVENT_BEGIN_TIME,
+                                                        start,
+                                                    )
+                                                    .putExtra(
+                                                        CalendarContract.EXTRA_EVENT_END_TIME,
+                                                        start + 15 * 60000,
+                                                    )
+                                                    .putExtra(
+                                                        CalendarContract.Events.EVENT_TIMEZONE,
+                                                        task.mealValue("timezone"),
+                                                    )
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Text(mealText("Reminder", "Rappel"))
+                                }
+                        } else
+                            KitchenTextButton(
+                                enabled = !state.busy && task.mealValue("cookedId").isBlank(),
+                                onClick = {
+                                    vm.mealChange(
+                                        "undo-preparation",
+                                        buildJsonObject { put("id", task.mealValue("id")) },
+                                    )
+                                },
+                            ) {
+                                Icon(Icons.Default.Undo, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(mealText("Undo", "Annuler"))
+                            }
+                        HorizontalDivider()
+                    }
                 }
         }
     }
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun MealPreparationComplete(task: JsonObject, state: BuddyState, vm: BuddyViewModel) {
     var rows by rememberSaveable(task.mealValue("id")) { mutableStateOf(emptyList<String>()) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        rows.forEachIndexed { i, raw ->
-            val row = buddyJson.parseToJsonElement(raw).jsonObject
-            fun update(field: String, value: String) {
-                rows =
-                    rows.mapIndexed { j, old ->
-                        if (j == i)
-                            JsonObject(row + mapOf(field to JsonPrimitive(value))).toString()
-                        else old
-                    }
-            }
-            MealField(
-                mealText("Ingredient", "Ingrédient"),
-                row.mealValue("name"),
-                { update("name", it) },
-            )
-            MealField(
-                mealText("Actual quantity", "Quantité réelle"),
-                row.mealValue("quantity"),
-                { update("quantity", it) },
-            )
-            MealField(mealText("Unit", "Unité"), row.mealValue("unit"), { update("unit", it) })
-            TextButton(onClick = { rows = rows.filterIndexed { j, _ -> j != i } }) {
-                Text(mealText("Remove", "Retirer"))
-            }
-        }
-        TextButton(onClick = { rows = rows + "{\"name\":\"\",\"quantity\":\"\",\"unit\":\"g\"}" }) {
-            Icon(Icons.Default.Kitchen, null)
+    var open by rememberSaveable(task.mealValue("id")) { mutableStateOf(false) }
+    val pantry = (state.meals?.get("state") as? JsonObject)?.mealRows("pantry") ?: emptyList()
+    val choices =
+        pantry
+            .filter { it.mealValue("quantity") != "0" }
+            .distinctBy { it.mealValue("name") to it.mealValue("unit") }
+    val ingredients = rows.map { buddyJson.parseToJsonElement(it).jsonObject }
+    fun complete() =
+        vm.mealChange(
+            "complete-preparation",
+            buildJsonObject {
+                put("id", task.mealValue("id"))
+                put(
+                    "ingredients",
+                    JsonArray(
+                        if (open)
+                            ingredients.map {
+                                JsonObject(
+                                    it.filterKeys { key ->
+                                        key in listOf("name", "quantity", "unit")
+                                    }
+                                )
+                            }
+                        else emptyList()
+                    ),
+                )
+            },
+        )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        KitchenTextButton(onClick = { open = true }, enabled = !state.busy) {
+            Icon(Icons.Default.Inventory2, null)
             Spacer(Modifier.width(8.dp))
             Text(mealText("Stock used", "Stock utilisé"))
         }
-        val ingredients =
-            rows
-                .map { buddyJson.parseToJsonElement(it).jsonObject }
-                .filter { it.mealValue("name").isNotBlank() }
-        KitchenButton(
-            enabled = !state.busy && ingredients.all { it.mealValue("quantity").isNotBlank() },
-            onClick = {
-                vm.mealChange(
-                    "complete-preparation",
-                    buildJsonObject {
-                        put("id", task.mealValue("id"))
-                        put("ingredients", JsonArray(ingredients))
-                    },
-                )
-            },
-        ) {
-            Icon(Icons.Default.Check, null)
-            Spacer(Modifier.width(8.dp))
-            Text(mealText("Done", "Terminé"))
-        }
+        if (!open)
+            KitchenButton(onClick = { complete() }, enabled = !state.busy) {
+                Icon(Icons.Default.Check, null)
+                Spacer(Modifier.width(8.dp))
+                Text(mealText("Done", "Terminé"))
+            }
     }
+    if (open)
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    mealText("Stock used", "Stock utilisé"),
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                IconButton(
+                    onClick = {
+                        rows = emptyList()
+                        open = false
+                    },
+                    enabled = !state.busy,
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        mealText("Cancel stock changes", "Annuler le stock utilisé"),
+                    )
+                }
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                choices.forEach { batch ->
+                    val selected = ingredients.any { it.mealValue("id") == batch.mealValue("id") }
+                    FilterChip(
+                        selected,
+                        {
+                            rows =
+                                if (selected)
+                                    rows.filter {
+                                        buddyJson
+                                            .parseToJsonElement(it)
+                                            .jsonObject
+                                            .mealValue("id") != batch.mealValue("id")
+                                    }
+                                else
+                                    rows +
+                                        buildJsonObject {
+                                                put("id", batch.mealValue("id"))
+                                                put("name", batch.mealValue("name"))
+                                                put("unit", batch.mealValue("unit"))
+                                                put("quantity", "")
+                                            }
+                                            .toString()
+                        },
+                        enabled = !state.busy && (selected || rows.size < 100),
+                        label = { Text(batch.mealValue("name")) },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    )
+                }
+            }
+            rows.forEachIndexed { i, raw ->
+                val row = buddyJson.parseToJsonElement(raw).jsonObject
+                fun update(field: String, value: String) {
+                    rows =
+                        rows.mapIndexed { j, old ->
+                            if (j == i)
+                                JsonObject(row + mapOf(field to JsonPrimitive(value))).toString()
+                            else old
+                        }
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (row["custom"]?.jsonPrimitive?.booleanOrNull == true)
+                            Box(Modifier.weight(1f)) {
+                                MealField(
+                                    mealText("Ingredient", "Ingrédient"),
+                                    row.mealValue("name"),
+                                    { update("name", it) },
+                                )
+                            }
+                        else
+                            Text(
+                                row.mealValue("name"),
+                                Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        IconButton(
+                            onClick = { rows = rows.filterIndexed { j, _ -> j != i } },
+                            enabled = !state.busy,
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                mealText("Remove", "Retirer") + " · " + row.mealValue("name"),
+                            )
+                        }
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(Modifier.weight(1f)) {
+                            MealField(
+                                mealText("Quantity used", "Quantité utilisée"),
+                                row.mealValue("quantity"),
+                                { update("quantity", it) },
+                                keyboardType = KeyboardType.Decimal,
+                            )
+                        }
+                        if (
+                            row["custom"]?.jsonPrimitive?.booleanOrNull == true ||
+                                row.mealValue("unit").isBlank() ||
+                                row.mealValue("editable") == "true"
+                        )
+                            Box(Modifier.weight(1f)) {
+                                MealField(
+                                    mealText("Unit", "Unité"),
+                                    row.mealValue("unit"),
+                                    { update("unit", it) },
+                                )
+                            }
+                        else
+                            KitchenTextButton(
+                                enabled = !state.busy,
+                                onClick = { update("editable", "true") },
+                            ) {
+                                Text(row.mealValue("unit"))
+                            }
+                    }
+                }
+            }
+            KitchenTextButton(
+                enabled = !state.busy && rows.size < 100,
+                onClick = {
+                    rows = rows + "{\"name\":\"\",\"quantity\":\"\",\"unit\":\"g\",\"custom\":true}"
+                },
+            ) {
+                Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(8.dp))
+                Text(mealText("Other ingredient", "Autre ingrédient"))
+            }
+            KitchenButton(
+                enabled =
+                    !state.busy &&
+                        ingredients.isNotEmpty() &&
+                        ingredients.all {
+                            it.mealValue("name").isNotBlank() &&
+                                it.mealValue("quantity").isNotBlank() &&
+                                it.mealValue("unit").isNotBlank()
+                        },
+                onClick = { complete() },
+            ) {
+                Icon(Icons.Default.Check, null)
+                Spacer(Modifier.width(8.dp))
+                Text(mealText("Done", "Terminé"))
+            }
+        }
 }

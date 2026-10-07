@@ -1,6 +1,6 @@
 # Meal UX redesign - 7 October 2026
 
-The Next.js website and native Kotlin/Compose Android app now use a week strip and selected day. All nine meal tools received a simplification and spacing pass, using the existing Kitchen Index cream/forest identity and existing artwork. This is Android 0.1.5 (6), a local candidate. The previously published 0.1.4 release remains the Play internal release. This candidate has not been published to Play or the production website.
+The Next.js website and native Kotlin/Compose Android app now use a week strip and selected day. All nine meal tools received a simplification and spacing pass, using the existing Kitchen Index cream/forest identity and existing artwork. The original overhaul produced Android 0.1.5 (6), a local candidate. The latest Kotlin follow-up is 0.1.6 (7); see mobile/MEAL_UX_FOLLOWUP.md for its builds and evidence. The previously published 0.1.4 release remains the Play internal release. This candidate has not been published to Play or the production website.
 
 ## Interaction and spacing
 
@@ -11,7 +11,7 @@ The installed ui-craft, make-interfaces-feel-better and Impeccable guidance and 
 - Sheet gutters are 20px/dp on phones. Decision groups use 24-28px/dp separation; wrapped choices use 10-12px spacing. Cards, steppers and rows retain generous touch targets. Day/equipment choices use a consistent two-column visual layout. Larger text can scroll without compressing controls.
 - My day has no text fields. It preserves the selected day's settings and reuses the cook's most recent earlier equipment selection for a new day. Time/appetite/health facts are not fabricated.
 - Prepare has one Task text field, visual presets, day/time pickers and duration steppers. Active and Waiting default to **0 min**, decrease to zero and cannot go negative. Zero durations now pass server validation and persist. Tasks and dependency choices focus on the selected day; existing selected dependencies remain visible when editing.
-- Eaten on the web starts with My recipes / Friends and saved recipe rows. The typed Food field is removed. Person, meal and portion controls appear after selection; planned recipes remain quick choices. Unknown portions stay unknown, retries keep a stable ID, and Another meal creates a new ID. Native Android retains the earlier composer in the candidate below.
+- Eaten on the web starts with My recipes / Friends and saved recipe rows. The typed Food field is removed. Person, meal and portion controls appear after selection; planned recipes remain quick choices. Unknown portions stay unknown, retries keep a stable ID, and Another meal creates a new ID. Native Android now matches this picker in the 0.1.6 follow-up; the 0.1.5 artifacts below preserve the earlier composer.
 - Nutrition shows six cards for the selected person with unknown totals, known subtotals and exact target bounds preserved. The normal view has no inputs. Target/composition editors retain the necessary source, quantity and clinical confirmation fields.
 - Leftovers uses batch selection, Plan/Eaten choices and bounded portions without typed fields. Reservations, stock reconciliation and the safety uncertainty remain intact.
 - Ideas starts with visible stock chips and saved recipe matches, with one optional search field on the web. Suggestions load automatically; external exploration remains explicit and Pro-gated. Android no longer repeats the same candidate list.
@@ -74,3 +74,7 @@ Eaten uses only owned or currently shared friend recipes in its picker. The serv
 Verification of this follow-up: optimized Next.js build, lint, TypeScript and 112 unit tests passed. All 16 API integration groups passed against the isolated fixture backend with zero external provider calls. Browser visual and interaction verification of these latest screens is pending: the existing preview tab became a connection-error data URL, and browser automation rejected that URL under its navigation policy. Earlier screenshots document the earlier overhaul, not these latest screens. No fresh screenshots are claimed. The loopback preview server is running on port 3003.
 
 These latest changes apply to the website, including mobile web. The Kotlin candidate and its APK/AAB evidence above are unchanged. This follow-up has not been published to the production website or Play.
+
+## Kotlin follow-up
+
+The latest Prepare, daily nutrition and Eaten simplifications now also ship in native Compose source. See [mobile/MEAL_UX_FOLLOWUP.md](mobile/MEAL_UX_FOLLOWUP.md) for 0.1.6 (7), verified emulator workflows, screenshots, APK hashes and the signing/backend/physical-device delivery boundaries. The historical 0.1.5 build artifacts above remain unchanged.

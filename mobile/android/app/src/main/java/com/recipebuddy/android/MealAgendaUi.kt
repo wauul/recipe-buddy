@@ -1567,6 +1567,9 @@ private fun MealEatingComposer(
         mutableStateOf(if (people.size == 1) people.first().value("id") else "")
     }
     var title by rememberSaveable { mutableStateOf(plan?.value("title") ?: "") }
+    var recipeId by rememberSaveable { mutableStateOf(plan?.value("recipeId") ?: "") }
+    var friends by rememberSaveable { mutableStateOf(false) }
+    var search by rememberSaveable { mutableStateOf("") }
     var slot by rememberSaveable { mutableStateOf(plan?.value("slot") ?: "dinner") }
     var amount by rememberSaveable { mutableStateOf<Double?>(null) }
     val recordId = rememberSaveable { UUID.randomUUID().toString() }
@@ -1574,91 +1577,148 @@ private fun MealEatingComposer(
     val plans = (state.meals?.get("state") as? JsonObject)?.mealRows("plans") ?: emptyList()
     val chosenPlan = plans.find { it.mealValue("id") == planId }
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        Text(date, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            plans
-                .filter { it.mealValue("date") == date }
-                .forEach { p ->
+        if (recipeId.isBlank()) {
+            if (
+                plans.any {
+                    it.mealValue("date") == date &&
+                        state.allRecipes.any { r -> r.id == it.mealValue("recipeId") }
+                }
+            )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    plans
+                        .filter {
+                            it.mealValue("date") == date &&
+                                state.allRecipes.any { r -> r.id == it.mealValue("recipeId") }
+                        }
+                        .forEach { p ->
+                            FilterChip(
+                                planId == p.mealValue("id"),
+                                {
+                                    planId = p.mealValue("id")
+                                    title = p.mealValue("title")
+                                    recipeId = p.mealValue("recipeId")
+                                    slot = p.mealValue("slot")
+                                },
+                                label = { Text(p.mealValue("title")) },
+                            )
+                        }
+                }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                MealVisualChoice(
+                    mealText("My recipes", "Mes recettes"),
+                    Icons.Default.MenuBook,
+                    !friends,
+                ) {
+                    friends = false
+                }
+                MealVisualChoice(mealText("Friends", "Amis"), Icons.Default.People, friends) {
+                    friends = true
+                }
+            }
+            if (state.allRecipes.size > 8)
+                MealField(mealText("Find a recipe", "Trouver une recette"), search, { search = it })
+            val choices =
+                state.allRecipes.filter { it.owned != friends && it.title.contains(search, true) }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                choices.forEach { recipe ->
+                    MealActionRow(recipe.title, Icons.Default.MenuBook, enabled = !state.busy) {
+                        recipeId = recipe.id
+                        title = recipe.title
+                        planId = ""
+                    }
+                }
+                if (choices.isEmpty())
+                    Text(
+                        if (friends) mealText("No shared recipes", "Aucune recette partagée")
+                        else mealText("No recipes", "Aucune recette"),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+            }
+        } else {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Icon(Icons.Default.MenuBook, null)
+                Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                IconButton(
+                    onClick = {
+                        recipeId = ""
+                        planId = ""
+                    },
+                    enabled = !state.busy,
+                ) {
+                    Icon(Icons.Default.Edit, mealText("Change recipe", "Changer de recette"))
+                }
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                people.forEach { p ->
                     FilterChip(
-                        planId == p.mealValue("id"),
-                        {
-                            planId = p.mealValue("id")
-                            title = p.mealValue("title")
-                            slot = p.mealValue("slot")
-                        },
-                        label = { Text(p.mealValue("title")) },
+                        person == p.value("id"),
+                        { person = p.value("id") },
+                        label = { Text((p["data"] as? JsonObject)?.value("name") ?: "") },
                     )
                 }
-        }
-        MealField(
-            mealText("Food", "Aliment"),
-            title,
-            {
-                title = it
-                planId = ""
-            },
-        )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            people.forEach { p ->
-                FilterChip(
-                    person == p.value("id"),
-                    { person = p.value("id") },
-                    label = { Text((p["data"] as? JsonObject)?.value("name") ?: "") },
+            }
+            MealChoice(
+                mealText("Meal", "Repas"),
+                listOf("breakfast", "lunch", "dinner", "snack").map { it to mealEnum(it) },
+                slot,
+                { slot = it },
+            )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(mealText("Servings", "Portions"), Modifier.weight(1f))
+                IconButton(
+                    { amount = amount?.let { if (it <= .5) null else it - .5 } },
+                    enabled = amount != null,
+                ) {
+                    Icon(Icons.Default.Remove, mealText("Fewer servings", "Moins de portions"))
+                }
+                Text(amount?.toString() ?: mealText("Unknown", "Inconnu"))
+                IconButton(
+                    { amount = minOf(100.0, (amount ?: 0.0) + .5) },
+                    enabled = (amount ?: 0.0) < 100,
+                ) {
+                    Icon(Icons.Default.Add, mealText("More servings", "Plus de portions"))
+                }
+            }
+            if (people.isEmpty())
+                Text(
+                    mealText("Add a person in Household first.", "Ajoutez une personne dans Foyer.")
                 )
-            }
-        }
-        MealChoice(
-            mealText("Meal", "Repas"),
-            listOf("breakfast", "lunch", "dinner", "snack").map { it to mealEnum(it) },
-            slot,
-            { slot = it },
-        )
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(mealText("Servings", "Portions"), Modifier.weight(1f))
-            IconButton(
-                { amount = amount?.let { if (it <= .5) null else it - .5 } },
-                enabled = amount != null,
+            KitchenButton(
+                {
+                    val id = recordId
+                    onSaved(id)
+                    vm.mealChange(
+                        "eat",
+                        buildJsonObject {
+                            put("id", id)
+                            put("personId", person)
+                            put("date", date)
+                            put("slot", slot)
+                            put("title", title)
+                            put("recipeId", recipeId)
+                            put("amount", amount?.let { JsonPrimitive(it) } ?: JsonNull)
+                            chosenPlan?.mealValue("id")?.let { put("planId", it) }
+                            chosenPlan
+                                ?.value("cookedId")
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { put("occasionId", it) }
+                        },
+                        false,
+                    )
+                },
+                enabled = !state.busy && person.isNotBlank() && recipeId.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(Icons.Default.Remove, mealText("Fewer servings", "Moins de portions"))
+                Icon(Icons.Default.Check, null)
+                Spacer(Modifier.width(8.dp))
+                Text(mealText("Save", "Enregistrer"))
             }
-            Text(amount?.toString() ?: mealText("Unknown", "Inconnu"))
-            IconButton(
-                { amount = minOf(100.0, (amount ?: 0.0) + .5) },
-                enabled = (amount ?: 0.0) < 100,
-            ) {
-                Icon(Icons.Default.Add, mealText("More servings", "Plus de portions"))
-            }
-        }
-        if (people.isEmpty())
-            Text(mealText("Add a person in Household first.", "Ajoutez une personne dans Foyer."))
-        KitchenButton(
-            {
-                val id = recordId
-                onSaved(id)
-                vm.mealChange(
-                    "eat",
-                    buildJsonObject {
-                        put("id", id)
-                        put("personId", person)
-                        put("date", date)
-                        put("slot", slot)
-                        put("title", title)
-                        put("amount", amount?.let { JsonPrimitive(it) } ?: JsonNull)
-                        chosenPlan?.mealValue("id")?.let { put("planId", it) }
-                        chosenPlan
-                            ?.value("cookedId")
-                            ?.takeIf { it.isNotBlank() }
-                            ?.let { put("occasionId", it) }
-                    },
-                    false,
-                )
-            },
-            enabled = !state.busy && person.isNotBlank() && title.isNotBlank(),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Icon(Icons.Default.Check, null)
-            Spacer(Modifier.width(8.dp))
-            Text(mealText("Save", "Enregistrer"))
         }
     }
 }

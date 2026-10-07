@@ -275,7 +275,7 @@ class ConnectedMealsTest {
             }
         }
         compose
-            .onNodeWithText("Confirmer tous les aliments et boissons enregistrés")
+            .onNodeWithContentDescription("Repas et boissons enregistrés")
             .performScrollTo()
             .performClick()
         settle()
@@ -305,7 +305,7 @@ class ConnectedMealsTest {
             day.mealRows("rows").first { it.mealValue("nutrient") == "sodiumG" }["value"],
         )
         compose.onNodeWithText("Unmeasured snack · Composition").performScrollTo().performClick()
-        compose.onNodeWithText("Nutrition test · 2026-10-03").performScrollTo()
+        compose.onAllNodesWithText("Nutrition test").onLast().performScrollTo()
         shot("11-native-daily-confirmed-fr-dark")
     }
 }

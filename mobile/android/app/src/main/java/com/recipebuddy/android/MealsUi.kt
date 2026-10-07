@@ -36,13 +36,14 @@ internal fun MealField(
     value: String,
     change: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text,
+    modifier: Modifier = Modifier,
 ) {
     val focus = LocalFocusManager.current
     OutlinedTextField(
         value,
         change,
         label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
