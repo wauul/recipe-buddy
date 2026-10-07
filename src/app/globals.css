@@ -4372,3 +4372,18 @@ body:has(.auth-page) .cookie-banner {
  .meal-agenda-event { padding:20px 16px; gap:16px; }
  .meal-day-list { gap:16px; }
 }
+
+/* Hide mobile scroll indicators without changing scrolling or overflow. */
+@media (max-width: 767px) {
+  html, body, body * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  body *::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
