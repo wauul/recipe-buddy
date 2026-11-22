@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { authOptions } from '@/lib/auth';
 import { api, body, HttpError } from '@/lib/http';
 import { db } from '@/lib/db';
-import { opaqueToken, tokenHash } from '@/lib/native-crypto';
+import { nativeBrowserRedirect, opaqueToken, tokenHash } from '@/lib/native-crypto';
 export async function POST(request: Request) {
   return api(async () => {
     const origin = request.headers.get('origin');
@@ -13,8 +13,8 @@ export async function POST(request: Request) {
     const { attempt: id } = z.object({ attempt: z.string().cuid() }).parse(await body(request));
     const code = opaqueToken();
     const attempt = await db.nativeAuthAttempt.findUnique({ where: { id } });
-    if (!attempt) throw new HttpError(410, 'Exchange expired.');
-    const result = await db.nativeAuthAttempt.updateMany({ where: { id, codeHash: null, consumedAt: null, expiresAt: { gt: new Date() } },
+    if (attempt?.redirect !== nativeBrowserRedirect) throw new HttpError(410, 'Exchange expired.');
+    const result = await db.nativeAuthAttempt.updateMany({ where: { id, redirect: nativeBrowserRedirect, codeHash: null, consumedAt: null, expiresAt: { gt: new Date() } },
       data: { codeHash: tokenHash(code), userId: session.user.id, expiresAt: new Date(Date.now() + 60_000) } });
     if (!result.count) throw new HttpError(410, 'Exchange expired or already approved.');
     const redirect = new URL(attempt.redirect);

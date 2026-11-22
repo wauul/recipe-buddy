@@ -33,7 +33,7 @@ export const groqVision: VisionProvider = {
   },
 };
 export async function analyzeIngredients(user: string, input: unknown, provider: VisionProvider = groqVision) {
-  const value = z.object({ requestId: z.string().uuid(), locale: z.enum(['en', 'fr']),
+  const value = z.object({ requestId: z.guid(), locale: z.enum(['en', 'fr']),
     image: z.string().max(280_000).regex(/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/) }).parse(input);
   if (process.env.VISION_ENABLED !== 'true' || !process.env.GROQ_API_KEY || !process.env.VISION_MODEL)
     throw new HttpError(503, 'Photo recognition is not configured. Manual ingredients still work.');

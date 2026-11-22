@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { db } from './db';
 import { HttpError } from './http';
-import { opaqueToken, tokenHash, tokenPattern, validPkce } from './native-crypto';
+import { nativeBrowserRedirect, opaqueToken, tokenHash, tokenPattern, validPkce } from './native-crypto';
 
 const issuer = 'recipe-buddy-native';
 const secret = () => {
@@ -59,8 +59,9 @@ export async function exchangeCode(code: string, verifier: string, state: string
   if (!tokenPattern.test(code)) throw new HttpError(401, 'Invalid exchange.');
   const attempt = await db.$transaction(async tx => {
     const row = await tx.nativeAuthAttempt.findUnique({ where: { codeHash: tokenHash(code) } });
-    if (!row || !row.userId || row.state !== state || row.consumedAt || row.expiresAt <= new Date() || !validPkce(verifier, row.challenge)) return null;
-    const consumed = await tx.nativeAuthAttempt.updateMany({ where: { id: row.id, consumedAt: null }, data: { consumedAt: new Date() } });
+    const now = new Date();
+    if (row?.redirect !== nativeBrowserRedirect || !row.userId || row.state !== state || row.consumedAt || row.expiresAt <= now || !validPkce(verifier, row.challenge)) return null;
+    const consumed = await tx.nativeAuthAttempt.updateMany({ where: { id: row.id, consumedAt: null, expiresAt: { gt: now } }, data: { consumedAt: now } });
     return consumed.count ? row : null;
   });
   if (!attempt?.userId) throw new HttpError(401, 'Invalid or expired exchange.');

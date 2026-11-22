@@ -40,7 +40,7 @@ function nutritionEntries(state:Kitchen) {
 
 const boundedId = z.string().min(1).max(80);
 export const mealOperation = z.object({
-  operationId: z.string().uuid(),
+  operationId: z.guid(),
   kitchenId: boundedId.optional(),
   baseVersion: z.number().int().nonnegative().optional(),
   action: z.enum([
@@ -75,7 +75,7 @@ export const mealOperation = z.object({
     "prepare-basket", "begin-basket-handoff", "reconcile-order", "receive-order",
     "nutrition-target", "daily-coverage", "eaten-nutrition",
   ]),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
 });
 type Operation = z.infer<typeof mealOperation>;
 const json = (value: unknown) =>
@@ -225,7 +225,7 @@ async function authorizedRecipe(user: string, id: string) {
   return row;
 }
 const cookingInput = z.object({
-  id: z.string().uuid(),
+  id: z.guid(),
   recipeId: boundedId,
   servings: z.number().positive().max(100),
   date: localDate,
@@ -865,7 +865,7 @@ export async function applyMeal(user: string, input: Operation) {
       if (input.action === "eat" || input.action === "edit-eaten") {
         const value = z
           .object({
-            id: z.string().uuid(),
+            id: z.guid(),
             personId: boundedId,
             date: localDate,
             slot: z.enum(["breakfast", "lunch", "dinner", "snack"]),
@@ -929,7 +929,7 @@ export async function applyMeal(user: string, input: Operation) {
       if (input.action === "leftover") {
         const value = z
           .object({
-            id: z.string().uuid(),
+            id: z.guid(),
             occasionId: boundedId,
             title: z.string().max(160),
             remaining: z.number().nonnegative().max(100),
@@ -966,7 +966,7 @@ export async function applyMeal(user: string, input: Operation) {
       if (input.action === "purchase") {
         const value = z
           .object({
-            id: z.string().uuid(),
+            id: z.guid(),
             name: z.string().min(1).max(120),
             quantity: z.number().positive().max(1e7),
             unit: z.string().max(40),

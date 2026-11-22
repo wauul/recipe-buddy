@@ -9,8 +9,9 @@ export async function POST(request: Request) {
   return api(async () => {
     if (!billingReady() || !process.env.PLAY_PUBSUB_SERVICE_ACCOUNT || !process.env.PLAY_PUBSUB_AUDIENCE) throw new HttpError(503, 'Billing notifications are not configured.');
     try {
-      const token = request.headers.get('authorization')?.replace(/^Bearer /, '') ?? '';
-      const { payload } = await jwtVerify(token, googleKeys, { audience: process.env.PLAY_PUBSUB_AUDIENCE, issuer: ['https://accounts.google.com', 'accounts.google.com'], algorithms: ['RS256'] });
+      const authorization = request.headers.get('authorization');
+      if (!authorization?.startsWith('Bearer ')) throw new Error('Missing bearer token');
+      const { payload } = await jwtVerify(authorization.slice(7), googleKeys, { audience: process.env.PLAY_PUBSUB_AUDIENCE, issuer: ['https://accounts.google.com', 'accounts.google.com'], algorithms: ['RS256'], requiredClaims: ['exp'] });
       if (payload.email !== process.env.PLAY_PUBSUB_SERVICE_ACCOUNT || payload.email_verified !== true) throw new Error('Identity');
     } catch { throw new HttpError(401, 'Unauthorized notification.'); }
     const envelope = z.object({ message: z.object({ data: z.string().max(12000), messageId: z.string().max(200) }) }).parse(await body(request));

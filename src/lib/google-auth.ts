@@ -19,7 +19,7 @@ export function googleAuthEnabled() {
 export function authErrorMessage(error?: string) {
   if (!error) return '';
   if (error === 'OAuthAccountNotLinked')
-    return 'This Google account is already connected to another chef. Sign out and continue with Google to open that account.';
+    return 'Sign in to your existing chef account and choose Connect Google in Chef settings.';
   if (error === 'AccessDenied')
     return 'Google sign-in was not approved. Use a verified Google account, or log in with email.';
   if (error === 'CredentialsSignin') return 'Check your email and password, or try again later.';

@@ -4,5 +4,5 @@
     "strict": true, "esModuleInterop": true, "skipLibCheck": true,
     "outDir": ".test-build", "rootDir": "."
   },
-  "include": ["tests/**/*.test.ts"]
+  "include": ["src/types/**/*.d.ts", "tests/**/*.test.ts"]
 }

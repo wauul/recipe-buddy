@@ -97,7 +97,7 @@ export async function mealFeed(user: string, cursor?: string) {
 export async function publishMeal(user: string, raw: unknown) {
   const input = z
     .object({
-      id: z.string().uuid(),
+      id: z.guid(),
       kitchenId: z.string().max(80),
       occasionId: z.string().max(80),
       caption: z.string().max(1000),

@@ -2,12 +2,12 @@ import { z } from "zod";
 import { ingredient, localDate, measure, type Kitchen, type Preparation } from "./meal-engine";
 
 export const preparationInput = z.object({
-  id: z.string().uuid(), planId: z.string().min(1).max(80).optional(),
+  id: z.guid(), planId: z.string().min(1).max(80).optional(),
   description: z.string().trim().min(1).max(500), date: localDate,
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
   timezone: z.string().max(80), activeMinutes: z.number().int().min(0).max(1440).nullable().default(null),
   passiveMinutes: z.number().int().min(0).max(10080).nullable().default(null),
-  dependencies: z.array(z.string().uuid()).max(30).default([]),
+  dependencies: z.array(z.guid()).max(30).default([]),
   assignee: z.string().min(1).max(80), reminder: z.boolean().default(false),
   override: z.boolean().default(false),
 });
