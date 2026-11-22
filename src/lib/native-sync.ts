@@ -9,7 +9,7 @@ import type { Prisma } from '@prisma/client';
 import { ingredientSchema } from './validation';
 
 export const syncInput = z.object({
-  operationId: z.string().uuid(), path: z.string().max(200),
+  operationId: z.guid(), path: z.string().max(200),
   method: z.enum(['POST', 'PUT', 'PATCH', 'DELETE']), payload: z.string().max(400_000),
   entityId: z.string().cuid().optional(), baseVersion: z.string().max(80).optional(),
   occurredAt: z.string().datetime(),

@@ -10,3 +10,8 @@ overrides:
   postcss: 8.5.28
   effect: 3.22.2
   deepmerge-ts: 8.0.2
+  'brace-expansion@1': 1.1.21
+  'brace-expansion@5': 5.0.12
+  'minimatch@10': 11.0.1
+  'postcss-selector-parser@6': 6.1.5
+  'undici@6': 6.29.1

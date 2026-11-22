@@ -640,8 +640,8 @@ export const french: Record<string, string> = {
   'How do cooking days and chef roast mode work?':
     'Comment fonctionnent les jours de cuisine et les petites piques du chef ?',
   'How do I print a recipe?': 'Comment imprimer une recette ?',
-  'This Google account is already connected to another chef. Sign out and continue with Google to open that account.':
-    'Ce compte Google est déjà associé à un autre chef. Déconnectez-vous puis continuez avec Google pour ouvrir ce compte.',
+  'Sign in to your existing chef account and choose Connect Google in Chef settings.':
+    'Connectez-vous à votre compte chef, puis choisissez Associer Google dans les paramètres du chef.',
   'Google sign-in was not approved. Use a verified Google account, or log in with email.':
     'La connexion Google n’a pas été approuvée. Utilisez un compte Google vérifié ou connectez-vous par e-mail.',
   'Check your email and password, or try again later.':

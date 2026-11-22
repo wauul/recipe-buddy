@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
+import https from 'node:https';
 import { mergeIngredients, quantityNumber } from '../src/lib/shopping';
 import { weekProgress } from '../src/lib/streak';
 import { recipeSchema, credentialsSchema } from '../src/lib/validation';
@@ -46,4 +48,21 @@ test('URL importer blocks private, mapped, loopback and reserved addresses', asy
   assert.equal(isPublicAddress('8.8.8.8'), true);
   await assert.rejects(recipeUrlText('http://example.com'), /HTTPS/);
   await assert.rejects(recipeUrlText('https://user:pass@example.com'), /HTTPS/);
+});
+
+test('URL importer rejects a malformed publisher redirect and closes its response', async (t) => {
+  const request = new EventEmitter();
+  let closed = false;
+  t.mock.method(https, 'get', (_url: URL, _options: unknown, respond: (response: unknown) => void) => {
+    queueMicrotask(() => {
+      respond({
+        statusCode: 302,
+        headers: { location: 'https://[' },
+        destroy: () => { closed = true; request.emit('close'); },
+      });
+    });
+    return request;
+  });
+  await assert.rejects(recipeUrlText('https://93.184.216.34/recipe'), /Could not follow/);
+  assert.equal(closed, true);
 });

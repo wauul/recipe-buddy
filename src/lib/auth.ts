@@ -41,9 +41,6 @@ export const authOptions: NextAuthOptions = {
           GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-            // The signIn callback rejects unverified Google identities before account linking.
-            // Reuse a matching chef ID so recipes, reviews and password login stay intact.
-            allowDangerousEmailAccountLinking: true,
             profile(profile) {
               return {
                 id: profile.sub,

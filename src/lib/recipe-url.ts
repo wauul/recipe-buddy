@@ -25,10 +25,16 @@ export async function recipeUrlText(raw: string, redirects = 0, permittedHosts?:
       headers: { 'User-Agent': 'RecipeBuddy/1.0', Accept: 'text/html,text/plain', 'Accept-Encoding': 'identity' }
     }, res => {
       if ([301, 302, 303, 307, 308].includes(res.statusCode || 0) && res.headers.location) {
-        res.resume(); resolve({ location: new URL(res.headers.location, url).href }); return;
+        res.destroy();
+        try {
+          resolve({ location: new URL(res.headers.location, url).href });
+        } catch {
+          reject(new Error('Could not follow that website redirect. Paste the recipe text instead.'));
+        }
+        return;
       }
       if (res.statusCode !== 200 || !/text\/(html|plain)/i.test(res.headers['content-type'] || '')) {
-        res.resume(); reject(new Error('Could not read that page. Paste the recipe text instead.')); return;
+        res.destroy(); reject(new Error('Could not read that page. Paste the recipe text instead.')); return;
       }
       let size = 0; const chunks: Buffer[] = [];
       res.on('data', (chunk: Buffer) => {

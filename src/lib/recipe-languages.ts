@@ -4,8 +4,8 @@ import { validateTranslations } from './content-translation';
 import { normalizeCookingUnit, splitCookingAmount } from './cooking-units';
 export const recipeTranslationVersion = 3;
 export const savedLanguagesSchema = z.object({
-  en: z.record(z.string()),
-  fr: z.record(z.string()),
+  en: z.record(z.string(), z.string()),
+  fr: z.record(z.string(), z.string()),
   pending: z.boolean(),
   version: z.number().int().default(1),
 });

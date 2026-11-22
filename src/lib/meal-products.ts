@@ -46,7 +46,7 @@ export async function lookupMealProduct(barcode: string) {
           allergens: z.string().max(2000).optional(),
           traces: z.string().max(2000).optional(),
           quantity: z.string().max(200).optional(),
-          nutriments: z.record(z.unknown()).optional(),
+          nutriments: z.record(z.string(), z.unknown()).optional(),
           last_modified_t: z.number().optional(),
         })
         .optional(),

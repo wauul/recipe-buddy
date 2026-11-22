@@ -4,7 +4,7 @@ import { passwordUser } from '@/lib/password-auth';
 import { issueSession, rotateSession, exchangeCode } from '@/lib/native-auth';
 import { db } from '@/lib/db';
 import { rateLimit } from '@/lib/rate-limit';
-import { tokenPattern } from '@/lib/native-crypto';
+import { nativeBrowserRedirect, tokenPattern } from '@/lib/native-crypto';
 import { beginNativeGoogle, finishNativeGoogle } from '@/lib/native-google';
 export const dynamic = 'force-dynamic';
 const token = z.string().regex(tokenPattern);
@@ -37,7 +37,7 @@ export async function POST(request: Request, props: { params: Promise<{ action: 
     }
     if (params.action === 'begin') {
       const value = z.object({ state: token, challenge: token,
-        redirect: z.literal('recipebuddy://auth') }).parse(input);
+        redirect: z.literal(nativeBrowserRedirect) }).parse(input);
       if (!(await rateLimit('native-auth-begin:global', 100, 60))) throw new HttpError(429, 'Try again shortly.');
       const attempt = await db.nativeAuthAttempt.create({ data: { ...value, expiresAt: new Date(Date.now() + 10 * 60_000) } });
       const url = new URL(`/mobile/connect?attempt=${attempt.id}`, process.env.NEXTAUTH_URL);

@@ -38,13 +38,13 @@ export async function finishNativeGoogle(attemptId: string, idToken: string) {
     if (!consumed.count) throw new HttpError(401, 'Google sign-in already used.');
     const account = await tx.account.findUnique({ where: { provider_providerAccountId: { provider: 'google', providerAccountId: subject.subject } } });
     if (account) return account.userId;
-    // Match the website's verified-email account-linking policy. Keep password,
-    // recipes and chef preferences intact when adding Google to an existing chef.
     const existing = await tx.user.findUnique({ where: { email: subject.email } });
-    if (!existing && !(await rateLimit('signup:global', 30, 3600))) throw new HttpError(429, 'Registration temporarily unavailable.');
-    const user = existing || await tx.user.create({ data: { email: subject.email, name: subject.name, image: subject.image, emailVerified: new Date(), username: defaultChefName(subject.name, subject.email) } });
+    if (existing) return null;
+    if (!(await rateLimit('signup:global', 30, 3600))) throw new HttpError(429, 'Registration temporarily unavailable.');
+    const user = await tx.user.create({ data: { email: subject.email, name: subject.name, image: subject.image, emailVerified: new Date(), username: defaultChefName(subject.name, subject.email) } });
     await tx.account.create({ data: { userId: user.id, type: 'oauth', provider: 'google', providerAccountId: subject.subject } });
     return user.id;
   });
+  if (!userId) throw new HttpError(409, 'Sign in to your existing chef account and choose Connect Google in Chef settings on the website.');
   return issueSession(userId);
 }

@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { nativeBrowserRedirect } from '@/lib/native-crypto';
 import { redirect } from 'next/navigation';
 import { MobileApproval } from '@/components/mobile-approval';
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,6 @@ export default async function Connect(props: { searchParams: Promise<{ attempt?:
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect(`/login?callbackUrl=${encodeURIComponent(`/mobile/connect?attempt=${id}`)}`);
   const attempt = await db.nativeAuthAttempt.findUnique({ where: { id } });
-  if (!attempt || attempt.expiresAt <= new Date() || attempt.codeHash) return <main><h1>Connection expired</h1><p>Start again from the Android app.</p></main>;
+  if (attempt?.redirect !== nativeBrowserRedirect || attempt.expiresAt <= new Date() || attempt.codeHash || attempt.consumedAt) return <main><h1>Connection expired</h1><p>Start again from the Android app.</p></main>;
   return <MobileApproval attempt={id} />;
 }

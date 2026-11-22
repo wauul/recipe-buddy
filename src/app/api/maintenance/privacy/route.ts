@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   return api(async () => {
     const secret = process.env.CRON_SECRET;
-    const supplied = request.headers.get('authorization')?.replace(/^Bearer /, '') ?? '';
-    const providedBytes = Buffer.from(supplied), expectedBytes = Buffer.from(secret ?? '');
+    const providedBytes = Buffer.from(request.headers.get('authorization') ?? '');
+    const expectedBytes = Buffer.from(`Bearer ${secret ?? ''}`);
     if (!secret || secret.length < 32 || providedBytes.length !== expectedBytes.length || !timingSafeEqual(providedBytes, expectedBytes)) throw new HttpError(401, 'Unauthorized.');
     const now = new Date();
     const [counters, scans, attempts, sessions, reports] = await db.$transaction([

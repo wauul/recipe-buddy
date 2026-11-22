@@ -1,6 +1,6 @@
 # Google sign-in setup
 
-The code supports new Google chef accounts and automatically connecting a verified Google email to the matching existing password account. Credentials login and seven-day JWT sessions remain available. A dedicated Google Cloud project, `recipe-buddy-510215`, and web OAuth client named **Recipe Buddy Web** were configured with the user's authorization. Google reports the external app as **In production**, with the homepage and public privacy page configured. The client ID and secret are stored as production Secrets in Vercel, never in the repository. The canonical production callback is `https://recipe-buddy-wauul.vercel.app/api/auth/callback/google`; local callbacks for ports 3000 and 54873 are also registered. Live OAuth verification follows the Git deployment; this checkout has no local database configuration.
+The code supports new Google chef accounts. Existing password users can connect Google from Chef settings after signing in. Credentials login and seven-day JWT sessions remain available. A dedicated Google Cloud project, `recipe-buddy-510215`, and web OAuth client named **Recipe Buddy Web** were configured with the user's authorization. Google reports the external app as **In production**, with the homepage and public privacy page configured. The client ID and secret are stored as production Secrets in Vercel, never in the repository. The canonical production callback is `https://recipe-buddy-wauul.vercel.app/api/auth/callback/google`; local callbacks for ports 3000 and 54873 are also registered. Live OAuth verification follows the Git deployment; this checkout has no local database configuration.
 
 ## Configure the client
 
@@ -37,7 +37,7 @@ The migration command loads `.env.local`. Apply all migrations for a fresh local
 
 1. Create a new chef with **Continue with Google**. Confirm that re-login opens the same collection and that the chef can save a recipe.
 2. Log into an existing password account, then choose **Connect Google** in Chef settings. Sign out and log back in through both methods; recipes and chef ID should match.
-3. Attempt Google login while signed out with an email already used by a password account. It should automatically connect Google and sign into the same chef ID, preserving the collection, levels and password hash.
+3. Before connecting Google to an existing password account, try Google sign-in while signed out. It should direct you to sign in with your existing account and connect Google in Chef settings.
 4. Cancel Google consent, then retry or use email. Check redirect-URI mismatch and unavailable-provider behavior.
 5. Share a recipe between two chefs, submit a 1–5 apron review, update and remove it. Confirm the recipe’s chef score changes by twice the rating and that a chef cannot review their own recipe.
 6. Revoke the share and confirm subsequent review reads/writes are denied. A chef may still withdraw their own review through the DELETE endpoint without gaining access to the recipe.

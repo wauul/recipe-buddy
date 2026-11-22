@@ -25,12 +25,12 @@
     "ipaddr.js": "^2.2.0",
     "jose": "5.10.0",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.27",
+    "next": "^15.5.29",
     "next-auth": "^4.24.13",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "sharp": "0.35.5",
-    "zod": "^3.24.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
@@ -40,7 +40,7 @@
     "autoprefixer": "^10.4.20",
     "dotenv-cli": "^8.0.0",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^15.5.27",
+    "eslint-config-next": "^15.5.29",
     "postcss": "^8.5.28",
     "prisma": "6.19.0",
     "tailwindcss": "^3.4.17",

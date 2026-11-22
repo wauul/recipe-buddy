@@ -76,7 +76,7 @@ test('chef naming and OAuth errors preserve an existing account’s recovery pat
   assert.equal(defaultChefName(undefined, 'sam@example.com'), 'sam');
   assert.equal(defaultChefName(' ', 'sam@example.com'), 'sam');
   assert.equal(defaultChefName('x'.repeat(80), 'sam@example.com').length, 64);
-  assert.match(authErrorMessage('OAuthAccountNotLinked'), /already connected to another chef/);
+  assert.match(authErrorMessage('OAuthAccountNotLinked'), /Connect Google in Chef settings/);
   assert.match(authErrorMessage('AccessDenied'), /verified Google/);
   assert.equal(authErrorMessage(), '');
   assert.match(authErrorMessage('<unsafe>'), /Sign-in did not complete/);

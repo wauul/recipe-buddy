@@ -6,8 +6,14 @@ import { dirname, join } from 'node:path';
 const callbackHandler = require(
   join(dirname(require.resolve('next-auth')), 'core/lib/callback-handler.js'),
 ).default;
+process.env.GOOGLE_CLIENT_ID = 'test-client';
+process.env.GOOGLE_CLIENT_SECRET = 'test-secret';
+const { authOptions } = require('../src/lib/auth') as typeof import('../src/lib/auth');
+const configuredGoogle = authOptions.providers.find((provider) => provider.id === 'google');
+assert.ok(configuredGoogle);
+const provider = { ...configuredGoogle, ...configuredGoogle.options };
 
-test('Google email linking preserves the password chef and repeat sign-in uses the same identity', async () => {
+test('Google requires an authenticated chef to link an existing password account', async () => {
   const chef = {
     id: 'existing-chef',
     email: 'chef@gmail.com',
@@ -19,6 +25,7 @@ test('Google email linking preserves the password chef and repeat sign-in uses t
   let links = 0;
   const options = {
     adapter: {
+      getUser: async () => chef,
       getUserByAccount: async () => (linked ? chef : null),
       getUserByEmail: async (email: string) => (email === chef.email ? chef : null),
       createUser: async () => {
@@ -30,9 +37,9 @@ test('Google email linking preserves the password chef and repeat sign-in uses t
         return account;
       },
     },
-    provider: { allowDangerousEmailAccountLinking: true },
+    provider,
     session: { strategy: 'jwt' },
-    jwt: {},
+    jwt: { decode: async () => ({ sub: chef.id }) },
     events: {},
   };
   const params = {
@@ -40,7 +47,9 @@ test('Google email linking preserves the password chef and repeat sign-in uses t
     account: { type: 'oauth', provider: 'google', providerAccountId: 'google-subject' },
     options,
   };
-  const first = await callbackHandler(params);
+  await assert.rejects(callbackHandler(params), /Another account already exists/);
+  assert.equal(links, 0);
+  const first = await callbackHandler({ ...params, sessionToken: 'test-session' });
   assert.equal(first.user.id, chef.id);
   assert.equal(linked?.userId, chef.id);
   assert.equal(linked?.providerAccountId, 'google-subject');
@@ -59,7 +68,7 @@ test('a Google identity linked to another chef cannot be reassigned from a signe
         throw new Error('Must not reassign an existing identity');
       },
     },
-    provider: { allowDangerousEmailAccountLinking: true },
+    provider,
     session: { strategy: 'jwt' },
     jwt: { decode: async () => ({ sub: 'chef-a' }) },
     events: {},
